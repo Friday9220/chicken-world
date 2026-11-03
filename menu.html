@@ -6,8 +6,8 @@
   <title>Menu og bestilling – Chicken World Bjerringbro</title>
   <meta name="description" content="Hele menuen hos Chicken World i Bjerringbro: kylling, burgere, pizza, pita, bowls og frokosttilbud. Bestil til afhentning eller levering.">
   <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="styles.css?v=6">
-  <link rel="stylesheet" href="menu.css?v=6">
+  <link rel="stylesheet" href="styles.css?v=8">
+  <link rel="stylesheet" href="menu.css?v=8">
 </head>
 <body class="menu-page">
   <div class="frame">
@@ -107,6 +107,13 @@
             <input id="o-zip" name="zip" autocomplete="postal-code" placeholder="8850 Bjerringbro">
           </div>
           <p class="field__hint">Vi leverer inden for 8 km fra butikken.</p>
+          <fieldset class="field paybox" id="paybox">
+            <legend>Betaling ved levering</legend>
+            <div class="modes modes--pay">
+              <label class="mode"><input type="radio" name="pay" value="MobilePay"><span>MobilePay<small>Til chaufføren</small></span></label>
+              <label class="mode"><input type="radio" name="pay" value="Kontant"><span>Kontant<small>Til chaufføren</small></span></label>
+            </div>
+          </fieldset>
         </div>
         <div class="field">
           <label for="o-time" id="time-label">Afhentning</label>
@@ -120,7 +127,7 @@
         </div>
         <p class="form-error" id="formerror" hidden></p>
         <button class="btn btn--orange cart__go" type="submit">Gå videre til bestilling</button>
-        <p class="cart__fine">Du betaler, når du henter maden, eller når den bliver leveret.</p>
+        <p class="cart__fine">Du betaler, når du henter maden, eller med MobilePay eller kontant, når den bliver leveret.</p>
       </form>
     </div>
 
@@ -155,8 +162,8 @@
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <script src="site-config.js?v=6"></script>
-  <script src="menu-data.js?v=6"></script>
-  <script src="menu.js?v=6"></script>
+  <script src="site-config.js?v=8"></script>
+  <script src="menu-data.js?v=8"></script>
+  <script src="menu.js?v=8"></script>
 </body>
 </html>
