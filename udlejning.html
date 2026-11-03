@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="da">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Udlejning af slush ice- og candyflossmaskine – Chicken World Bjerringbro</title>
+  <meta name="description" content="Lej en slush ice-maskine (750,- pr. dag) eller en candyflossmaskine (500,- pr. dag) hos Chicken World i Bjerringbro. Afhentning på Banegårdspladsen 13.">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="menu.css">
+  <style>
+    .rhero { padding: 10px clamp(18px, 4vw, 48px) 40px; }
+    .rhero h1 { font-family: var(--display); font-weight: 400; line-height: .88; font-size: clamp(56px, 10vw, 150px); }
+    .rhero { display: grid; grid-template-columns: 1.4fr 1fr; gap: 32px; align-items: end; }
+    .rhero p { max-width: 620px; font-size: 18px; margin-top: 18px; }
+    .rhero img { border-radius: var(--radius); border: 2px solid var(--ink); aspect-ratio: 4/5; object-fit: cover; width: 100%; max-height: 420px; transform: rotate(2deg); }
+    @media (max-width: 860px) { .rhero { grid-template-columns: 1fr; } .rhero img { max-width: 320px; } }
+    .machines { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; padding: 0 clamp(18px, 4vw, 48px); }
+    .machine { background: #fff; border: 2px solid var(--ink); border-radius: var(--radius); padding: 28px; display: grid; gap: 14px; align-content: start; }
+    .machine h2 { font-family: var(--display); font-weight: 400; font-size: clamp(34px, 4vw, 52px); line-height: 1; }
+    .machine__price { font-family: var(--display); font-size: 44px; color: var(--red); line-height: 1; }
+    .machine__price small { font-family: var(--body); font-size: 16px; color: var(--muted); font-weight: 500; }
+    .machine ul { list-style: none; display: grid; }
+    .machine li { display: flex; justify-content: space-between; gap: 16px; padding: 9px 0; border-bottom: 1.5px dashed var(--cream-2); }
+    .machine li b { white-space: nowrap; font-variant-numeric: tabular-nums; }
+    .machine h3 { font-size: 13px; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); margin-top: 6px; }
+    .terms { margin: 22px clamp(18px, 4vw, 48px) 0; background: var(--frame); color: var(--cream); border-radius: var(--radius); padding: 28px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+    .terms b { display: block; font-family: var(--display); font-weight: 400; font-size: 26px; color: var(--yellow); }
+    .book { display: grid; grid-template-columns: 1fr 1.2fr; gap: 40px; padding: clamp(56px, 8vw, 100px) clamp(18px, 4vw, 48px); align-items: start; }
+    .book h2 { font-size: clamp(46px, 6vw, 88px); }
+    .book__side p { color: var(--muted); margin-top: 16px; max-width: 420px; }
+    .book form { display: grid; gap: 14px; background: #fff; border: 2px solid var(--ink); border-radius: var(--radius); padding: 24px; }
+    .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .checks { display: grid; gap: 8px; }
+    .check { display: flex; gap: 10px; align-items: center; font-weight: 500; }
+    .check input { width: 20px; height: 20px; accent-color: var(--red); }
+    .ok { background: var(--cream); border-radius: 16px; padding: 18px; }
+    .ok b { font-family: var(--display); font-weight: 400; font-size: 30px; display: block; }
+    @media (max-width: 860px) { .machines, .book, .terms { grid-template-columns: 1fr; } }
+    @media (max-width: 480px) { .row2 { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <header class="nav">
+      <a class="nav__logo" href="index.html" aria-label="Chicken World – til forsiden">
+        <span class="logo-word">Chicken <span class="o">World</span></span>
+        <small>Bjerringbro</small>
+      </a>
+      <nav class="nav__links" aria-label="Hovedmenu">
+        <a href="index.html">Forside</a>
+        <a href="menu.html">Menu</a>
+        <a href="udlejning.html" aria-current="page">Udlejning</a>
+        <a href="index.html#find-os">Find os</a>
+      </nav>
+      <a class="btn btn--orange nav__cta" href="#book">Book nu</a>
+    </header>
+
+    <main>
+      <section class="rhero">
+        <div>
+          <h1>Slush ice <span class="o">&amp;</span><br>candyfloss</h1>
+          <p>Lej vores maskiner til fødselsdagen, skolefesten eller firmaarrangementet. Du henter dem hos os i Bjerringbro, og vi viser dig, hvordan de virker.</p>
+        </div>
+        <img src="assets/img/cw-slush.jpg" alt="Slush ice-maskine med tre kamre i butikken">
+      </section>
+
+      <div class="machines">
+        <article class="machine">
+          <h2>Slush ice-maskine</h2>
+          <p>Tre kamre med hver 10 liter, så du kan have tre smage på én gang.</p>
+          <p class="machine__price">750,- <small>pr. dag</small></p>
+          <ul>
+            <li><span>Inkluderet: 3 × 2 liter sirup i rød, blå, cola eller grøn</span><b>0,-</b></li>
+          </ul>
+          <h3>Tilkøb</h3>
+          <ul>
+            <li><span>Opgradering til 3 × 10 liter sirup</span><b>450,-</b></li>
+            <li><span>Ekstra dunk sirup, 2 liter</span><b>100,-</b></li>
+            <li><span>Bægre, 50 stk. à 50 cl</span><b>100,-</b></li>
+            <li><span>Papirsugerør med ske, 125 stk.</span><b>75,-</b></li>
+          </ul>
+        </article>
+        <article class="machine">
+          <h2>Candyflossmaskine</h2>
+          <p>Laver op til 1,5 kg i timen, svarende til ca. 120 portioner. Kræver kun strøm og sukker.</p>
+          <p class="machine__price">500,- <small>pr. dag</small></p>
+          <h3>Tilkøb</h3>
+          <ul>
+            <li><span>Farvet sukker, 1 kg (flere farver)</span><b>85,-</b></li>
+            <li><span>Papirpinde, 50 stk.</span><b>75,-</b></li>
+            <li><span>Rengøring efter brug (eller gør det selv gratis)</span><b>250,-</b></li>
+            <li><span>Med medarbejder, der laver candyfloss</span><b>Ring for pris</b></li>
+          </ul>
+        </article>
+      </div>
+
+      <div class="terms">
+        <p><b>500,- i reservation</b>Trækkes fra lejeprisen, når du henter maskinen.</p>
+        <p><b>1.000,- i depositum</b>Pr. maskine. Du får dem tilbage, når maskinen kommer retur i god stand.</p>
+        <p><b>Afhentning</b>Banegårdspladsen 13, 8850 Bjerringbro.</p>
+      </div>
+
+      <section class="book" id="book">
+        <div class="book__side">
+          <h2 class="display">Book en <span class="o">maskine</span></h2>
+          <p>Send en forespørgsel, så ringer vi tilbage og bekræfter datoen. Du kan også ringe direkte på <a href="tel:+4521988850">21 98 88 50</a>.</p>
+        </div>
+        <form id="rentform" novalidate>
+          <div class="checks">
+            <label class="check"><input type="checkbox" name="m" value="Slush ice-maskine" data-price="750" checked> Slush ice-maskine (750,- pr. dag)</label>
+            <label class="check"><input type="checkbox" name="m" value="Candyflossmaskine" data-price="500"> Candyflossmaskine (500,- pr. dag)</label>
+          </div>
+          <div class="row2">
+            <div class="field"><label for="r-date">Dato</label><input id="r-date" type="date" required></div>
+            <div class="field"><label for="r-days">Antal dage</label><input id="r-days" type="number" min="1" max="14" value="1" required></div>
+          </div>
+          <div class="row2">
+            <div class="field"><label for="r-name">Navn</label><input id="r-name" autocomplete="name" required></div>
+            <div class="field"><label for="r-phone">Telefon</label><input id="r-phone" type="tel" inputmode="tel" autocomplete="tel" required></div>
+          </div>
+          <div class="field">
+            <label for="r-note">Hvad skal den bruges til? <small>(valgfri)</small></label>
+            <textarea id="r-note" rows="3" placeholder="Fx børnefødselsdag for 30 børn, ønsker blå og rød sirup"></textarea>
+          </div>
+          <p class="form-error" id="r-err" hidden></p>
+          <button class="btn btn--orange" type="submit">Send forespørgsel</button>
+          <div class="ok" id="r-ok" hidden><b>Tak for din forespørgsel!</b>Vi ringer til dig og bekræfter datoen. Dit nummer er <span id="r-id"></span>.</div>
+        </form>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="footer__cols">
+        <p><b>Chicken World</b><br>Banegårdspladsen 13, 8850 Bjerringbro</p>
+        <p><b>Kontakt</b><br><a href="tel:+4521988850">Tlf. 21 98 88 50</a></p>
+        <p><b>Åbent</b><br>Man–tors 10–20 · fre 10–21<br>Lør 12–21 · søn lukket</p>
+      </div>
+      <p class="footer__copy">© <span id="year">2026</span> Chicken World · <a href="handelsbetingelser.html">Handelsbetingelser</a></p>
+    </footer>
+  </div>
+
+  <script src="site-config.js"></script>
+  <script>
+  (function () {
+    var CFG = window.CW_CONFIG || {};
+    var $ = function (id) { return document.getElementById(id); };
+    $('year').textContent = new Date().getFullYear();
+    var d = new Date(); d.setDate(d.getDate() + 1);
+    $('r-date').min = d.toISOString().slice(0, 10);
+
+    // Forespørgslen lander på ordresiden i butikken som en "Udlejning"
+    $('rentform').addEventListener('submit', function (e) {
+      e.preventDefault();
+      var err = $('r-err');
+      var machines = Array.prototype.filter.call(document.querySelectorAll('input[name=m]'), function (c) { return c.checked; });
+      var date = $('r-date').value, days = Math.max(1, Math.min(14, Number($('r-days').value) || 1));
+      var name = $('r-name').value.trim(), phone = $('r-phone').value.trim();
+      var problem = !machines.length ? 'Vælg mindst én maskine.' :
+        !date ? 'Vælg en dato.' :
+        !name ? 'Skriv dit navn.' :
+        phone.replace(/\D/g, '').length < 8 ? 'Skriv et telefonnummer med 8 cifre.' : null;
+      if (problem) { err.textContent = problem; err.hidden = false; return; }
+      err.hidden = true;
+      var nice = new Date(date + 'T12:00').toLocaleDateString('da-DK', { weekday: 'short', day: 'numeric', month: 'short' });
+      var items = machines.map(function (c) {
+        return { qty: days, nr: '', name: c.value, desc: 'pr. dag', size: '', section: 'Udlejning', price: Number(c.dataset.price) };
+      });
+      var total = items.reduce(function (s, i) { return s + i.qty * i.price; }, 0);
+      var btn = this.querySelector('button[type=submit]');
+      if (!CFG.supabaseUrl) { err.textContent = 'Ring venligst på ' + CFG.phone + ' for at booke.'; err.hidden = false; return; }
+      var h = { 'Content-Type': 'application/json', apikey: CFG.supabaseKey };
+      if (/^eyJ/.test(CFG.supabaseKey)) h.Authorization = 'Bearer ' + CFG.supabaseKey;
+      btn.disabled = true; btn.textContent = 'Sender …';
+      fetch(CFG.supabaseUrl.replace(/\/$/, '') + '/rest/v1/rpc/place_order', {
+        method: 'POST', headers: h,
+        body: JSON.stringify({
+          p_name: name, p_phone: phone,
+          p_pickup: ('Udlejning ' + nice + (days > 1 ? ', ' + days + ' dage' : '')).slice(0, 60),
+          p_note: ('UDLEJNING – ring og bekræft. ' + $('r-note').value.trim()).slice(0, 500),
+          p_items: items, p_total: total
+        })
+      }).then(function (r) {
+        return r.json().then(function (b) { if (!r.ok) throw new Error(b && b.message || 'Fejl'); return b; });
+      }).then(function (id) {
+        $('r-id').textContent = '#' + id;
+        $('r-ok').hidden = false; btn.hidden = true;
+      }).catch(function () {
+        err.textContent = 'Forespørgslen kunne ikke sendes. Ring venligst på ' + CFG.phone + '.'; err.hidden = false;
+        btn.disabled = false; btn.textContent = 'Send forespørgsel';
+      });
+    });
+  })();
+  </script>
+</body>
+</html>

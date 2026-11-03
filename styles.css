@@ -1,4 +1,4 @@
-/* Dilan's Pizzeria & Café – forside */
+/* Chicken World – fælles design */
 
 /* Skrifttyper er indlejret (ingen opslag hos Google, hensyn til GDPR, og siden virker også åbnet direkte fra en mappe) */
 @font-face {
@@ -13,14 +13,20 @@
 }
 
 :root {
-  --frame: #1c2a1d;      /* mørkegrøn ramme */
-  --cream: #f5efe3;      /* baggrund */
-  --cream-2: #ebe2d0;
-  --ink: #1c2a1d;
-  --orange: #ef7b26;     /* logo-orange */
-  --orange-soft: #f8a868;
-  --green: #79b53a;      /* logo-grøn */
-  --muted: #5d6658;
+  --frame: #2b1710;      /* mørk, ristet brun ramme */
+  --cream: #fff5e3;      /* baggrund */
+  --cream-2: #f5e2c4;
+  --ink: #2b1710;
+  --red: #e0261b;        /* chili-rød */
+  --red-soft: #ffc23d;   /* gul accent på mørk bund */
+  --yellow: #ffb81c;     /* sprød, gylden */
+  --yellow-deep: #b86e00;/* gul til tekst på lys bund */
+  --open: #3fae4a;       /* "åbent nu"-prik */
+  /* gamle navne, så eksisterende regler virker */
+  --orange: var(--red);
+  --orange-soft: var(--red-soft);
+  --green: var(--yellow-deep);
+  --muted: #6b5a4e;
   --radius: 22px;
   --display: "Bagel Fat One", "Cooper Black", system-ui, sans-serif;
   --body: "DM Sans", system-ui, -apple-system, Segoe UI, sans-serif;
@@ -72,7 +78,7 @@ a { color: inherit; }
   font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: #fff;
 }
 .pill--orange { background: var(--orange); }
-.pill--green { background: var(--green); }
+.pill--green { background: var(--yellow); color: var(--ink); }
 
 /* Nav */
 .nav {
@@ -129,7 +135,8 @@ a { color: inherit; }
 .hero__lead { font-size: clamp(18px, 1.6vw, 22px); max-width: 560px; }
 .hero__actions { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
 .hero__hours { font-weight: 700; font-size: 14px; display: inline-flex; align-items: center; gap: 8px; color: var(--muted); }
-.dot { width: 9px; height: 9px; border-radius: 50%; background: var(--green); box-shadow: 0 0 0 4px rgba(121,181,58,.25); }
+.dot { width: 9px; height: 9px; border-radius: 50%; background: var(--open); box-shadow: 0 0 0 4px rgba(63,174,74,.25); }
+.dot.is-closed { background: var(--red); box-shadow: 0 0 0 4px rgba(224,38,27,.22); }
 
 /* Marquee */
 .marquee { position: relative; background: var(--frame); color: var(--cream); padding: 34px 0; overflow: hidden; }
@@ -267,6 +274,40 @@ a { color: inherit; }
   padding: 14px 20px; border-radius: 999px; box-shadow: 0 10px 24px rgba(0,0,0,.25);
 }
 
+/* Chicken World-tilføjelser */
+.y { color: var(--yellow); }
+.hero__word--sub { color: var(--red); font-size: clamp(64px, 15vw, 236px); margin-top: -.06em; animation-delay: .08s; }
+.hero__stage { margin-top: clamp(-150px, -11vw, -50px); }
+.hero__leg { filter: drop-shadow(0 26px 26px rgba(43,23,16,.35)); }
+.card__prices--one { grid-template-columns: 1fr; }
+.card__prices--two { grid-template-columns: 1fr 1fr; }
+.card__nr { color: var(--red); }
+
+.rent { background: var(--red); color: #fff; padding: clamp(56px, 8vw, 110px) clamp(18px, 4vw, 48px); }
+.rent__inner { display: grid; grid-template-columns: 1.3fr 1fr; gap: 40px; align-items: center; }
+.rent h2 { font-size: clamp(46px, 6.4vw, 96px); margin: 16px 0 20px; }
+.rent p { max-width: 520px; font-size: 18px; margin-bottom: 26px; }
+.rent .pill--orange { background: var(--ink); }
+.rent .btn--orange { background: var(--ink); border-color: var(--ink); }
+.rent .btn--orange:hover { background: #fff; color: var(--ink); border-color: #fff; }
+
+.hours { border-collapse: collapse; font-size: 17px; }
+.hours th { text-align: left; font-weight: 500; padding: 2px 18px 2px 0; }
+.hours td { font-weight: 700; font-variant-numeric: tabular-nums; }
+.footer__word { line-height: .82; font-size: clamp(64px, 15vw, 250px); }
+.hero__word:first-child { font-size: clamp(72px, 17vw, 270px); }
+.footer__copy a { color: inherit; }
+
+.gallery { padding-top: 0; }
+.gallery__grid { display: grid; grid-template-columns: repeat(4, 1fr); grid-auto-rows: clamp(140px, 17vw, 240px); grid-auto-flow: dense; gap: 14px; }
+.gallery__grid figure { border-radius: 18px; overflow: hidden; border: 2px solid var(--ink); }
+.gallery__grid img { width: 100%; height: 100%; object-fit: cover; transition: transform .6s ease; }
+.gallery__grid figure:hover img { transform: scale(1.05); }
+.g1, .g5, .g7 { grid-row: span 2; }
+.g4 { grid-column: span 2; }
+.rent__img { border-radius: var(--radius); overflow: hidden; border: 3px solid var(--ink); transform: rotate(2deg); }
+.rent__img img { width: 100%; aspect-ratio: 4/5; object-fit: cover; }
+
 /* Animationer */
 .reveal { opacity: 0; transform: translateY(40px); transition: opacity .8s ease, transform .8s cubic-bezier(.2,.8,.2,1); }
 .reveal.is-in { opacity: 1; transform: none; }
@@ -290,6 +331,10 @@ a { color: inherit; }
   .section__head { grid-template-columns: 1fr; }
 }
 @media (max-width: 760px) {
+  .rent__inner { grid-template-columns: 1fr; }
+  .rent__img { max-width: 360px; }
+  .gallery__grid { grid-template-columns: 1fr 1fr; grid-auto-rows: 150px; }
+  .g4 { grid-column: span 2; }
   .frame { margin: 8px; border-radius: 20px; }
   .nav__links { display: none; }
   .nav__cta { margin-left: auto; }

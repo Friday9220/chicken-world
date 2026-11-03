@@ -3,8 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Menu – Dilan's Pizzeria &amp; Café</title>
-  <meta name="description" content="Hele menuen hos Dilan's Pizzeria & Café på Jagtvej 92. Pizza, durum, burgere, pasta og meget mere. Bestil til afhentning.">
+  <title>Menu og bestilling – Chicken World Bjerringbro</title>
+  <meta name="description" content="Hele menuen hos Chicken World i Bjerringbro: kylling, burgere, pizza, pita, bowls og frokosttilbud. Bestil til afhentning eller levering.">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="menu.css">
 </head>
@@ -12,14 +13,14 @@
   <div class="frame">
 
     <header class="nav">
-      <a class="nav__logo" href="index.html" aria-label="Dilan's – til forsiden">
-        <span class="logo-word">Dilan<span class="o">'s</span></span>
-        <small>Pizzeria &amp; Café</small>
+      <a class="nav__logo" href="index.html" aria-label="Chicken World – til forsiden">
+        <span class="logo-word">Chicken <span class="o">World</span></span>
+        <small>Bjerringbro</small>
       </a>
       <nav class="nav__links" aria-label="Hovedmenu">
         <a href="index.html">Forside</a>
         <a href="menu.html" aria-current="page">Menu</a>
-        <a href="index.html#saadan">Takeaway</a>
+        <a href="udlejning.html">Udlejning</a>
         <a href="index.html#find-os">Find os</a>
       </nav>
       <a class="btn btn--orange nav__cta" href="#menu-list">Bestil her</a>
@@ -28,10 +29,9 @@
     <main>
       <section class="mhero">
         <h1 class="mhero__title">MENU<span class="o">EN</span></h1>
-        <img class="mhero__pizza" data-spin src="assets/img/pizza-parma.webp" alt="">
         <div class="mhero__info">
-          <p>Læg retterne i kurven, og bestil til afhentning på Jagtvej 92. Vi leverer ikke, men maden er klar, når du kommer.</p>
-          <p class="hero__hours"><span class="dot"></span> Åbent hver dag 11.00–23.00</p>
+          <p>Tryk på en pris for at lægge retten i kurven. Hent selv på Banegårdspladsen 13, eller få den leveret inden for 8 km mellem kl. 16 og 20.</p>
+          <p class="hero__hours" id="openstatus"><span class="dot"></span> Man–tors 10–20 · fre 10–21 · lør 12–21</p>
         </div>
       </section>
 
@@ -39,7 +39,7 @@
         <div class="catbar__inner">
           <label class="search">
             <span class="sr-only">Søg i menuen</span>
-            <input id="search" type="search" placeholder="Søg, fx kebab eller 28" autocomplete="off">
+            <input id="search" type="search" placeholder="Søg, fx burger eller kebab" autocomplete="off">
           </label>
           <nav class="catbar__links" id="catlinks" aria-label="Kategorier"></nav>
         </div>
@@ -51,11 +51,11 @@
 
     <footer class="footer">
       <div class="footer__cols">
-        <p><b>Dilan's Pizzeria &amp; Café</b><br>Jagtvej 92, 2200 København N</p>
-        <p><b>Kontakt</b><br>Tlf. 35 37 19 09</p>
-        <p><b>Åbent</b><br>Hver dag 11.00–23.00</p>
+        <p><b>Chicken World</b><br>Banegårdspladsen 13, 8850 Bjerringbro</p>
+        <p><b>Kontakt</b><br><a href="tel:+4521988850">Tlf. 21 98 88 50</a></p>
+        <p><b>Åbent</b><br>Man–tors 10–20 · fre 10–21<br>Lør 12–21 · søn lukket</p>
       </div>
-      <p class="footer__copy">© <span id="year">2026</span> Dilan's Pizzeria &amp; Café · CVR-nr. 39254387</p>
+      <p class="footer__copy">© <span id="year">2026</span> Chicken World · <a href="handelsbetingelser.html">Handelsbetingelser</a></p>
     </footer>
   </div>
 
@@ -76,6 +76,15 @@
     <div class="cart__step" id="step-cart">
       <ul class="cart__items" id="cartitems"></ul>
       <p class="cart__empty" id="cartempty">Kurven er tom. Tryk på en pris for at lægge en ret i kurven.</p>
+
+      <fieldset class="modes">
+        <legend class="sr-only">Afhentning eller levering</legend>
+        <label class="mode"><input type="radio" name="mode" value="afhentning" checked><span>Afhentning<small>Klar på ca. 20 min</small></span></label>
+        <label class="mode"><input type="radio" name="mode" value="levering"><span>Levering<small>Kl. 16–20 · 69,- · gratis over 199,-</small></span></label>
+      </fieldset>
+
+      <div class="cart__sum cart__sum--fee" id="feeline" hidden><span>Levering</span><b id="fee">69,-</b></div>
+      <p class="freehint" id="freehint" hidden></p>
       <div class="cart__sum"><span>I alt</span><b id="carttotal">0,-</b></div>
 
       <form class="cart__form" id="orderform" novalidate>
@@ -87,17 +96,29 @@
           <label for="o-phone">Telefon</label>
           <input id="o-phone" name="phone" type="tel" required autocomplete="tel" inputmode="tel">
         </div>
+        <div id="addrfields" hidden>
+          <div class="field">
+            <label for="o-street">Adresse</label>
+            <input id="o-street" name="street" autocomplete="street-address" placeholder="Vej og husnummer">
+          </div>
+          <div class="field">
+            <label for="o-zip">Postnummer og by</label>
+            <input id="o-zip" name="zip" autocomplete="postal-code" placeholder="8850 Bjerringbro">
+          </div>
+          <p class="field__hint">Vi leverer inden for 8 km fra butikken.</p>
+        </div>
         <div class="field">
-          <label for="o-time">Afhentning</label>
+          <label for="o-time" id="time-label">Afhentning</label>
           <select id="o-time" name="time"></select>
+          <p class="field__hint" id="lunchhint" hidden>Frokosttilbud kan kun bestilles mandag–fredag kl. 10–16.</p>
         </div>
         <div class="field">
           <label for="o-note">Bemærkning <small>(valgfri)</small></label>
-          <textarea id="o-note" name="note" rows="2" placeholder="Fx ekstra chili eller uden løg"></textarea>
+          <textarea id="o-note" name="note" rows="2" placeholder="Fx hummus i pitaen, ekstra chili eller dørkode"></textarea>
         </div>
         <p class="form-error" id="formerror" hidden></p>
         <button class="btn btn--orange cart__go" type="submit">Gå videre til bestilling</button>
-        <p class="cart__fine">Du betaler, når du henter maden. Vi leverer ikke.</p>
+        <p class="cart__fine">Du betaler, når du henter maden, eller når den bliver leveret.</p>
       </form>
     </div>
 
@@ -106,17 +127,17 @@
       <h3 class="display sent__title">Tak, <span id="sent-name"></span>!</h3>
       <p class="done__lead">Vi har modtaget din bestilling <b>nr. <span id="sent-id"></span></b>, og køkkenet går i gang.</p>
       <dl class="sent__facts">
-        <div><dt>Afhentning</dt><dd id="sent-time"></dd></div>
-        <div><dt>Adresse</dt><dd>Jagtvej 92, 2200 København N</dd></div>
-        <div><dt>Betaling</dt><dd>Når du henter, <span id="sent-total"></span></dd></div>
+        <div><dt>Hvornår</dt><dd id="sent-time"></dd></div>
+        <div><dt id="sent-where-label">Hentes på</dt><dd id="sent-where"></dd></div>
+        <div><dt>Betaling</dt><dd id="sent-pay"></dd></div>
       </dl>
-      <p class="cart__fine">Skal du ændre noget, så ring på 35 37 19 09 og oplys bestillingsnummeret.</p>
+      <p class="cart__fine">Skal du ændre noget, så ring på 21 98 88 50 og oplys bestillingsnummeret.</p>
       <button class="btn btn--ghost sent__new" id="sent-new" type="button">Ny bestilling</button>
     </div>
 
     <div class="cart__step" id="step-done" hidden>
       <p class="done__lead">Ring til os og læs din bestilling op, så går vi i gang med det samme.</p>
-      <a class="btn btn--orange done__call" href="tel:+4535371909">Ring 35 37 19 09</a>
+      <a class="btn btn--orange done__call" href="tel:+4521988850">Ring 21 98 88 50</a>
       <pre class="done__summary" id="summary"></pre>
       <div class="done__actions">
         <button class="btn btn--ghost" id="copy" type="button">Kopiér bestilling</button>

@@ -1,26 +1,30 @@
-// Dilan's – menu og kurv
+// Chicken World – menu, kurv og bestilling
 (function () {
-  var MENU = window.DILANS_MENU || [];
-  var PHONE = '35 37 19 09';
-  var OPEN = 11, CLOSE = 23; // åbent hver dag 11–23
-  var STORE_KEY = 'dilans-kurv';
-  var CFG = window.DILANS_CONFIG || {};
+  var MENU = window.CW_MENU || [];
+  var CFG = window.CW_CONFIG || {};
+  var HOURS = CFG.hours || {};
+  var DEL = CFG.delivery || { fee: 0, freeFrom: 0, from: 0, to: 0 };
+  var LUNCH = CFG.lunch || { days: [], from: 0, to: 0 };
+  var LAST = CFG.lastOrderMinutes || 15;
+  var PREP = CFG.prepMinutes || 20;
+  var STORE_KEY = 'cw-kurv';
   var ONLINE = !!(CFG.supabaseUrl && CFG.supabaseKey); // ellers: kunden ringer bestillingen ind
+  var DAYS = ['søndag', 'mandag', 'tirsdag', 'onsdag', 'torsdag', 'fredag', 'lørdag'];
 
   var $ = function (id) { return document.getElementById(id); };
   var kr = function (n) { return n.toLocaleString('da-DK') + ',-'; };
   var esc = function (s) {
     return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; });
   };
+  var pad = function (n) { return (n < 10 ? '0' : '') + n; };
+  var fmt = function (m) { return pad(Math.floor(m / 60)) + '.' + pad(m % 60); };
 
   document.getElementById('year').textContent = new Date().getFullYear();
 
   // ---------- Byg menuen ----------
-  // Lav priserne om til en ens liste: [{ label, price }]
   function pricesOf(sec, item) {
     var p = item[3];
     if (typeof p === 'number') return [{ label: '', price: p }];
-    if (Array.isArray(p[0])) return p.map(function (x) { return { label: x[0], price: x[1] }; });
     return p.map(function (v, i) { return { label: (sec.sizes || [])[i] || '', price: v }; })
             .filter(function (x) { return x.price != null; });
   }
@@ -29,7 +33,7 @@
   var byKey = {};
   MENU.forEach(function (sec) {
     var section = document.createElement('section');
-    section.className = 'msec msec--' + sec.id;
+    section.className = 'msec msec--' + sec.id + (sec.lunch ? ' msec--lunch' : '');
     section.id = sec.id;
     var html = '<div class="msec__head"><h2 class="display">' + esc(sec.title) + '</h2>' +
       (sec.note ? '<p>' + esc(sec.note) + '</p>' : '') + '</div><ul class="dishes">';
@@ -45,8 +49,8 @@
       pricesOf(sec, item).forEach(function (p) {
         var key = sec.id + '|' + i + '|' + p.label;
         byKey[key] = {
-          key: key, nr: nr, name: name, desc: desc, size: p.label, price: p.price,
-          section: sec.id === 'frokost' ? 'Frokosttilbud' : (sec.id === 'pizza' ? '' : sec.title)
+          key: key, nr: nr, name: name, desc: desc, size: p.label, price: p.price, lunch: !!sec.lunch,
+          section: sec.lunch ? 'Frokost' : (sec.id === 'pizza' || sec.id === 'kylling' || sec.id === 'burgere' ? '' : sec.title)
         };
         html += '<button class="price" type="button" data-key="' + esc(key) + '" aria-label="Læg ' +
           esc(name + (p.label ? ' ' + p.label : '')) + ' i kurven, ' + p.price + ' kr">' +
@@ -96,14 +100,41 @@
     document.querySelectorAll('.msec').forEach(function (s) { io.observe(s); });
   }
 
+  // ---------- Åbningstider ----------
+  function hoursOn(d) { return HOURS[d.getDay()] || null; }
+  function isLunch(d, mins) {
+    return LUNCH.days.indexOf(d.getDay()) !== -1 && mins >= LUNCH.from * 60 && mins < LUNCH.to * 60;
+  }
+  // Status i toppen: "Åbent nu til 20.00" / "Lukket – åbner i morgen kl. 10.00"
+  (function showOpen() {
+    var el = $('openstatus'); if (!el) return;
+    var now = new Date(), mins = now.getHours() * 60 + now.getMinutes(), h = hoursOn(now);
+    var open = h && mins >= h[0] * 60 && mins < h[1] * 60;
+    if (open) { el.innerHTML = '<span class="dot"></span> Åbent nu til kl. ' + fmt(h[1] * 60); return; }
+    var next = nextOpenDay(now, h && mins < h[0] * 60 ? 0 : 1);
+    el.innerHTML = '<span class="dot is-closed"></span> Lukket nu · åbner ' + next.label + ' kl. ' + fmt(next.hours[0] * 60);
+  })();
+  function nextOpenDay(from, offset) {
+    for (var i = offset; i < offset + 8; i++) {
+      var d = new Date(from.getFullYear(), from.getMonth(), from.getDate() + i);
+      var h = hoursOn(d);
+      if (h) return { date: d, hours: h, label: i === 0 ? 'i dag' : i === 1 ? 'i morgen' : DAYS[d.getDay()] };
+    }
+    return null;
+  }
+
   // ---------- Kurv ----------
   var cart = [];
   try { cart = JSON.parse(localStorage.getItem(STORE_KEY)) || []; } catch (e) { cart = []; }
   cart = cart.filter(function (l) { return byKey[l.key]; });
 
   function save() { try { localStorage.setItem(STORE_KEY, JSON.stringify(cart)); } catch (e) {} }
-  function total() { return cart.reduce(function (s, l) { return s + byKey[l.key].price * l.qty; }, 0); }
+  function subtotal() { return cart.reduce(function (s, l) { return s + byKey[l.key].price * l.qty; }, 0); }
   function count() { return cart.reduce(function (s, l) { return s + l.qty; }, 0); }
+  function isDelivery() { var r = document.querySelector('input[name=mode]:checked'); return r && r.value === 'levering'; }
+  function fee() { return isDelivery() && subtotal() < DEL.freeFrom ? DEL.fee : 0; }
+  function total() { return subtotal() + fee(); }
+  function hasLunch() { return cart.some(function (l) { return byKey[l.key].lunch; }); }
   function label(it) {
     return (it.nr ? it.nr + '. ' : '') + (it.section ? it.section + ': ' : '') + it.name + (it.size ? ' (' + it.size + ')' : '');
   }
@@ -112,8 +143,7 @@
     var n = count();
     $('cartbtn').hidden = n === 0;
     $('cartcount').textContent = n;
-    $('carttotal-btn').textContent = kr(total());
-    $('carttotal').textContent = kr(total());
+    $('carttotal-btn').textContent = kr(subtotal());
     $('cartempty').hidden = n > 0;
     $('orderform').querySelector('button[type=submit]').disabled = n === 0;
     $('cartitems').innerHTML = cart.map(function (l, i) {
@@ -125,6 +155,13 @@
         '<button type="button" data-q="1" data-i="' + i + '" aria-label="Tilføj én">+</button></div></div>' +
         '<div class="citem__price">' + kr(it.price * l.qty) + '</div></li>';
     }).join('');
+    var del = isDelivery();
+    $('feeline').hidden = !del || n === 0;
+    $('fee').textContent = fee() ? kr(fee()) : 'Gratis';
+    var missing = DEL.freeFrom - subtotal();
+    $('freehint').hidden = !del || n === 0 || missing <= 0;
+    $('freehint').textContent = 'Køb for ' + kr(missing) + ' mere, så er leveringen gratis.';
+    $('carttotal').textContent = kr(total());
     save();
   }
 
@@ -156,6 +193,7 @@
     l.qty += Number(b.dataset.q);
     if (l.qty <= 0) cart.splice(Number(b.dataset.i), 1);
     render();
+    fillTimes();
   });
 
   // Åbn og luk kurven
@@ -178,21 +216,61 @@
   $('scrim').addEventListener('click', closeCart);
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeCart(); });
 
-  // Afhentningstider i kvarterer inden for åbningstiden
+  // Afhentning eller levering
+  document.querySelectorAll('input[name=mode]').forEach(function (r) {
+    r.addEventListener('change', function () {
+      var del = isDelivery();
+      $('addrfields').hidden = !del;
+      $('time-label').textContent = del ? 'Levering' : 'Afhentning';
+      render(); fillTimes();
+    });
+  });
+
+  // Tidspunkter i kvarterer inden for åbningstiden (og leveringstiden)
   function fillTimes() {
     var sel = $('o-time'), keep = sel.value;
     var now = new Date();
-    var opts = [];
     var mins = now.getHours() * 60 + now.getMinutes();
-    var open = OPEN * 60, close = CLOSE * 60;
-    var pad = function (n) { return (n < 10 ? '0' : '') + n; };
-    var fmt = function (m) { return pad(Math.floor(m / 60)) + '.' + pad(m % 60); };
-    if (mins >= open && mins < close - 20) opts.push(['asap', 'Hurtigst muligt (ca. 20 min)']);
-    var start = Math.max(open + 15, Math.ceil((mins + 30) / 15) * 15);
-    var prefix = '';
-    if (mins >= close - 30) { start = open + 15; prefix = 'I morgen '; }
-    for (var m = start; m <= close - 15; m += 15) opts.push([fmt(m), prefix + 'kl. ' + fmt(m)]);
+    var del = isDelivery();
+    var lunchOnly = hasLunch();
+    var opts = [];
+    var day = nextOpenDay(now, 0);
+
+    function windowFor(h) {
+      var from = h[0] * 60, to = h[1] * 60 - LAST;
+      if (del) { from = Math.max(from, DEL.from * 60); to = Math.min(to, DEL.to * 60); }
+      return [from, to];
+    }
+    // I dag, hvis der stadig kan bestilles
+    var today = hoursOn(now), w;
+    if (today) {
+      w = windowFor(today);
+      var lead = del ? (DEL.minutes || 45) : PREP;
+      if (mins >= w[0] - lead && mins + lead <= w[1] && mins >= today[0] * 60) {
+        var asapLunch = isLunch(now, mins + lead);
+        if (!lunchOnly || asapLunch) opts.push(['asap', 'Hurtigst muligt (ca. ' + lead + ' min)']);
+      }
+      for (var m = Math.max(w[0], Math.ceil((mins + lead + 10) / 15) * 15); m <= w[1]; m += 15) {
+        if (lunchOnly && !isLunch(now, m)) continue;
+        opts.push([fmt(m), 'I dag kl. ' + fmt(m)]);
+      }
+    }
+    // Ellers næste åbningsdag
+    if (!opts.length) {
+      var next = nextOpenDay(now, 1);
+      if (next) {
+        w = windowFor(next.hours);
+        var cap = next.label.charAt(0).toUpperCase() + next.label.slice(1);
+        for (var m2 = w[0] + 15; m2 <= w[1]; m2 += 15) {
+          if (lunchOnly && !isLunch(next.date, m2)) continue;
+          opts.push([fmt(m2), cap + ' kl. ' + fmt(m2)]);
+        }
+      }
+    }
     sel.innerHTML = opts.map(function (o) { return '<option value="' + o[0] + '">' + o[1] + '</option>'; }).join('');
+    sel.disabled = !opts.length;
+    if (!opts.length) sel.innerHTML = '<option value="">Ingen ledige tider</option>';
+    $('lunchhint').hidden = !lunchOnly;
     if (keep && opts.some(function (o) { return o[0] === keep; })) sel.value = keep;
   }
 
@@ -205,26 +283,35 @@
   $('orderform').addEventListener('submit', function (e) {
     e.preventDefault();
     var name = $('o-name').value.trim(), phone = $('o-phone').value.trim();
+    var street = $('o-street').value.trim(), zip = $('o-zip').value.trim();
+    var del = isDelivery();
     var err = $('formerror');
     if (!count()) return;
-    if (!name || phone.replace(/\D/g, '').length < 8) {
-      err.textContent = !name ? 'Skriv dit navn, så vi ved, hvem maden er til.' : 'Skriv et telefonnummer med 8 cifre, så vi kan ringe, hvis der er spørgsmål.';
-      err.hidden = false;
-      (!name ? $('o-name') : $('o-phone')).focus();
+    var problem = null, focus = null;
+    if (!name) { problem = 'Skriv dit navn, så vi ved, hvem maden er til.'; focus = 'o-name'; }
+    else if (phone.replace(/\D/g, '').length < 8) { problem = 'Skriv et telefonnummer med 8 cifre, så vi kan ringe, hvis der er spørgsmål.'; focus = 'o-phone'; }
+    else if (del && street.length < 4) { problem = 'Skriv vejnavn og husnummer, så vi kan finde dig.'; focus = 'o-street'; }
+    else if (del && !/^\d{4}/.test(zip)) { problem = 'Skriv postnummer og by, fx 8850 Bjerringbro.'; focus = 'o-zip'; }
+    else if (!$('o-time').value) { problem = 'Der er ingen ledige tider lige nu. Ring til os på ' + CFG.phone + '.'; }
+    if (problem) {
+      err.textContent = problem; err.hidden = false;
+      if (focus) $(focus).focus();
       return;
     }
     err.hidden = true;
     var sel = $('o-time');
-    var pickup = sel.options[sel.selectedIndex].text;
-    if (ONLINE) { sendOrder(name, phone, pickup, $('o-note').value.trim()); return; }
+    var when = (del ? 'Levering ' : 'Afhentning ') + sel.options[sel.selectedIndex].text.replace(/^(I dag|Hurtigst)/, function (s) { return s.toLowerCase(); });
+    var note = $('o-note').value.trim();
+    var address = del ? street + ', ' + zip : '';
+    if (ONLINE) { sendOrder(name, phone, when, address, note); return; }
     var lines = cart.map(function (l) {
       var it = byKey[l.key];
       return l.qty + ' × ' + label(it) + '   ' + kr(it.price * l.qty);
     });
-    var note = $('o-note').value.trim();
+    if (fee()) lines.push('Levering   ' + kr(fee()));
     $('summary').textContent =
-      'Bestilling til afhentning\n' +
-      'Navn: ' + name + '\nTelefon: ' + phone + '\nAfhentning: ' + sel.options[sel.selectedIndex].text + '\n\n' +
+      'Bestilling hos Chicken World\n' +
+      'Navn: ' + name + '\nTelefon: ' + phone + '\n' + when + (address ? '\nAdresse: ' + address : '') + '\n\n' +
       lines.join('\n') + '\n\nI alt: ' + kr(total()) + (note ? '\n\nBemærkning: ' + note : '');
     showStep('done');
     cartEl.scrollTop = 0;
@@ -237,20 +324,24 @@
     if (/^eyJ/.test(CFG.supabaseKey)) h.Authorization = 'Bearer ' + CFG.supabaseKey;
     return h;
   }
-  // ---------- Send bestillingen til restauranten ----------
-  function sendOrder(name, phone, pickup, note) {
+  // ---------- Send bestillingen til butikken ----------
+  // Levering sendes med i "pickup" (fx "Levering i dag kl. 17.30"), og adressen står øverst i bemærkningen,
+  // så ordresiden i butikken kan vise den tydeligt.
+  function sendOrder(name, phone, when, address, note) {
     var btn = $('orderform').querySelector('button[type=submit]');
     var err = $('formerror');
     var items = cart.map(function (l) {
       var it = byKey[l.key];
       return { qty: l.qty, nr: it.nr, name: it.name, desc: it.desc, size: it.size, section: it.section, price: it.price };
     });
+    if (fee()) items.push({ qty: 1, nr: '', name: 'Levering', desc: '', size: '', section: '', price: fee() });
     var sum = total();
+    var fullNote = (address ? 'Adresse: ' + address + (note ? '\n' : '') : '') + note;
     btn.disabled = true; btn.textContent = 'Sender bestilling …';
     fetch(CFG.supabaseUrl.replace(/\/$/, '') + '/rest/v1/rpc/place_order', {
       method: 'POST',
       headers: apiHeaders(),
-      body: JSON.stringify({ p_name: name, p_phone: phone, p_pickup: pickup, p_note: note, p_items: items, p_total: sum })
+      body: JSON.stringify({ p_name: name, p_phone: phone, p_pickup: when.slice(0, 60), p_note: fullNote.slice(0, 500), p_items: items, p_total: sum })
     }).then(function (r) {
       return r.json().then(function (body) {
         if (!r.ok) throw new Error(body && body.message ? body.message : 'Fejl');
@@ -259,15 +350,17 @@
     }).then(function (id) {
       $('sent-name').textContent = name.split(' ')[0];
       $('sent-id').textContent = id;
-      $('sent-time').textContent = pickup;
-      $('sent-total').textContent = kr(sum);
+      $('sent-time').textContent = when;
+      $('sent-where-label').textContent = address ? 'Leveres til' : 'Hentes på';
+      $('sent-where').textContent = address || CFG.address;
+      $('sent-pay').textContent = (address ? 'Ved levering, ' : 'Når du henter, ') + kr(sum);
       cart = []; render();
       $('o-note').value = '';
       showStep('sent');
       cartEl.scrollTop = 0;
     }).catch(function (e) {
       err.textContent = 'Bestillingen kunne ikke sendes' + (e.message && e.message !== 'Fejl' && e.message !== 'Failed to fetch' ? ': ' + e.message : '') +
-        '. Prøv igen, eller ring på 35 37 19 09.';
+        '. Prøv igen, eller ring på ' + CFG.phone + '.';
       err.hidden = false;
     }).then(function () {
       btn.textContent = 'Send bestilling'; btn.disabled = count() === 0;
@@ -290,17 +383,8 @@
     cart = []; render(); closeCart(); toast('Kurven er tømt');
   });
 
-  if (ONLINE) {
-    $('orderform').querySelector('button[type=submit]').textContent = 'Send bestilling';
-    document.querySelector('.cart__fine').textContent = 'Du betaler, når du henter maden. Vi leverer ikke.';
-  }
+  if (ONLINE) $('orderform').querySelector('button[type=submit]').textContent = 'Send bestilling';
   render();
-
-  // Pizzaen i toppen drejer, når man scroller
-  var spin = document.querySelector('[data-spin]');
-  if (spin && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    window.addEventListener('scroll', function () { spin.style.rotate = (window.scrollY * 0.25) + 'deg'; }, { passive: true });
-  }
 
   // Hop direkte til en kategori fra et link, fx menu.html#pizza
   if (location.hash && document.querySelector(location.hash)) {
