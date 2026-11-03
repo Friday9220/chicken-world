@@ -6,8 +6,8 @@
   <title>Menu og bestilling – Chicken World Bjerringbro</title>
   <meta name="description" content="Hele menuen hos Chicken World i Bjerringbro: kylling, burgere, pizza, pita, bowls og frokosttilbud. Bestil til afhentning eller levering.">
   <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="styles.css?v=3">
-  <link rel="stylesheet" href="menu.css?v=3">
+  <link rel="stylesheet" href="styles.css?v=4">
+  <link rel="stylesheet" href="menu.css?v=4">
 </head>
 <body class="menu-page">
   <div class="frame">
@@ -81,7 +81,7 @@
       <fieldset class="modes">
         <legend class="sr-only">Afhentning eller levering</legend>
         <label class="mode"><input type="radio" name="mode" value="afhentning" checked><span>Afhentning<small>Klar på ca. 20 min</small></span></label>
-        <label class="mode"><input type="radio" name="mode" value="levering"><span>Levering<small>Kl. 16–20 · 69,- · gratis over 199,-</small></span></label>
+        <label class="mode"><input type="radio" name="mode" value="levering"><span>Levering<small>I dag kl. 16–20 · 69,- · gratis over 199,-</small></span></label>
       </fieldset>
 
       <div class="cart__sum cart__sum--fee" id="feeline" hidden><span>Levering</span><b id="fee">69,-</b></div>
@@ -111,6 +111,7 @@
         <div class="field">
           <label for="o-time" id="time-label">Afhentning</label>
           <select id="o-time" name="time"></select>
+          <p class="form-error" id="delclosed" hidden>Levering kan kun bestilles samme dag mellem kl. 16 og 20. Vælg afhentning i stedet, eller kom tilbage i morgen.</p>
           <p class="field__hint" id="lunchhint" hidden>Frokosttilbud kan kun bestilles mandag–fredag kl. 10–16.</p>
         </div>
         <div class="field">
@@ -150,8 +151,8 @@
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <script src="site-config.js?v=3"></script>
-  <script src="menu-data.js?v=3"></script>
-  <script src="menu.js?v=3"></script>
+  <script src="site-config.js?v=4"></script>
+  <script src="menu-data.js?v=4"></script>
+  <script src="menu.js?v=4"></script>
 </body>
 </html>

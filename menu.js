@@ -255,8 +255,8 @@
         opts.push([fmt(m), 'I dag kl. ' + fmt(m)]);
       }
     }
-    // Ellers næste åbningsdag
-    if (!opts.length) {
+    // Ellers næste åbningsdag (kun afhentning; levering kan kun bestilles til samme dag)
+    if (!opts.length && !del) {
       var next = nextOpenDay(now, 1);
       if (next) {
         w = windowFor(next.hours);
@@ -269,7 +269,8 @@
     }
     sel.innerHTML = opts.map(function (o) { return '<option value="' + o[0] + '">' + o[1] + '</option>'; }).join('');
     sel.disabled = !opts.length;
-    if (!opts.length) sel.innerHTML = '<option value="">Ingen ledige tider</option>';
+    if (!opts.length) sel.innerHTML = '<option value="">' + (del ? 'Levering er lukket for i dag' : 'Ingen ledige tider') + '</option>';
+    $('delclosed').hidden = !(del && !opts.length);
     $('lunchhint').hidden = !lunchOnly;
     if (keep && opts.some(function (o) { return o[0] === keep; })) sel.value = keep;
   }
@@ -292,7 +293,10 @@
     else if (phone.replace(/\D/g, '').length < 8) { problem = 'Skriv et telefonnummer med 8 cifre, så vi kan ringe, hvis der er spørgsmål.'; focus = 'o-phone'; }
     else if (del && street.length < 4) { problem = 'Skriv vejnavn og husnummer, så vi kan finde dig.'; focus = 'o-street'; }
     else if (del && !/^\d{4}/.test(zip)) { problem = 'Skriv postnummer og by, fx 8850 Bjerringbro.'; focus = 'o-zip'; }
-    else if (!$('o-time').value) { problem = 'Der er ingen ledige tider lige nu. Ring til os på ' + CFG.phone + '.'; }
+    else if (!$('o-time').value) {
+      problem = del ? 'Levering kan kun bestilles samme dag mellem kl. ' + DEL.from + ' og ' + DEL.to + '. Vælg afhentning, eller bestil levering i morgen.'
+                    : 'Der er ingen ledige tider lige nu. Ring til os på ' + CFG.phone + '.';
+    }
     if (problem) {
       err.textContent = problem; err.hidden = false;
       if (focus) $(focus).focus();
