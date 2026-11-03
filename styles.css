@@ -86,7 +86,11 @@ a { color: inherit; }
   padding: 22px clamp(18px, 4vw, 48px);
   position: relative; z-index: 5;
 }
-.nav__logo { text-decoration: none; display: flex; flex-direction: column; line-height: 1; }
+.nav__logo { text-decoration: none; display: flex; align-items: center; gap: 10px; line-height: 1; }
+.nav__words { display: flex; flex-direction: column; }
+.nav__mark { width: 46px; height: 46px; flex: none; transition: transform .3s ease; }
+.logo-word, .nav__cta { white-space: nowrap; }
+.nav__logo:hover .nav__mark { transform: rotate(-10deg) scale(1.05); }
 .logo-word { font-family: var(--display); font-size: 30px; color: var(--green); }
 .nav__logo small { font-weight: 700; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--orange); margin-top: 4px; }
 .nav__links { display: flex; gap: 8px; margin-left: auto; }
@@ -277,8 +281,12 @@ a { color: inherit; }
 /* Chicken World-tilføjelser */
 .y { color: var(--yellow); }
 .hero__word--sub { color: var(--red); font-size: clamp(64px, 15vw, 236px); margin-top: -.06em; animation-delay: .08s; }
-.hero__stage { margin-top: clamp(-150px, -11vw, -50px); }
-.hero__leg { filter: drop-shadow(0 26px 26px rgba(43,23,16,.35)); }
+.hero__stage { margin-top: clamp(-40px, -2vw, -10px); height: clamp(230px, 25vw, 360px); }
+.hero__blob { width: clamp(260px, 34vw, 480px); }
+.hero__leg { width: clamp(190px, 21vw, 290px); margin-left: calc(clamp(190px, 21vw, 290px) / -2); }
+.hero__leg { filter: drop-shadow(0 26px 26px rgba(43,23,16,.3)); }
+.hero__leg { animation: drop 1.1s .3s cubic-bezier(.2,.9,.25,1.15) both, wobble 4s 1.5s ease-in-out infinite; transform-origin: 50% 80%; }
+@keyframes wobble { 0%, 100% { rotate: 0deg; } 25% { rotate: -5deg; } 75% { rotate: 5deg; } }
 .card__prices--one { grid-template-columns: 1fr; }
 .card__prices--two { grid-template-columns: 1fr 1fr; }
 .card__nr { color: var(--red); }
@@ -345,6 +353,10 @@ a { color: inherit; }
   .call-fab { display: inline-block; }
   .hero__stage { margin-top: -18px; height: 270px; }
   .hero__pizza { width: 240px; margin-left: -120px; }
+  .hero__leg { width: 190px; margin-left: -95px; }
+  .hero__stage { height: 230px; }
+  .logo-word { font-size: 24px; }
+  .nav__mark { width: 38px; height: 38px; }
   .hero__badge { right: 0; top: -10%; width: 84px; }
   .footer__pizza { width: 64px; right: 0; bottom: auto; top: 0; }
   .box { width: 220px; margin-left: -110px; margin-top: -110px; }
