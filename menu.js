@@ -361,6 +361,7 @@
       cart = []; render();
       $('o-note').value = '';
       showStep('sent');
+      watchOrder(id, phone, !!address);
       cartEl.scrollTop = 0;
     }).catch(function (e) {
       err.textContent = 'Bestillingen kunne ikke sendes' + (e.message && e.message !== 'Fejl' && e.message !== 'Failed to fetch' ? ': ' + e.message : '') +
@@ -370,6 +371,45 @@
       btn.textContent = 'Send bestilling'; btn.disabled = count() === 0;
     });
   }
+  // ---------- Følg ordren: venter → accepteret (med tid) / afvist ----------
+  var watchTimer = null;
+  function watchOrder(id, phone, delivery) {
+    clearTimeout(watchTimer);
+    var box = $('sent-status'), txt = $('sent-status-text'), started = Date.now();
+    box.hidden = false; box.dataset.state = 'wait';
+    txt.textContent = 'Venter på, at butikken accepterer din bestilling …';
+    function set(state, text) { box.dataset.state = state; txt.textContent = text; }
+    function poll() {
+      fetch(CFG.supabaseUrl.replace(/\/$/, '') + '/rest/v1/rpc/order_status', {
+        method: 'POST', headers: apiHeaders(), body: JSON.stringify({ p_id: id, p_phone: phone })
+      }).then(function (r) {
+        if (!r.ok) throw new Error('mangler');
+        return r.json();
+      }).then(function (rows) {
+        var o = rows && rows[0];
+        if (!o) throw new Error('mangler');
+        var done = false;
+        if (o.status === 'ny') set('wait', 'Venter på, at butikken accepterer din bestilling …');
+        else if (o.status === 'afvist' || o.status === 'annulleret') {
+          set('no', 'Desværre kan vi ikke tage imod bestillingen lige nu. Ring på ' + CFG.phone + ', hvis du har spørgsmål.');
+          done = true;
+        } else if (o.status === 'klar') {
+          set('ok', delivery ? 'Din mad er på vej!' : 'Din mad er klar til afhentning!'); done = true;
+        } else if (o.status === 'afhentet') { set('ok', 'Tak for din bestilling. Velbekomme!'); done = true; }
+        else if (o.eta_minutes && o.accepted_at) {
+          var at = new Date(new Date(o.accepted_at).getTime() + o.eta_minutes * 60000);
+          set('ok', 'Accepteret! ' + (delivery ? 'Vi leverer ca. kl. ' : 'Din mad er klar ca. kl. ') + fmt(at.getHours() * 60 + at.getMinutes()) + ' (om ' + o.eta_minutes + ' min).');
+        } else set('ok', 'Accepteret! Køkkenet er gået i gang.');
+        if (!done && Date.now() - started < 3 * 3600000) watchTimer = setTimeout(poll, 5000);
+      }).catch(function (e) {
+        // Databasen er ikke opdateret endnu, eller ordren kan ikke findes: skjul status
+        if (e.message === 'mangler') { box.hidden = true; return; }
+        watchTimer = setTimeout(poll, 10000); // netværksfejl: prøv igen
+      });
+    }
+    poll();
+  }
+
   $('sent-new').addEventListener('click', function () { closeCart(); showStep('cart'); });
   $('copy').addEventListener('click', function () {
     var text = $('summary').textContent;
