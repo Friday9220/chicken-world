@@ -227,9 +227,6 @@ a { color: inherit; }
   box-shadow: inset 0 0 0 10px var(--cream-2), 0 14px 0 #c9bea8;
   display: grid; place-items: center;
 }
-.box__lid::before {
-  content: ""; position: absolute; inset: 18%; border-radius: 50%; background: var(--orange); opacity: .95;
-}
 .box__lid span { position: relative; font-family: var(--display); font-size: clamp(42px, 5vw, 60px); color: var(--frame); transform: rotate(-10deg); }
 .lunch__shadow {
   position: absolute; left: 50%; bottom: 10px; transform: translateX(-50%);
@@ -307,17 +304,14 @@ a { color: inherit; }
 .footer__copy a { color: inherit; }
 
 .gallery { padding-top: 0; }
-.gallery__grid { display: grid; grid-template-columns: repeat(4, 1fr); grid-auto-rows: clamp(140px, 17vw, 240px); grid-auto-flow: dense; gap: 14px; }
-.gallery__grid figure { border-radius: 18px; overflow: hidden; border: 2px solid var(--ink); }
+.gallery__grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+.gallery__grid figure { border-radius: 18px; overflow: hidden; border: 2px solid var(--ink); aspect-ratio: 3 / 4; }
 .gallery__grid img { width: 100%; height: 100%; object-fit: cover; transition: transform .6s ease; }
 .gallery__grid figure:hover img { transform: scale(1.05); }
-.g1, .g5, .g7 { grid-row: span 2; }
-.g4 { grid-column: span 2; }
 .rent__img { border-radius: var(--radius); overflow: hidden; border: 3px solid var(--ink); transform: rotate(2deg); }
 .rent__img img { width: 100%; aspect-ratio: 4/5; object-fit: cover; }
 
-.box__lid::before { display: none; }
-.box__lid img { position: relative; width: 66%; transform: rotate(-10deg); }
+.box__lid img { position: relative; z-index: 1; width: 66%; transform: rotate(-10deg); }
 
 /* Animationer */
 .reveal { opacity: 0; transform: translateY(40px); transition: opacity .8s ease, transform .8s cubic-bezier(.2,.8,.2,1); }
@@ -344,8 +338,7 @@ a { color: inherit; }
 @media (max-width: 760px) {
   .rent__inner { grid-template-columns: 1fr; }
   .rent__img { max-width: 360px; }
-  .gallery__grid { grid-template-columns: 1fr 1fr; grid-auto-rows: 150px; }
-  .g4 { grid-column: span 2; }
+  .gallery__grid { grid-template-columns: 1fr 1fr; gap: 10px; }
   .frame { margin: 8px; border-radius: 20px; }
   .nav__links { display: none; }
   .nav__cta { margin-left: auto; }
