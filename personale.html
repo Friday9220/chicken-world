@@ -6,7 +6,7 @@
   <meta name="robots" content="noindex, nofollow">
   <meta name="referrer" content="no-referrer">
   <title>Ordrer – Chicken World</title>
-  <link rel="stylesheet" href="styles.css?v=4">
+  <link rel="stylesheet" href="styles.css?v=5">
   <style>
     body { background: var(--frame); }
     [hidden] { display: none !important; }
@@ -63,6 +63,12 @@
     .gate h1 { font-family: var(--display); font-weight: 400; font-size: 44px; }
     .err { background: #c0392b; color: #fff; border-radius: 12px; padding: 10px 14px; font-weight: 700; margin-bottom: 14px; }
 
+    .decide { display: grid; gap: 8px; background: #fff; border-radius: 14px; padding: 10px; }
+    .decide__lbl { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+    .eta { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+    .eta .act { padding: 14px 2px; font-size: 16px; white-space: nowrap; border-radius: 14px; }
+    .decide > .act { width: 100%; }
+    .o-eta { font-weight: 700; font-size: 17px; background: var(--yellow); border-radius: 10px; padding: 8px 10px; }
     .tag { display: inline-block; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; border-radius: 999px; padding: 3px 9px; margin-bottom: 4px; }
     .tag--lev { background: var(--red); color: #fff; }
     .tag--hent { background: var(--cream-2); color: var(--ink); }
@@ -120,7 +126,7 @@
   </div>
   <div id="bon" aria-hidden="true"></div>
 
-  <script src="site-config.js?v=4"></script>
+  <script src="site-config.js?v=5"></script>
   <script>
   (function () {
     var CFG = window.CW_CONFIG || {};
@@ -219,7 +225,6 @@
       return (it.nr ? it.nr + '. ' : '') + (it.section ? it.section + ': ' : '') + (it.name || '') + (it.size ? ' (' + it.size + ')' : '');
     }
     var NEXT = {
-      'ny':     [['i gang', 'Start', 'act--go'], ['annulleret', 'Annullér', 'act--ghost']],
       'i gang': [['klar', 'Klar', 'act--go'], ['ny', 'Tilbage', 'act--ghost']],
       'klar':   [['afhentet', 'Udleveret', 'act--go'], ['i gang', 'Tilbage', 'act--ghost']]
     };
@@ -240,12 +245,30 @@
       var items = (o.items || []).map(function (it) {
         return '<li><span class="q">' + esc(it.qty) + ' ×</span><span>' + esc(itemLabel(it)) + '</span><span class="p">' + kr((it.price || 0) * (it.qty || 1)) + '</span></li>';
       }).join('');
-      var acts = (NEXT[o.status] || []).map(function (a) {
+      var acts = o.status === 'ny' ? '' : (NEXT[o.status] || []).map(function (a) {
         var warn = a[0] === 'annulleret' && confirmCancel === o.id;
         return '<button class="act ' + (warn ? 'act--warn' : a[2]) + '" data-id="' + o.id + '" data-to="' + a[0] + '">' + (warn ? 'Tryk igen for at annullere' : a[1]) + '</button>';
       }).join('') + '<button class="act act--print" data-print="' + o.id + '" title="Print bon">Print</button>';
       var k = kind(o), n = splitNote(o);
       var when = String(o.pickup || '').replace(/^(Levering|Afhentning|Udlejning)\s*/i, '');
+      // Nye ordrer: accepter med 15/30/45/60 min (eller til det valgte tidspunkt) – eller afvis
+      var decide = '';
+      if (o.status === 'ny') {
+        var asap = /hurtigst/i.test(when);
+        var rejecting = confirmCancel === o.id;
+        decide = '<div class="decide">' +
+          (k !== 'udl'
+            ? '<span class="decide__lbl">Accepter – ' + (k === 'lev' ? 'leveres' : 'klar') + ' om:</span><div class="eta">' +
+              [15, 30, 45, 60].map(function (m) { return '<button class="act act--go" data-accept="' + o.id + '" data-min="' + m + '">' + m + ' min</button>'; }).join('') + '</div>' +
+              (asap ? '' : '<button class="act act--go" data-accept="' + o.id + '">Accepter til tiden (' + esc(when) + ')</button>')
+            : '<button class="act act--go" data-accept="' + o.id + '">Accepter (' + esc(when) + ')</button>') +
+          '<button class="act ' + (rejecting ? 'act--warn' : 'act--ghost') + '" data-reject="' + o.id + '">' + (rejecting ? 'Tryk igen for at afvise' : 'Afvis') + '</button>' +
+          '</div>';
+      }
+      var promise = '';
+      if (o.accepted_at && o.eta_minutes) {
+        promise = '<div class="o-eta">Lovet kl. ' + clock(new Date(new Date(o.accepted_at).getTime() + o.eta_minutes * 60000)) + ' (' + o.eta_minutes + ' min)</div>';
+      }
       return '<article class="order' + (fresh ? ' is-new' : '') + '">' +
         '<div class="o-head"><span class="o-id">#' + o.id + '</span>' +
         '<span class="o-pick"><span class="tag tag--' + k + '">' + KIND[k] + '</span><br>' + esc(when) + '<small>Bestilt kl. ' + clock(o.created_at) + ' · ' + ago(o.created_at) + '</small></span></div>' +
@@ -253,6 +276,7 @@
         (n.addr ? '<div class="o-addr">📍 <a href="https://maps.google.com/?q=' + encodeURIComponent(n.addr) + '" target="_blank" rel="noopener">' + esc(n.addr) + '</a></div>' : '') +
         '<ul class="o-items">' + items + '</ul>' +
         (n.note ? '<div class="o-note">' + esc(n.note) + '</div>' : '') +
+        promise + decide +
         '<div class="o-foot"><span class="o-total">' + kr(o.total) + '</span><div class="acts">' + acts + '</div></div>' +
         '</article>';
     }
@@ -311,7 +335,7 @@
       $('c-done').textContent = groups.done.length;
       $('l-done').innerHTML = groups.done.map(function (o) {
         return '<li><b>#' + o.id + '</b> ' + esc(o.name) + ' · ' + kr(o.total) + ' <span class="st">' + esc(o.status) + '</span>' +
-          '<button data-id="' + o.id + '" data-to="klar">Fortryd</button></li>';
+          '<button data-id="' + o.id + '" data-to="' + (o.status === 'afvist' || o.status === 'annulleret' ? 'ny' : 'klar') + '">Fortryd</button></li>';
       }).join('');
       var n = groups['ny'].length;
       document.title = (n ? '(' + n + ') ' : '') + 'Ordrer – Chicken World';
@@ -348,6 +372,36 @@
     document.addEventListener('click', function (e) {
       var pb = e.target.closest('button[data-print]');
       if (pb) { var po = orders.filter(function (x) { return x.id === Number(pb.dataset.print); })[0]; if (po) printOrder(po); return; }
+      // Accepter / afvis. Virker også før databasen er opdateret (så uden tid).
+      var ab = e.target.closest('button[data-accept]');
+      if (ab) {
+        var aid = Number(ab.dataset.accept), min = ab.dataset.min ? Number(ab.dataset.min) : null;
+        confirmCancel = null;
+        var ao = orders.filter(function (x) { return x.id === aid; })[0];
+        if (ao) { ao.status = 'i gang'; ao.eta_minutes = min; ao.accepted_at = new Date().toISOString(); draw([]); }
+        rpc('staff_accept', { p_key: KEY, p_id: aid, p_minutes: min }).catch(function (err) {
+          if (/staff_accept|function|schema/i.test(err.message)) return rpc('staff_set_status', { p_key: KEY, p_id: aid, p_status: 'i gang' });
+          throw err;
+        }).catch(function (err) {
+          $('err').textContent = 'Kunne ikke acceptere ordren: ' + err.message; $('err').hidden = false;
+        }).then(load);
+        return;
+      }
+      var rb = e.target.closest('button[data-reject]');
+      if (rb) {
+        var rid = Number(rb.dataset.reject);
+        if (confirmCancel !== rid) { confirmCancel = rid; draw([]); return; }
+        confirmCancel = null;
+        var ro = orders.filter(function (x) { return x.id === rid; })[0];
+        if (ro) { ro.status = 'afvist'; draw([]); }
+        rpc('staff_reject', { p_key: KEY, p_id: rid }).catch(function (err) {
+          if (/staff_reject|function|schema/i.test(err.message)) return rpc('staff_set_status', { p_key: KEY, p_id: rid, p_status: 'annulleret' });
+          throw err;
+        }).catch(function (err) {
+          $('err').textContent = 'Kunne ikke afvise ordren: ' + err.message; $('err').hidden = false;
+        }).then(load);
+        return;
+      }
       var b = e.target.closest('button[data-to]');
       if (!b) return;
       var id = Number(b.dataset.id), to = b.dataset.to;

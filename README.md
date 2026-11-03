@@ -14,6 +14,7 @@ Siden er ren HTML, CSS og JavaScript uden byggetrin. Åbn `index.html` i en brow
 - `styles.css` – design (farver øverst under `:root`)
 - `script.js` – åbent/lukket-status og scroll-animationer
 - `supabase/opsaetning.sql` – opsætning af databasen (nøglen indsættes før kørsel)
+- `supabase/opdatering-accepter-afvis.sql` – kør én gang efter opsætningen: køkkenet kan acceptere (15/30/45/60 min) eller afvise, og kunden ser status
 - `assets/img/` – billeder fra butikken og logo
 
 ## Sådan kommer ordrerne ind
