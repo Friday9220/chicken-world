@@ -6,7 +6,7 @@
   <meta name="robots" content="noindex, nofollow">
   <meta name="referrer" content="no-referrer">
   <title>Ordrer – Chicken World</title>
-  <link rel="stylesheet" href="styles.css?v=6">
+  <link rel="stylesheet" href="styles.css?v=7">
   <style>
     body { background: var(--frame); }
     [hidden] { display: none !important; }
@@ -115,7 +115,7 @@
       <div class="board">
         <section class="col col--ny"><h2>Nye <b id="c-ny">0</b></h2><div class="list" id="l-ny"></div></section>
         <section class="col"><h2>I gang <b id="c-gang">0</b></h2><div class="list" id="l-gang"></div></section>
-        <section class="col"><h2>Klar <b id="c-klar">0</b></h2><div class="list" id="l-klar"></div></section>
+        <section class="col"><h2>Klar / på vej <b id="c-klar">0</b></h2><div class="list" id="l-klar"></div></section>
       </div>
 
       <details class="done">
@@ -126,7 +126,7 @@
   </div>
   <div id="bon" aria-hidden="true"></div>
 
-  <script src="site-config.js?v=6"></script>
+  <script src="site-config.js?v=7"></script>
   <script>
   (function () {
     var CFG = window.CW_CONFIG || {};
@@ -245,7 +245,11 @@
       var items = (o.items || []).map(function (it) {
         return '<li><span class="q">' + esc(it.qty) + ' ×</span><span>' + esc(itemLabel(it)) + '</span><span class="p">' + kr((it.price || 0) * (it.qty || 1)) + '</span></li>';
       }).join('');
+      var isLev = kind(o) === 'lev';
       var acts = o.status === 'ny' ? '' : (NEXT[o.status] || []).map(function (a) {
+        // Levering: "Klar" hedder "På vej", og "Udleveret" hedder "Leveret"
+        if (isLev && a[0] === 'klar' && o.status === 'i gang') a = ['klar', 'På vej', a[2]];
+        if (isLev && a[0] === 'afhentet') a = ['afhentet', 'Leveret', a[2]];
         var warn = a[0] === 'annulleret' && confirmCancel === o.id;
         return '<button class="act ' + (warn ? 'act--warn' : a[2]) + '" data-id="' + o.id + '" data-to="' + a[0] + '">' + (warn ? 'Tryk igen for at annullere' : a[1]) + '</button>';
       }).join('') + '<button class="act act--print" data-print="' + o.id + '" title="Print bon">Print</button>';
@@ -271,7 +275,7 @@
       }
       return '<article class="order' + (fresh ? ' is-new' : '') + '">' +
         '<div class="o-head"><span class="o-id">#' + o.id + '</span>' +
-        '<span class="o-pick"><span class="tag tag--' + k + '">' + KIND[k] + '</span><br>' + esc(when) + '<small>Bestilt kl. ' + clock(o.created_at) + ' · ' + ago(o.created_at) + '</small></span></div>' +
+        '<span class="o-pick"><span class="tag tag--' + k + '">' + KIND[k] + (k === 'lev' && o.status === 'klar' ? ' · på vej' : '') + '</span><br>' + esc(when) + '<small>Bestilt kl. ' + clock(o.created_at) + ' · ' + ago(o.created_at) + '</small></span></div>' +
         '<div class="o-who"><b>' + esc(o.name) + '</b> · <a href="tel:' + esc(o.phone) + '">' + esc(o.phone) + '</a></div>' +
         (n.addr ? '<div class="o-addr">📍 <a href="https://maps.google.com/?q=' + encodeURIComponent(n.addr) + '" target="_blank" rel="noopener">' + esc(n.addr) + '</a></div>' : '') +
         '<ul class="o-items">' + items + '</ul>' +
@@ -334,7 +338,7 @@
       });
       $('c-done').textContent = groups.done.length;
       $('l-done').innerHTML = groups.done.map(function (o) {
-        return '<li><b>#' + o.id + '</b> ' + esc(o.name) + ' · ' + kr(o.total) + ' <span class="st">' + esc(o.status) + '</span>' +
+        return '<li><b>#' + o.id + '</b> ' + esc(o.name) + ' · ' + kr(o.total) + ' <span class="st">' + esc(o.status === 'afhentet' && kind(o) === 'lev' ? 'leveret' : o.status) + '</span>' +
           '<button data-id="' + o.id + '" data-to="' + (o.status === 'afvist' || o.status === 'annulleret' ? 'ny' : 'klar') + '">Fortryd</button></li>';
       }).join('');
       var n = groups['ny'].length;
