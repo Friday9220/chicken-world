@@ -6,8 +6,8 @@
   <title>Menu og bestilling – Chicken World Bjerringbro</title>
   <meta name="description" content="Hele menuen hos Chicken World i Bjerringbro: kylling, burgere, pizza, pita, bowls og frokosttilbud. Bestil til afhentning eller levering.">
   <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="styles.css?v=5">
-  <link rel="stylesheet" href="menu.css?v=5">
+  <link rel="stylesheet" href="styles.css?v=6">
+  <link rel="stylesheet" href="menu.css?v=6">
 </head>
 <body class="menu-page">
   <div class="frame">
@@ -125,12 +125,12 @@
     </div>
 
     <div class="cart__step" id="step-sent" hidden>
-      <div class="sent__badge" aria-hidden="true">✓</div>
+      <div class="sent__badge" id="sent-badge" data-state="wait" aria-hidden="true">…</div>
       <h3 class="display sent__title">Tak, <span id="sent-name"></span>!</h3>
       <p class="done__lead">Vi har modtaget din bestilling <b>nr. <span id="sent-id"></span></b>.</p>
       <div class="sent__status" id="sent-status" data-state="wait" role="status" aria-live="polite">
         <span class="sent__pulse" aria-hidden="true"></span>
-        <span id="sent-status-text">Venter på, at butikken accepterer din bestilling …</span>
+        <span class="sent__msg"><b id="sent-status-title">Afventer bekræftelse</b><span id="sent-status-text">Butikken har modtaget din bestilling og bekræfter den om et øjeblik.</span></span>
       </div>
       <dl class="sent__facts">
         <div><dt>Hvornår</dt><dd id="sent-time"></dd></div>
@@ -155,8 +155,8 @@
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <script src="site-config.js?v=5"></script>
-  <script src="menu-data.js?v=5"></script>
-  <script src="menu.js?v=5"></script>
+  <script src="site-config.js?v=6"></script>
+  <script src="menu-data.js?v=6"></script>
+  <script src="menu.js?v=6"></script>
 </body>
 </html>

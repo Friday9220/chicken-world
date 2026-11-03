@@ -304,7 +304,7 @@
     }
     err.hidden = true;
     var sel = $('o-time');
-    var when = (del ? 'Levering ' : 'Afhentning ') + sel.options[sel.selectedIndex].text.replace(/^(I dag|Hurtigst)/, function (s) { return s.toLowerCase(); });
+    var when = (del ? 'Levering ' : 'Afhentning ') + sel.options[sel.selectedIndex].text.replace(/^./, function (s) { return s.toLowerCase(); });
     var note = $('o-note').value.trim();
     var address = del ? street + ', ' + zip : '';
     if (ONLINE) { sendOrder(name, phone, when, address, note); return; }
@@ -361,6 +361,7 @@
       cart = []; render();
       $('o-note').value = '';
       showStep('sent');
+      saveOrder({ id: id, phone: phone, first: name.split(' ')[0], when: when, address: address, pay: $('sent-pay').textContent, at: Date.now() });
       watchOrder(id, phone, !!address);
       cartEl.scrollTop = 0;
     }).catch(function (e) {
@@ -371,14 +372,24 @@
       btn.textContent = 'Send bestilling'; btn.disabled = count() === 0;
     });
   }
-  // ---------- Følg ordren: venter → accepteret (med tid) / afvist ----------
-  var watchTimer = null;
+  // ---------- Følg ordren: afventer bekræftelse → bekræftet (med tid) / afvist ----------
+  // Ordren gemmes i browseren, så status står der stadig, hvis kunden genindlæser siden.
+  var watchTimer = null, ORDER_KEY = 'cw-ordre';
+  function saveOrder(o) { try { localStorage.setItem(ORDER_KEY, JSON.stringify(o)); } catch (e) {} }
+  function forgetOrder() { try { localStorage.removeItem(ORDER_KEY); } catch (e) {} }
+  function clockOf(d) { return fmt(d.getHours() * 60 + d.getMinutes()); }
   function watchOrder(id, phone, delivery) {
     clearTimeout(watchTimer);
-    var box = $('sent-status'), txt = $('sent-status-text'), started = Date.now();
-    box.hidden = false; box.dataset.state = 'wait';
-    txt.textContent = 'Venter på, at butikken accepterer din bestilling …';
-    function set(state, text) { box.dataset.state = state; txt.textContent = text; }
+    var box = $('sent-status'), started = Date.now();
+    box.hidden = false;
+    function set(state, title, text) {
+      box.dataset.state = state;
+      $('sent-status-title').textContent = title;
+      $('sent-status-text').textContent = text;
+      $('sent-badge').textContent = state === 'no' ? '✕' : state === 'wait' ? '…' : '✓';
+      $('sent-badge').dataset.state = state;
+    }
+    set('wait', 'Afventer bekræftelse', 'Butikken har modtaget din bestilling og bekræfter den om et øjeblik. Siden opdaterer sig selv.');
     function poll() {
       fetch(CFG.supabaseUrl.replace(/\/$/, '') + '/rest/v1/rpc/order_status', {
         method: 'POST', headers: apiHeaders(), body: JSON.stringify({ p_id: id, p_phone: phone })
@@ -388,29 +399,45 @@
       }).then(function (rows) {
         var o = rows && rows[0];
         if (!o) throw new Error('mangler');
-        var done = false;
-        if (o.status === 'ny') set('wait', 'Venter på, at butikken accepterer din bestilling …');
-        else if (o.status === 'afvist' || o.status === 'annulleret') {
-          set('no', 'Desværre kan vi ikke tage imod bestillingen lige nu. Ring på ' + CFG.phone + ', hvis du har spørgsmål.');
+        var done = false, where = delivery ? 'leveret ved din adresse' : 'klar til afhentning';
+        if (o.status === 'ny') {
+          set('wait', 'Afventer bekræftelse', 'Butikken har modtaget din bestilling og bekræfter den om et øjeblik. Siden opdaterer sig selv.');
+        } else if (o.status === 'afvist' || o.status === 'annulleret') {
+          set('no', 'Bestillingen er afvist', 'Desværre kan vi ikke tage imod bestillingen lige nu. Ring på ' + CFG.phone + ', hvis du har spørgsmål.');
           done = true;
         } else if (o.status === 'klar') {
-          set('ok', delivery ? 'Din mad er på vej!' : 'Din mad er klar til afhentning!'); done = true;
-        } else if (o.status === 'afhentet') { set('ok', 'Tak for din bestilling. Velbekomme!'); done = true; }
-        else if (o.eta_minutes && o.accepted_at) {
+          set('ok', delivery ? 'Din mad er på vej' : 'Din mad er klar', delivery ? 'Chaufføren er på vej til din adresse.' : 'Du kan hente den nu på ' + CFG.address + '.');
+          done = true;
+        } else if (o.status === 'afhentet') {
+          set('ok', 'Tak for din bestilling', 'Velbekomme!'); done = true;
+        } else if (o.eta_minutes && o.accepted_at) {
           var at = new Date(new Date(o.accepted_at).getTime() + o.eta_minutes * 60000);
-          set('ok', 'Accepteret! ' + (delivery ? 'Vi leverer ca. kl. ' : 'Din mad er klar ca. kl. ') + fmt(at.getHours() * 60 + at.getMinutes()) + ' (om ' + o.eta_minutes + ' min).');
-        } else set('ok', 'Accepteret! Køkkenet er gået i gang.');
+          set('ok', 'Bekræftet · kl. ' + clockOf(at), 'Din mad er ' + where + ' ca. kl. ' + clockOf(at) + ' (' + o.eta_minutes + ' min efter bekræftelsen).');
+        } else {
+          set('ok', 'Bekræftet', 'Din mad er ' + where + ' ' + $('sent-time').textContent.replace(/^(Levering|Afhentning)\s*/i, '') + '.');
+        }
+        if (done) setTimeout(forgetOrder, 30 * 60000);
         if (!done && Date.now() - started < 3 * 3600000) watchTimer = setTimeout(poll, 5000);
       }).catch(function (e) {
-        // Databasen er ikke opdateret endnu, eller ordren kan ikke findes: skjul status
-        if (e.message === 'mangler') { box.hidden = true; return; }
+        if (e.message === 'mangler') { box.hidden = true; forgetOrder(); return; }
         watchTimer = setTimeout(poll, 10000); // netværksfejl: prøv igen
       });
     }
     poll();
   }
+  // Vis status igen efter genindlæsning (op til 4 timer efter bestillingen)
+  (function resume() {
+    var o = null;
+    try { o = JSON.parse(localStorage.getItem(ORDER_KEY) || 'null'); } catch (e) {}
+    if (!o || !o.id || Date.now() - o.at > 4 * 3600000) { forgetOrder(); return; }
+    $('sent-name').textContent = o.first; $('sent-id').textContent = o.id; $('sent-time').textContent = o.when;
+    $('sent-where-label').textContent = o.address ? 'Leveres til' : 'Hentes på';
+    $('sent-where').textContent = o.address || CFG.address; $('sent-pay').textContent = o.pay;
+    showStep('sent'); openCart();
+    watchOrder(o.id, o.phone, !!o.address);
+  })();
 
-  $('sent-new').addEventListener('click', function () { closeCart(); showStep('cart'); });
+  $('sent-new').addEventListener('click', function () { clearTimeout(watchTimer); forgetOrder(); closeCart(); showStep('cart'); });
   $('copy').addEventListener('click', function () {
     var text = $('summary').textContent;
     var done = function () { toast('Bestillingen er kopieret'); };
