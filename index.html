@@ -3,8 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Dilan's Pizzeria &amp; Café – Jagtvej 92, København N</title>
-  <meta name="description" content="Dilan's Pizzeria & Café på Jagtvej 92. Pizza, durum, burgere og hjemmebagt brød. Takeaway eller spis hos os. Åbent hver dag 11–23.">
+  <title>Chicken World – Bjerringbros take-away med kylling, burgere og pizza</title>
+  <meta name="description" content="Chicken World på Banegårdspladsen 13 i Bjerringbro. Dansk kylling marineret i 24 timer, burgere, pizza, pita og bowls. Bestil online til afhentning eller levering.">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -12,14 +13,14 @@
 
     <!-- NAVIGATION -->
     <header class="nav">
-      <a class="nav__logo" href="#top" aria-label="Dilan's – til toppen">
-        <span class="logo-word">Dilan<span class="o">'s</span></span>
-        <small>Pizzeria &amp; Café</small>
+      <a class="nav__logo" href="#top" aria-label="Chicken World – til toppen">
+        <span class="logo-word">Chicken <span class="o">World</span></span>
+        <small>Bjerringbro</small>
       </a>
       <nav class="nav__links" aria-label="Hovedmenu">
         <a href="menu.html">Menu</a>
-        <a href="#saadan">Takeaway</a>
-        <a href="#saadan">Spis her</a>
+        <a href="#levering">Levering</a>
+        <a href="udlejning.html">Udlejning</a>
         <a href="#find-os">Find os</a>
       </nav>
       <a class="btn btn--orange nav__cta" href="menu.html">Bestil her</a>
@@ -29,33 +30,34 @@
 
       <!-- HERO -->
       <section class="hero">
-        <h1 class="hero__title" aria-label="Dilan's">
-          <span class="hero__word">DILAN'S</span>
+        <h1 class="hero__title" aria-label="Chicken World">
+          <span class="hero__word">CHICKEN</span>
+          <span class="hero__word hero__word--sub">WORLD</span>
         </h1>
         <div class="hero__stage">
           <div class="hero__blob"></div>
-          <img class="hero__pizza" data-spin src="assets/img/pizza-jalapeno.webp" alt="Pizza med oksekød, jalapeños og rødløg">
+          <img class="hero__pizza hero__leg" data-spin src="assets/img/drumstick.svg" alt="">
         </div>
         <div class="hero__bottom">
-          <p class="hero__lead reveal">Pizza, durum og hjemmebagt brød på Jagtvej.<br>Tag den med hjem, eller bliv og spis hos os.</p>
+          <p class="hero__lead reveal">Dansk kylling, marineret i mindst 24 timer.<br>Burgere, pizza, pita og bowls lige ved Bjerringbro Station.</p>
           <div class="hero__actions reveal">
             <a class="btn btn--orange" href="menu.html">Bestil her</a>
             <a class="btn btn--ghost" href="menu.html">Se menuen</a>
           </div>
-          <p class="hero__hours reveal"><span class="dot"></span> Åbent hver dag 11.00–23.00</p>
+          <p class="hero__hours reveal" id="openstatus"><span class="dot"></span> Man–tors 10–20 · fre 10–21 · lør 12–21</p>
         </div>
       </section>
 
       <!-- MARQUEE -->
       <section class="marquee" aria-hidden="true">
         <div class="marquee__row" data-dir="-1">
-          <span>PIZZA</span><span class="o">TAKEAWAY</span><span>PIZZA</span><span class="g">SPIS HER</span><span>PIZZA</span><span class="o">TAKEAWAY</span><span>PIZZA</span><span class="g">SPIS HER</span>
+          <span>KYLLING</span><span class="o">BURGER</span><span>PIZZA</span><span class="y">PITA</span><span>KYLLING</span><span class="o">BURGER</span><span>PIZZA</span><span class="y">PITA</span>
         </div>
         <div class="marquee__row" data-dir="1">
-          <span class="g">DURUM</span><span>BURGER</span><span class="o">DILAN'S</span><span>FROKOST</span><span class="g">DURUM</span><span>BURGER</span><span class="o">DILAN'S</span><span>FROKOST</span>
+          <span class="y">BOWLS</span><span>TAKEAWAY</span><span class="o">LEVERING</span><span>FROKOST</span><span class="y">BOWLS</span><span>TAKEAWAY</span><span class="o">LEVERING</span><span>FROKOST</span>
         </div>
         <div class="marquee__row" data-dir="-1">
-          <span>TAKEAWAY</span><span class="o">PIZZA</span><span>SPIS HER</span><span class="g">PIZZA</span><span>TAKEAWAY</span><span class="o">PIZZA</span><span>SPIS HER</span><span class="g">PIZZA</span>
+          <span>CRISPY</span><span class="o">GRILLET</span><span>HJEMMELAVET</span><span class="y">DANSK</span><span>CRISPY</span><span class="o">GRILLET</span><span>HJEMMELAVET</span><span class="y">DANSK</span>
         </div>
       </section>
 
@@ -63,78 +65,65 @@
       <section class="section menu" id="menu">
         <div class="section__head">
           <h2 class="display reveal">Husets <span class="o">favoritter</span></h2>
-          <p class="reveal">Over 60 pizzaer – i almindelig, deep pan eller familie­størrelse. Her er et par af dem, gæsterne kommer tilbage efter.</p>
+          <p class="reveal">Kyllingen er dansk og marineret i mindst et døgn. Dressinger og krydderiblandinger laver vi selv, og oksekødet kommer fra Himmerland.</p>
         </div>
         <div class="cards">
           <article class="card reveal">
-            <span class="card__nr">5</span>
-            <h3>Margherita</h3>
-            <p>Tomatsauce og ost</p>
-            <dl class="card__prices">
-              <div><dt>Alm.</dt><dd>75,-</dd></div>
-              <div><dt>Deep</dt><dd>90,-</dd></div>
-              <div><dt>Fam.</dt><dd>140,-</dd></div>
-            </dl>
+            <span class="card__nr">½</span>
+            <h3>½ kylling fra ovnen</h3>
+            <p>Med coleslaw, agurkesalat og pommes frites eller ris</p>
+            <dl class="card__prices card__prices--one"><div><dt>Pris</dt><dd>110,-</dd></div></dl>
           </article>
           <article class="card reveal">
-            <span class="card__nr">3</span>
-            <h3>København</h3>
-            <p>Tomatsauce, ost, pepperoni og champignon</p>
-            <dl class="card__prices">
-              <div><dt>Alm.</dt><dd>85,-</dd></div>
-              <div><dt>Deep</dt><dd>100,-</dd></div>
-              <div><dt>Fam.</dt><dd>161,-</dd></div>
-            </dl>
+            <span class="card__nr">B</span>
+            <h3>Bearnaise burger</h3>
+            <p>150 g oksebøf, løg, pickles, ost og bearnaise</p>
+            <dl class="card__prices card__prices--one"><div><dt>Pris</dt><dd>79,-</dd></div></dl>
+            <span class="card__tag">Populær</span>
           </article>
           <article class="card reveal">
-            <span class="card__nr">28</span>
-            <h3>Dilan</h3>
-            <p>Tomatsauce, ost, tun og rejer</p>
-            <dl class="card__prices">
-              <div><dt>Alm.</dt><dd>90,-</dd></div>
-              <div><dt>Deep</dt><dd>108,-</dd></div>
-              <div><dt>Fam.</dt><dd>170,-</dd></div>
+            <span class="card__nr">P</span>
+            <h3>Crispy chicken pita</h3>
+            <p>Feta, syltede løg og kål, karrydressing og basilikumpesto</p>
+            <dl class="card__prices card__prices--one"><div><dt>Pris</dt><dd>79,-</dd></div></dl>
+          </article>
+          <article class="card reveal">
+            <span class="card__nr">4</span>
+            <h3>Chicken World Special</h3>
+            <p>Pizza med oksekød, kylling, pepperoni, kebab og majs</p>
+            <dl class="card__prices card__prices--two">
+              <div><dt>Alm.</dt><dd>79,-</dd></div>
+              <div><dt>Fam.</dt><dd>129,-</dd></div>
             </dl>
             <span class="card__tag">Husets egen</span>
           </article>
-          <article class="card reveal">
-            <span class="card__nr">22</span>
-            <h3>Amore</h3>
-            <p>Tomatsauce, ost, pepperoni, skinke og bacon</p>
-            <dl class="card__prices">
-              <div><dt>Alm.</dt><dd>97,-</dd></div>
-              <div><dt>Deep</dt><dd>112,-</dd></div>
-              <div><dt>Fam.</dt><dd>184,-</dd></div>
-            </dl>
-          </article>
         </div>
         <p class="menu__more reveal">
-          Durum, burgere, salater, pasta, a la carte og børnemenu.
+          Kyllingemenuer, bowls, ruller, grill, børnemenu og snackkurve.
           <a href="menu.html">Se hele menuen →</a>
         </p>
       </section>
 
-      <!-- TAKEAWAY / SPIS HER -->
-      <section class="section ways" id="saadan">
-        <h2 class="display reveal">Hent den.<br><span class="o">Eller bliv</span> og spis.</h2>
+      <!-- AFHENTNING / LEVERING -->
+      <section class="section ways" id="levering">
+        <h2 class="display reveal">Hent den.<br><span class="o">Eller få den</span> bragt.</h2>
         <div class="ways__grid">
           <article class="way reveal">
-            <div class="way__img"><img src="assets/img/pizza-boks.jpg" alt="Pizza med parmaskinke og cherrytomater i en takeaway-æske" loading="lazy"></div>
+            <div class="way__img"><img src="assets/img/cw-mad.jpg" alt="Pita med grillet kylling og chilisauce" loading="lazy"></div>
             <div class="way__body">
-              <span class="pill pill--orange">Takeaway</span>
+              <span class="pill pill--orange">Afhentning</span>
               <h3>Bestil online, og den er klar</h3>
-              <p>Bestil her på siden, og vælg hvornår du vil hente. Så står maden klar, når du kommer forbi Jagtvej 92, og du slipper for at ringe.</p>
+              <p>Læg maden i kurven, og vælg hvornår du vil hente. Så står den klar på Banegårdspladsen 13, når du kommer.</p>
               <a class="btn btn--orange way__cta" href="menu.html">Bestil her</a>
-              <p class="note">Vi tilbyder kun afhentning, ikke levering.</p>
             </div>
           </article>
           <article class="way reveal">
-            <div class="way__img"><img src="assets/img/restaurant-fuld.jpg" alt="Gæster spiser i restauranten" loading="lazy"></div>
+            <div class="way__img"><img src="assets/img/cw-levering.jpg" alt="Burgere i takeaway-bakker" loading="lazy"></div>
             <div class="way__body">
-              <span class="pill pill--green">Spis her</span>
-              <h3>Der er altid en plads</h3>
-              <p>Masser af borde og sofaer i en lys restaurant med udsigt til Jagtvej. Tag vennerne, familien eller bare dig selv med.</p>
-              <p class="note">Ingen bordbestilling nødvendig.</p>
+              <span class="pill pill--green">Levering</span>
+              <h3>Vi kommer med den</h3>
+              <p>Vi leverer inden for 8 km fra butikken mellem kl. 16 og 20. Levering koster 69,-, og den er gratis, når du bestiller for over 199,-.</p>
+              <a class="btn btn--ghost way__cta" href="menu.html">Bestil levering</a>
             </div>
           </article>
         </div>
@@ -144,50 +133,86 @@
       <section class="lunch">
         <div class="lunch__inner">
           <div class="lunch__text">
-            <span class="pill pill--orange">Mellem kl. 11–14</span>
+            <span class="pill pill--green">Mandag–fredag kl. 10–16</span>
             <h2 class="display reveal">Frokost&shy;tilbud</h2>
             <ul class="lunch__list">
-              <li class="reveal"><span>Pizza <small>nr. 1–14</small></span><b>69,-</b></li>
-              <li class="reveal"><span>Durum rulle <small>kebab / kylling / falafel</small></span><b>55,-</b></li>
-              <li class="reveal"><span>Pizza sandwich <small>kebab / kylling / falafel</small></span><b>65,-</b></li>
-              <li class="reveal"><span>Pitabrød <small>kebab / kylling / falafel</small></span><b>37,-</b></li>
-              <li class="reveal"><span>Husets bøf <small>med salat, pommes frites og bearnaise</small></span><b>75,-</b></li>
-              <li class="reveal"><span>Box <small>kebab / kylling / falafel</small></span><b>55,-</b></li>
+              <li class="reveal"><span>Sandwich <small>kylling bacon, spicy kylling, BBQ kylling, tun og flere</small></span><b>39,-</b></li>
+              <li class="reveal"><span>Sandwich med sodavand</span><b>50,-</b></li>
+              <li class="reveal"><span>Kyllingemix <small>med pommes frites og cremefraiche-dressing</small></span><b>39,-</b></li>
+              <li class="reveal"><span>Kebabmix <small>med pommes frites og cremefraiche-dressing</small></span><b>39,-</b></li>
             </ul>
             <a class="btn btn--orange lunch__cta" href="menu.html#frokost">Bestil frokost</a>
           </div>
           <div class="lunch__visual">
             <div class="box" data-float>
-              <div class="box__lid"><span>DILAN'S</span></div>
+              <div class="box__lid"><span>CW</span></div>
             </div>
             <div class="lunch__shadow"></div>
           </div>
         </div>
       </section>
 
-      <!-- BAGT HER -->
-      <section class="section baked">
+      <!-- OM OS -->
+      <section class="section baked" id="om-os">
         <div class="baked__grid">
-          <div class="baked__img reveal"><img data-parallax="0.08" src="assets/img/broed.jpg" alt="Hjemmebagte brød i vinduet" loading="lazy"></div>
+          <div class="baked__img reveal"><img data-parallax="0.08" src="assets/img/cw-kylling.jpg" alt="Kyllinger på grillspyd i ovnen" loading="lazy"></div>
           <div class="baked__side">
-            <h2 class="display reveal">Bagt <span class="g">her</span>.<br>Hver dag.</h2>
-            <p class="reveal">Brødet til din pita og durum bliver bagt i huset. Du kan se det ligge og hæve i vinduet ud mod Jagtvej.</p>
-            <img class="baked__pizza" data-spin src="assets/img/pizza-jalapeno.webp" alt="Pizza med oksekød og jalapeños" loading="lazy">
+            <h2 class="display reveal">To venner.<br><span class="g">Ingen</span> genveje.</h2>
+            <p class="reveal">Chicken World er startet af to venner, der begge hedder Mohammed. Den ene har mange år bag sig i køkkenet, den anden sørger for, at du bliver godt modtaget.</p>
+            <p class="reveal">Vi marinerer kyllingen i mindst 24 timer, laver vores egne dressinger og blander krydderierne fra bunden. Kyllingen er dansk, og grøntsagerne kommer fra udvalgte leverandører.</p>
           </div>
+        </div>
+      </section>
+
+      <!-- GALLERI -->
+      <section class="section gallery" aria-label="Billeder fra køkkenet">
+        <div class="section__head">
+          <h2 class="display reveal">Fra <span class="o">køkkenet</span></h2>
+          <p class="reveal">Alle billeder er taget hos os på Banegårdspladsen. Det er den mad, du får.</p>
+        </div>
+        <div class="gallery__grid">
+          <figure class="g1 reveal"><img src="assets/img/galleri-kylling.jpg" alt="Grillede halve kyllinger med pommes frites og salat" loading="lazy"></figure>
+          <figure class="g2 reveal"><img src="assets/img/galleri-pita.jpg" alt="Pita med grillet kylling, rødkål og salat" loading="lazy"></figure>
+          <figure class="g3 reveal"><img src="assets/img/galleri-burgere.jpg" alt="Burgere på disken" loading="lazy"></figure>
+          <figure class="g4 reveal"><img src="assets/img/galleri-kebab.jpg" alt="Kebabspyd på grillen" loading="lazy"></figure>
+          <figure class="g5 reveal"><img src="assets/img/galleri-pizza.jpg" alt="Pepperonipizza" loading="lazy"></figure>
+          <figure class="g6 reveal"><img src="assets/img/galleri-falafel.jpg" alt="Falafel bowl med rødkål og dressing" loading="lazy"></figure>
+          <figure class="g7 reveal"><img src="assets/img/galleri-bowl.jpg" alt="Crispy chicken bowl ved salatbaren" loading="lazy"></figure>
+          <figure class="g8 reveal"><img src="assets/img/galleri-salatbar.jpg" alt="Falafel og kylling i bowls ved salatbaren" loading="lazy"></figure>
+        </div>
+      </section>
+
+      <!-- UDLEJNING -->
+      <section class="rent">
+        <div class="rent__inner">
+          <div>
+            <span class="pill pill--orange">Til fester og events</span>
+            <h2 class="display reveal">Lej en slush ice&shy;maskine</h2>
+            <p class="reveal">Vi udlejer slush ice- og candyfloss-maskiner til fødselsdage, skolefester og firmaarrangementer. Slush ice fra 750,- pr. dag, candyfloss fra 500,- pr. dag.</p>
+            <a class="btn btn--orange reveal" href="udlejning.html">Se priser og book</a>
+          </div>
+          <div class="rent__img reveal"><img src="assets/img/cw-slush.jpg" alt="Slush ice-maskine med tre smage i butikken" loading="lazy"></div>
         </div>
       </section>
 
       <!-- FIND OS -->
       <section class="section find" id="find-os">
-        <div class="find__img reveal"><img src="assets/img/facade.jpg" alt="Dilan's facade på hjørnet af Jagtvej" loading="lazy"></div>
+        <div class="find__img reveal"><img src="assets/img/cw-butik.jpg" alt="Graffitivæg med Chicken World-logo inde i butikken" loading="lazy"></div>
         <div class="find__info">
           <h2 class="display reveal">Find <span class="o">os</span></h2>
           <dl class="find__list">
-            <div class="reveal"><dt>Adresse</dt><dd><a href="https://maps.google.com/?q=Jagtvej+92,+2200+K%C3%B8benhavn+N" target="_blank" rel="noopener">Jagtvej 92<br>2200 København N</a></dd></div>
-            <div class="reveal"><dt>Åbent</dt><dd>Hver dag<br>11.00–23.00</dd></div>
-            <div class="reveal"><dt>Telefon</dt><dd><a href="tel:+4535371909">35 37 19 09</a></dd></div>
+            <div class="reveal"><dt>Adresse</dt><dd><a href="https://maps.google.com/?q=Baneg%C3%A5rdspladsen+13,+8850+Bjerringbro" target="_blank" rel="noopener">Banegårdspladsen 13<br>8850 Bjerringbro</a></dd></div>
+            <div class="reveal"><dt>Åbent</dt><dd>
+              <table class="hours">
+                <tr><th>Man–tors</th><td>10.00–20.00</td></tr>
+                <tr><th>Fredag</th><td>10.00–21.00</td></tr>
+                <tr><th>Lørdag</th><td>12.00–21.00</td></tr>
+                <tr><th>Søn &amp; helligdage</th><td>Lukket</td></tr>
+              </table>
+            </dd></div>
+            <div class="reveal"><dt>Telefon</dt><dd><a href="tel:+4521988850">21 98 88 50</a></dd></div>
           </dl>
-          <a class="btn btn--orange reveal" href="https://maps.google.com/?q=Jagtvej+92,+2200+K%C3%B8benhavn+N" target="_blank" rel="noopener">Vis vej</a>
+          <a class="btn btn--orange reveal" href="https://maps.google.com/?q=Baneg%C3%A5rdspladsen+13,+8850+Bjerringbro" target="_blank" rel="noopener">Vis vej</a>
         </div>
       </section>
     </main>
@@ -196,20 +221,24 @@
     <footer class="footer">
       <div class="footer__big">
         <div class="footer__blob"></div>
-        <span class="footer__word">DILAN'S</span>
+        <span class="footer__word">CHICKEN<br>WORLD</span>
       </div>
-      <p class="footer__slogan display">Tag en skive. Del en skive.</p>
+      <p class="footer__slogan display">Marineret i et døgn. Spist på et øjeblik.</p>
       <div class="footer__cols">
-        <p><b>Dilan's Pizzeria &amp; Café</b><br>Jagtvej 92, 2200 København N</p>
-        <p><b>Kontakt</b><br>Tlf. 35 37 19 09</p>
-        <p><b>Åbent</b><br>Hver dag 11.00–23.00</p>
+        <p><b>Chicken World</b><br>Banegårdspladsen 13, 8850 Bjerringbro</p>
+        <p><b>Kontakt</b><br><a href="tel:+4521988850">Tlf. 21 98 88 50</a></p>
+        <p><b>Følg os</b><br>
+          <a href="https://www.facebook.com/profile.php?id=61573798095830" target="_blank" rel="noopener">Facebook</a> ·
+          <a href="https://www.instagram.com/chickenworld_8850/" target="_blank" rel="noopener">Instagram</a> ·
+          <a href="https://www.tiktok.com/@chickenworld8850" target="_blank" rel="noopener">TikTok</a></p>
       </div>
-      <p class="footer__copy">© <span id="year">2026</span> Dilan's Pizzeria &amp; Café · CVR-nr. 39254387</p>
+      <p class="footer__copy">© <span id="year">2026</span> Chicken World · <a href="handelsbetingelser.html">Handelsbetingelser</a></p>
     </footer>
   </div>
 
   <a class="call-fab" href="menu.html">Bestil her</a>
 
+  <script src="site-config.js"></script>
   <script src="script.js"></script>
 </body>
 </html>

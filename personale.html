@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex, nofollow">
   <meta name="referrer" content="no-referrer">
-  <title>Ordrer – Dilan's</title>
+  <title>Ordrer – Chicken World</title>
   <link rel="stylesheet" href="styles.css">
   <style>
     body { background: var(--frame); }
@@ -63,7 +63,27 @@
     .gate h1 { font-family: var(--display); font-weight: 400; font-size: 44px; }
     .err { background: #c0392b; color: #fff; border-radius: 12px; padding: 10px 14px; font-weight: 700; margin-bottom: 14px; }
 
-    @keyframes flash { 50% { transform: scale(1.03); box-shadow: inset 0 0 0 4px var(--orange), 0 0 0 8px rgba(239,123,38,.45); } }
+    .tag { display: inline-block; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; border-radius: 999px; padding: 3px 9px; margin-bottom: 4px; }
+    .tag--lev { background: var(--red); color: #fff; }
+    .tag--hent { background: var(--cream-2); color: var(--ink); }
+    .tag--udl { background: #3fa9f5; color: #fff; }
+    .o-addr { font-weight: 700; font-size: 17px; background: #ffe1dc; border-radius: 10px; padding: 8px 10px; }
+    .o-addr a { color: var(--ink); }
+    .act--print { background: transparent; color: var(--ink); }
+    #bon { display: none; }
+    @media print {
+      @page { size: 80mm auto; margin: 3mm; }
+      body { background: #fff !important; }
+      .wrap { display: none !important; }
+      #bon { display: block; color: #000; font: 13px/1.35 system-ui, sans-serif; width: 72mm; }
+      #bon h1 { font-size: 26px; margin: 0; }
+      #bon .big { font-size: 17px; font-weight: 700; }
+      #bon hr { border: 0; border-top: 1px dashed #000; margin: 6px 0; }
+      #bon table { width: 100%; border-collapse: collapse; }
+      #bon td { vertical-align: top; padding: 1px 0; }
+      #bon td.r { text-align: right; white-space: nowrap; }
+    }
+    @keyframes flash { 50% { transform: scale(1.03); box-shadow: inset 0 0 0 4px var(--orange), 0 0 0 8px rgba(224,38,27,.4); } }
     @media (max-width: 900px) { .board { grid-template-columns: 1fr; } }
     @media (prefers-reduced-motion: reduce) { .order.is-new { animation: none; } }
   </style>
@@ -77,9 +97,10 @@
 
     <div id="app" hidden>
       <header class="top">
-        <h1>Dilan<span>'s</span> ordrer</h1>
+        <h1>Chicken <span>World</span> ordrer</h1>
         <span class="live"><span class="dot" id="livedot"></span> <span id="livetext">Henter …</span></span>
         <span class="spacer"></span>
+        <button class="tbtn" id="autoprint" type="button" title="Printer nye ordrer på bonprinteren">Auto-print fra</button>
         <button class="tbtn" id="sound" type="button">Lyd til</button>
       </header>
       <button class="unlock" id="unlock" type="button" hidden>🔔 Tryk her for at aktivere lyden ved nye ordrer</button>
@@ -88,7 +109,7 @@
       <div class="board">
         <section class="col col--ny"><h2>Nye <b id="c-ny">0</b></h2><div class="list" id="l-ny"></div></section>
         <section class="col"><h2>I gang <b id="c-gang">0</b></h2><div class="list" id="l-gang"></div></section>
-        <section class="col"><h2>Klar til afhentning <b id="c-klar">0</b></h2><div class="list" id="l-klar"></div></section>
+        <section class="col"><h2>Klar <b id="c-klar">0</b></h2><div class="list" id="l-klar"></div></section>
       </div>
 
       <details class="done">
@@ -97,11 +118,12 @@
       </details>
     </div>
   </div>
+  <div id="bon" aria-hidden="true"></div>
 
   <script src="site-config.js"></script>
   <script>
   (function () {
-    var CFG = window.DILANS_CONFIG || {};
+    var CFG = window.CW_CONFIG || {};
     var KEY = decodeURIComponent((location.hash || '').slice(1));
     var $ = function (id) { return document.getElementById(id); };
     var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
@@ -138,7 +160,7 @@
     // Lyden er slået til fra start. Browsere tillader først lyd, når man har trykket
     // på siden én gang, så indtil da vises en bjælke, der beder om et tryk.
     var audio = null, soundOn = true;
-    try { soundOn = localStorage.getItem('dilans-lyd') !== 'fra'; } catch (e) {}
+    try { soundOn = localStorage.getItem('cw-lyd') !== 'fra'; } catch (e) {}
     try { audio = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {}
     function audioReady() { return audio && audio.state === 'running'; }
     function showSound() {
@@ -158,7 +180,7 @@
     if (audio) audio.addEventListener('statechange', showSound);
     $('sound').addEventListener('click', function () {
       soundOn = !soundOn;
-      try { localStorage.setItem('dilans-lyd', soundOn ? 'til' : 'fra'); } catch (e) {}
+      try { localStorage.setItem('cw-lyd', soundOn ? 'til' : 'fra'); } catch (e) {}
       if (soundOn) { unlock(); setTimeout(ding, 60); }
       showSound();
     });
@@ -199,8 +221,21 @@
     var NEXT = {
       'ny':     [['i gang', 'Start', 'act--go'], ['annulleret', 'Annullér', 'act--ghost']],
       'i gang': [['klar', 'Klar', 'act--go'], ['ny', 'Tilbage', 'act--ghost']],
-      'klar':   [['afhentet', 'Afhentet', 'act--go'], ['i gang', 'Tilbage', 'act--ghost']]
+      'klar':   [['afhentet', 'Udleveret', 'act--go'], ['i gang', 'Tilbage', 'act--ghost']]
     };
+    // Ordretype ud fra feltet "pickup": "Levering …", "Udlejning …" eller "Afhentning …"
+    function kind(o) {
+      var p = String(o.pickup || '');
+      if (/^Levering/i.test(p)) return 'lev';
+      if (/^Udlejning/i.test(p)) return 'udl';
+      return 'hent';
+    }
+    // Adressen ligger øverst i bemærkningen som "Adresse: …"
+    function splitNote(o) {
+      var note = String(o.note || ''), m = note.match(/^Adresse: ([^\n]*)\n?/);
+      return m ? { addr: m[1], note: note.slice(m[0].length) } : { addr: '', note: note };
+    }
+    var KIND = { lev: 'Levering', hent: 'Afhentning', udl: 'Udlejning' };
     function card(o, fresh) {
       var items = (o.items || []).map(function (it) {
         return '<li><span class="q">' + esc(it.qty) + ' ×</span><span>' + esc(itemLabel(it)) + '</span><span class="p">' + kr((it.price || 0) * (it.qty || 1)) + '</span></li>';
@@ -208,16 +243,61 @@
       var acts = (NEXT[o.status] || []).map(function (a) {
         var warn = a[0] === 'annulleret' && confirmCancel === o.id;
         return '<button class="act ' + (warn ? 'act--warn' : a[2]) + '" data-id="' + o.id + '" data-to="' + a[0] + '">' + (warn ? 'Tryk igen for at annullere' : a[1]) + '</button>';
-      }).join('');
+      }).join('') + '<button class="act act--print" data-print="' + o.id + '" title="Print bon">Print</button>';
+      var k = kind(o), n = splitNote(o);
+      var when = String(o.pickup || '').replace(/^(Levering|Afhentning|Udlejning)\s*/i, '');
       return '<article class="order' + (fresh ? ' is-new' : '') + '">' +
         '<div class="o-head"><span class="o-id">#' + o.id + '</span>' +
-        '<span class="o-pick">' + esc(o.pickup) + '<small>Bestilt kl. ' + clock(o.created_at) + ' · ' + ago(o.created_at) + '</small></span></div>' +
-        '<div class="o-who"><b>' + esc(o.name) + '</b> · ' + esc(o.phone) + '</div>' +
+        '<span class="o-pick"><span class="tag tag--' + k + '">' + KIND[k] + '</span><br>' + esc(when) + '<small>Bestilt kl. ' + clock(o.created_at) + ' · ' + ago(o.created_at) + '</small></span></div>' +
+        '<div class="o-who"><b>' + esc(o.name) + '</b> · <a href="tel:' + esc(o.phone) + '">' + esc(o.phone) + '</a></div>' +
+        (n.addr ? '<div class="o-addr">📍 <a href="https://maps.google.com/?q=' + encodeURIComponent(n.addr) + '" target="_blank" rel="noopener">' + esc(n.addr) + '</a></div>' : '') +
         '<ul class="o-items">' + items + '</ul>' +
-        (o.note ? '<div class="o-note">' + esc(o.note) + '</div>' : '') +
+        (n.note ? '<div class="o-note">' + esc(n.note) + '</div>' : '') +
         '<div class="o-foot"><span class="o-total">' + kr(o.total) + '</span><div class="acts">' + acts + '</div></div>' +
         '</article>';
     }
+
+    // ---------- Print af bon (80 mm bonprinter) ----------
+    function bonHtml(o) {
+      var k = kind(o), n = splitNote(o);
+      var rows = (o.items || []).map(function (it) {
+        return '<tr><td>' + esc(it.qty) + ' × ' + esc(itemLabel(it)) + '</td><td class="r">' + kr((it.price || 0) * (it.qty || 1)) + '</td></tr>';
+      }).join('');
+      return '<h1>#' + o.id + '</h1>' +
+        '<div class="big">' + KIND[k].toUpperCase() + '</div>' +
+        '<div class="big">' + esc(String(o.pickup || '').replace(/^(Levering|Afhentning|Udlejning)\s*/i, '')) + '</div>' +
+        '<div>Bestilt ' + new Date(o.created_at).toLocaleString('da-DK', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) + '</div><hr>' +
+        '<div class="big">' + esc(o.name) + '</div><div>Tlf. ' + esc(o.phone) + '</div>' +
+        (n.addr ? '<div class="big">' + esc(n.addr) + '</div>' : '') + '<hr>' +
+        '<table>' + rows + '</table><hr>' +
+        (n.note ? '<div class="big">OBS: ' + esc(n.note) + '</div><hr>' : '') +
+        '<table><tr><td class="big">I alt</td><td class="r big">' + kr(o.total) + '</td></tr></table>' +
+        '<div>Betales ' + (k === 'lev' ? 'ved levering' : 'ved afhentning') + '</div>';
+    }
+    var printQueue = [], printing = false;
+    function printOrder(o) { printQueue.push(o); if (!printing) nextPrint(); }
+    function nextPrint() {
+      var o = printQueue.shift();
+      if (!o) { printing = false; return; }
+      printing = true;
+      $('bon').innerHTML = bonHtml(o);
+      setTimeout(function () { window.print(); setTimeout(nextPrint, 400); }, 50);
+    }
+    var autoPrint = false;
+    try { autoPrint = localStorage.getItem('cw-autoprint') === 'til'; } catch (e) {}
+    function showAuto() {
+      var b = $('autoprint');
+      b.classList.toggle('is-on', autoPrint);
+      b.textContent = autoPrint ? 'Auto-print til' : 'Auto-print fra';
+      b.setAttribute('aria-pressed', autoPrint ? 'true' : 'false');
+    }
+    $('autoprint').addEventListener('click', function () {
+      autoPrint = !autoPrint;
+      try { localStorage.setItem('cw-autoprint', autoPrint ? 'til' : 'fra'); } catch (e) {}
+      showAuto();
+    });
+    showAuto();
+
     function draw(freshIds) {
       var groups = { 'ny': [], 'i gang': [], 'klar': [], done: [] };
       orders.forEach(function (o) { (groups[o.status] || groups.done).push(o); });
@@ -234,7 +314,7 @@
           '<button data-id="' + o.id + '" data-to="klar">Fortryd</button></li>';
       }).join('');
       var n = groups['ny'].length;
-      document.title = (n ? '(' + n + ') ' : '') + "Ordrer – Dilan's";
+      document.title = (n ? '(' + n + ') ' : '') + 'Ordrer – Chicken World';
     }
 
     function load() {
@@ -244,7 +324,10 @@
         var fresh = known ? ids.filter(function (id) { return known.indexOf(id) === -1; }) : [];
         known = ids;
         draw(fresh);
-        if (fresh.length) ding();
+        if (fresh.length) {
+          ding();
+          if (autoPrint) orders.filter(function (o) { return fresh.indexOf(o.id) !== -1; }).sort(function (a, b) { return a.id - b.id; }).forEach(printOrder);
+        }
         $('err').hidden = true;
         $('livedot').classList.remove('is-off');
         var d = new Date();
@@ -263,6 +346,8 @@
     }
 
     document.addEventListener('click', function (e) {
+      var pb = e.target.closest('button[data-print]');
+      if (pb) { var po = orders.filter(function (x) { return x.id === Number(pb.dataset.print); })[0]; if (po) printOrder(po); return; }
       var b = e.target.closest('button[data-to]');
       if (!b) return;
       var id = Number(b.dataset.id), to = b.dataset.to;

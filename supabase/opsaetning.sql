@@ -1,4 +1,4 @@
--- Dilan's – ordrer fra hjemmesiden
+-- Chicken World – ordrer fra hjemmesiden
 -- Kør hele filen én gang i Supabase: SQL Editor -> New query -> indsæt -> Run.
 -- Erstat ERSTAT_MED_HEMMELIG_NOEGLE nederst med personalets hemmelige nøgle.
 
