@@ -293,6 +293,7 @@
     else if (phone.replace(/\D/g, '').length < 8) { problem = 'Skriv et telefonnummer med 8 cifre, så vi kan ringe, hvis der er spørgsmål.'; focus = 'o-phone'; }
     else if (del && street.length < 4) { problem = 'Skriv vejnavn og husnummer, så vi kan finde dig.'; focus = 'o-street'; }
     else if (del && !/^\d{4}/.test(zip)) { problem = 'Skriv postnummer og by, fx 8850 Bjerringbro.'; focus = 'o-zip'; }
+    else if (del && !(document.querySelector('input[name=pay]:checked') || {}).value) { problem = 'Vælg, om du vil betale med MobilePay eller kontant ved levering.'; focus = null; }
     else if (!$('o-time').value) {
       problem = del ? 'Levering kan kun bestilles samme dag mellem kl. ' + DEL.from + ' og ' + DEL.to + '. Vælg afhentning, eller bestil levering i morgen.'
                     : 'Der er ingen ledige tider lige nu. Ring til os på ' + CFG.phone + '.';
@@ -307,7 +308,8 @@
     var when = (del ? 'Levering ' : 'Afhentning ') + sel.options[sel.selectedIndex].text.replace(/^./, function (s) { return s.toLowerCase(); });
     var note = $('o-note').value.trim();
     var address = del ? street + ', ' + zip : '';
-    if (ONLINE) { sendOrder(name, phone, when, address, note); return; }
+    var pay = del ? (document.querySelector('input[name=pay]:checked') || {}).value : '';
+    if (ONLINE) { sendOrder(name, phone, when, address, note, pay); return; }
     var lines = cart.map(function (l) {
       var it = byKey[l.key];
       return l.qty + ' × ' + label(it) + '   ' + kr(it.price * l.qty);
@@ -315,7 +317,7 @@
     if (fee()) lines.push('Levering   ' + kr(fee()));
     $('summary').textContent =
       'Bestilling hos Chicken World\n' +
-      'Navn: ' + name + '\nTelefon: ' + phone + '\n' + when + (address ? '\nAdresse: ' + address : '') + '\n\n' +
+      'Navn: ' + name + '\nTelefon: ' + phone + '\n' + when + (address ? '\nAdresse: ' + address + '\nBetaling: ' + pay : '') + '\n\n' +
       lines.join('\n') + '\n\nI alt: ' + kr(total()) + (note ? '\n\nBemærkning: ' + note : '');
     showStep('done');
     cartEl.scrollTop = 0;
@@ -331,7 +333,7 @@
   // ---------- Send bestillingen til butikken ----------
   // Levering sendes med i "pickup" (fx "Levering i dag kl. 17.30"), og adressen står øverst i bemærkningen,
   // så ordresiden i butikken kan vise den tydeligt.
-  function sendOrder(name, phone, when, address, note) {
+  function sendOrder(name, phone, when, address, note, pay) {
     var btn = $('orderform').querySelector('button[type=submit]');
     var err = $('formerror');
     var items = cart.map(function (l) {
@@ -340,7 +342,7 @@
     });
     if (fee()) items.push({ qty: 1, nr: '', name: 'Levering', desc: '', size: '', section: '', price: fee() });
     var sum = total();
-    var fullNote = (address ? 'Adresse: ' + address + (note ? '\n' : '') : '') + note;
+    var fullNote = (address ? 'Adresse: ' + address + '\nBetaling: ' + pay + (note ? '\n' : '') : '') + note;
     btn.disabled = true; btn.textContent = 'Sender bestilling …';
     fetch(CFG.supabaseUrl.replace(/\/$/, '') + '/rest/v1/rpc/place_order', {
       method: 'POST',
@@ -357,7 +359,7 @@
       $('sent-time').textContent = when;
       $('sent-where-label').textContent = address ? 'Leveres til' : 'Hentes på';
       $('sent-where').textContent = address || CFG.address;
-      $('sent-pay').textContent = (address ? 'Ved levering, ' : 'Når du henter, ') + kr(sum);
+      $('sent-pay').textContent = (address ? pay + ' ved levering, ' : 'Når du henter, ') + kr(sum);
       cart = []; render();
       $('o-note').value = '';
       showStep('sent');

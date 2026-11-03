@@ -6,7 +6,7 @@
   <meta name="robots" content="noindex, nofollow">
   <meta name="referrer" content="no-referrer">
   <title>Ordrer – Chicken World</title>
-  <link rel="stylesheet" href="styles.css?v=7">
+  <link rel="stylesheet" href="styles.css?v=8">
   <style>
     body { background: var(--frame); }
     [hidden] { display: none !important; }
@@ -75,6 +75,7 @@
     .tag--udl { background: #3fa9f5; color: #fff; }
     .o-addr { font-weight: 700; font-size: 17px; background: #ffe1dc; border-radius: 10px; padding: 8px 10px; }
     .o-addr a { color: var(--ink); }
+    .o-pay { font-weight: 800; font-size: 16px; background: #e7e0ff; border-radius: 10px; padding: 6px 10px; margin-top: 6px; }
     .act--print { background: transparent; color: var(--ink); }
     #bon { display: none; }
     @media print {
@@ -126,7 +127,7 @@
   </div>
   <div id="bon" aria-hidden="true"></div>
 
-  <script src="site-config.js?v=7"></script>
+  <script src="site-config.js?v=8"></script>
   <script>
   (function () {
     var CFG = window.CW_CONFIG || {};
@@ -235,10 +236,13 @@
       if (/^Udlejning/i.test(p)) return 'udl';
       return 'hent';
     }
-    // Adressen ligger øverst i bemærkningen som "Adresse: …"
+    // Adressen og betalingsformen ligger øverst i bemærkningen som "Adresse: …" og "Betaling: …"
     function splitNote(o) {
-      var note = String(o.note || ''), m = note.match(/^Adresse: ([^\n]*)\n?/);
-      return m ? { addr: m[1], note: note.slice(m[0].length) } : { addr: '', note: note };
+      var note = String(o.note || ''), m = note.match(/^Adresse: ([^\n]*)\n?/), addr = '', pay = '';
+      if (m) { addr = m[1]; note = note.slice(m[0].length); }
+      var b = note.match(/^Betaling: ([^\n]*)\n?/);
+      if (b) { pay = b[1]; note = note.slice(b[0].length); }
+      return { addr: addr, pay: pay, note: note };
     }
     var KIND = { lev: 'Levering', hent: 'Afhentning', udl: 'Udlejning' };
     function card(o, fresh) {
@@ -278,6 +282,7 @@
         '<span class="o-pick"><span class="tag tag--' + k + '">' + KIND[k] + (k === 'lev' && o.status === 'klar' ? ' · på vej' : '') + '</span><br>' + esc(when) + '<small>Bestilt kl. ' + clock(o.created_at) + ' · ' + ago(o.created_at) + '</small></span></div>' +
         '<div class="o-who"><b>' + esc(o.name) + '</b> · <a href="tel:' + esc(o.phone) + '">' + esc(o.phone) + '</a></div>' +
         (n.addr ? '<div class="o-addr">📍 <a href="https://maps.google.com/?q=' + encodeURIComponent(n.addr) + '" target="_blank" rel="noopener">' + esc(n.addr) + '</a></div>' : '') +
+        (n.pay ? '<div class="o-pay">Betaling: ' + esc(n.pay) + '</div>' : '') +
         '<ul class="o-items">' + items + '</ul>' +
         (n.note ? '<div class="o-note">' + esc(n.note) + '</div>' : '') +
         promise + decide +
@@ -296,7 +301,8 @@
         '<div class="big">' + esc(String(o.pickup || '').replace(/^(Levering|Afhentning|Udlejning)\s*/i, '')) + '</div>' +
         '<div>Bestilt ' + new Date(o.created_at).toLocaleString('da-DK', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) + '</div><hr>' +
         '<div class="big">' + esc(o.name) + '</div><div>Tlf. ' + esc(o.phone) + '</div>' +
-        (n.addr ? '<div class="big">' + esc(n.addr) + '</div>' : '') + '<hr>' +
+        (n.addr ? '<div class="big">' + esc(n.addr) + '</div>' : '') +
+        (n.pay ? '<div class="big">BETALING: ' + esc(n.pay).toUpperCase() + '</div>' : '') + '<hr>' +
         '<table>' + rows + '</table><hr>' +
         (n.note ? '<div class="big">OBS: ' + esc(n.note) + '</div><hr>' : '') +
         '<table><tr><td class="big">I alt</td><td class="r big">' + kr(o.total) + '</td></tr></table>' +

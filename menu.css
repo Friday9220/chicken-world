@@ -226,3 +226,7 @@
 .sent__msg span { font-size: 15px; }
 .sent__badge[data-state="wait"] { background: var(--yellow); color: var(--frame); }
 .sent__badge[data-state="no"] { background: var(--red); color: #fff; }
+.paybox { border: 0; padding: 0; margin: 4px 0 0; }
+.paybox legend { padding: 0; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
+.modes--pay .mode span { text-transform: none; }
+.modes--pay { margin: 6px 0 0; }
