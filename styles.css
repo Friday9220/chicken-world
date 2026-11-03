@@ -316,6 +316,9 @@ a { color: inherit; }
 .rent__img { border-radius: var(--radius); overflow: hidden; border: 3px solid var(--ink); transform: rotate(2deg); }
 .rent__img img { width: 100%; aspect-ratio: 4/5; object-fit: cover; }
 
+.box__lid::before { display: none; }
+.box__lid img { position: relative; width: 66%; transform: rotate(-10deg); }
+
 /* Animationer */
 .reveal { opacity: 0; transform: translateY(40px); transition: opacity .8s ease, transform .8s cubic-bezier(.2,.8,.2,1); }
 .reveal.is-in { opacity: 1; transform: none; }
