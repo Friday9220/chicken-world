@@ -284,6 +284,15 @@ a { color: inherit; }
 .card__prices--two { grid-template-columns: 1fr 1fr; }
 .card__nr { color: var(--red); }
 
+.cater { background: var(--yellow); color: var(--ink); padding: clamp(56px, 8vw, 110px) clamp(18px, 4vw, 48px); }
+.cater__inner { display: grid; grid-template-columns: 1fr 1.3fr; gap: 40px; align-items: center; }
+.cater h2 { font-size: clamp(46px, 6.4vw, 96px); margin: 16px 0 20px; }
+.cater p { max-width: 560px; font-size: 18px; margin-bottom: 18px; }
+.cater .pill { background: var(--ink); color: var(--yellow); }
+.cater .btn--dark { margin-top: 8px; background: var(--ink); color: var(--cream); border: 2px solid var(--ink); }
+.cater .btn--dark:hover { background: var(--red); border-color: var(--red); color: #fff; }
+.cater__img { border-radius: var(--radius); overflow: hidden; border: 3px solid var(--ink); transform: rotate(-2deg); }
+.cater__img img { width: 100%; aspect-ratio: 4/3; object-fit: cover; }
 .rent { background: var(--red); color: #fff; padding: clamp(56px, 8vw, 110px) clamp(18px, 4vw, 48px); }
 .rent__inner { display: grid; grid-template-columns: 1.3fr 1fr; gap: 40px; align-items: center; }
 .rent h2 { font-size: clamp(46px, 6.4vw, 96px); margin: 16px 0 20px; }
@@ -333,6 +342,8 @@ a { color: inherit; }
 }
 @media (max-width: 760px) {
   .rent__inner { grid-template-columns: 1fr; }
+  .cater__inner { grid-template-columns: 1fr; }
+  .cater__img { max-width: 520px; }
   .rent__img { max-width: 360px; }
   .gallery__grid { grid-template-columns: 1fr 1fr; gap: 10px; }
   .frame { margin: 8px; border-radius: 20px; }
