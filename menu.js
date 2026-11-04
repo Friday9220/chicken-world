@@ -132,7 +132,16 @@
   function subtotal() { return cart.reduce(function (s, l) { return s + byKey[l.key].price * l.qty; }, 0); }
   function count() { return cart.reduce(function (s, l) { return s + l.qty; }, 0); }
   function isDelivery() { var r = document.querySelector('input[name=mode]:checked'); return r && r.value === 'levering'; }
-  function fee() { return isDelivery() && subtotal() < DEL.freeFrom ? DEL.fee : 0; }
+  function baseFee() { return isDelivery() && subtotal() < DEL.freeFrom ? DEL.fee : 0; }
+  // Kørselstillæg: perKm kr pr. km ud over baseKm, talt ud og hjem (afrundet op til hele km)
+  var dist = { km: null, state: 'none', key: '' }; // state: none | busy | ok | fail | far
+  function extraKm() {
+    if (!isDelivery() || dist.km == null || !DEL.perKm) return 0;
+    var over = Math.max(0, dist.km - (DEL.baseKm || 0));
+    return over > 0 ? Math.ceil(over * (DEL.roundTrip ? 2 : 1)) : 0;
+  }
+  function kmFee() { return extraKm() * (DEL.perKm || 0); }
+  function fee() { return baseFee() + kmFee(); }
   function total() { return subtotal() + fee(); }
   function hasLunch() { return cart.some(function (l) { return byKey[l.key].lunch; }); }
   function label(it) {
@@ -157,10 +166,13 @@
     }).join('');
     var del = isDelivery();
     $('feeline').hidden = !del || n === 0;
-    $('fee').textContent = fee() ? kr(fee()) : 'Gratis';
+    $('fee').textContent = baseFee() ? kr(baseFee()) : 'Gratis';
+    $('kmline').hidden = !del || n === 0 || !kmFee();
+    $('kmlabel').textContent = 'Kørselstillæg (' + extraKm() + ' km × ' + DEL.perKm + ' kr)';
+    $('kmfee').textContent = kr(kmFee());
     var missing = DEL.freeFrom - subtotal();
     $('freehint').hidden = !del || n === 0 || missing <= 0;
-    $('freehint').textContent = 'Køb for ' + kr(missing) + ' mere, så er leveringen gratis.';
+    $('freehint').textContent = 'Køb for ' + kr(missing) + ' mere, så slipper du for leveringsgebyret på ' + kr(DEL.fee) + '.';
     $('carttotal').textContent = kr(total());
     save();
   }
@@ -222,8 +234,66 @@
       var del = isDelivery();
       $('addrfields').hidden = !del;
       $('time-label').textContent = del ? 'Levering' : 'Afhentning';
+      if (del) updateDistance();
       render(); fillTimes();
     });
+  });
+
+  // ---------- Afstand fra butikken til kundens adresse ----------
+  // Adressen slås op i Danmarks Adresseregister (DAWA), og køreafstanden findes via OSRM.
+  // Kan ruten ikke hentes, bruges afstanden i luftlinje × 1,3.
+  var DAWA = 'https://api.dataforsyningen.dk/adresser?struktur=mini&per_side=1&fuzzy&q=';
+  var shopPos = null;
+  function geocode(text) {
+    return fetch(DAWA + encodeURIComponent(text)).then(function (r) { return r.json(); }).then(function (a) {
+      var x = a && a[0];
+      if (!x || x.x == null) throw new Error('ukendt');
+      return { lon: x.x, lat: x.y, text: x.betegnelse || text, zip: String(x.postnr || '') };
+    });
+  }
+  function airKm(a, b) {
+    var R = 6371, r = Math.PI / 180, dLat = (b.lat - a.lat) * r, dLon = (b.lon - a.lon) * r;
+    var h = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(a.lat * r) * Math.cos(b.lat * r) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    return 2 * R * Math.asin(Math.sqrt(h));
+  }
+  function roadKm(a, b) {
+    return fetch('https://router.project-osrm.org/route/v1/driving/' + a.lon + ',' + a.lat + ';' + b.lon + ',' + b.lat + '?overview=false')
+      .then(function (r) { return r.json(); })
+      .then(function (j) { if (!j.routes || !j.routes[0]) throw new Error('rute'); return j.routes[0].distance / 1000; })
+      .catch(function () { return airKm(a, b) * 1.3; });
+  }
+  var distTimer = null;
+  function showDist() {
+    var el = $('disthint');
+    var t = { none: '', busy: 'Beregner afstand …',
+      ok: dist.km != null ? 'Afstand fra butikken: ca. ' + dist.km.toFixed(1).replace('.', ',') + ' km' +
+        (kmFee() ? ' – kørselstillæg ' + kr(kmFee()) + ' (' + extraKm() + ' km ud og hjem ud over de første ' + DEL.baseKm + ' km).' : ' – intet kørselstillæg.') : '',
+      far: 'Adressen ligger ca. ' + (dist.km || 0).toFixed(1).replace('.', ',') + ' km fra butikken. Vi leverer desværre kun op til ' + DEL.km + ' km. Ring på ' + CFG.phone + ', så finder vi en løsning.',
+      fail: 'Vi kunne ikke finde adressen. Tjek vejnavn, husnummer og postnummer.' }[dist.state];
+    el.textContent = t; el.hidden = !t;
+    el.classList.toggle('form-error', dist.state === 'far' || dist.state === 'fail');
+  }
+  function updateDistance() {
+    var street = $('o-street').value.trim(), zip = $('o-zip').value.trim();
+    var key = street + '|' + zip;
+    if (street.length < 4 || !/^\d{4}/.test(zip)) { dist = { km: null, state: 'none', key: '' }; showDist(); render(); return; }
+    if (key === dist.key && dist.state !== 'fail') return;
+    dist = { km: null, state: 'busy', key: key }; showDist(); render();
+    var shop = shopPos ? Promise.resolve(shopPos) : geocode(CFG.address).then(function (p) { shopPos = p; return p; });
+    Promise.all([shop, geocode(street + ', ' + zip)]).then(function (p) {
+      return roadKm(p[0], p[1]);
+    }).then(function (km) {
+      if (dist.key !== key) return;
+      dist = { km: km, state: DEL.km && km > DEL.km ? 'far' : 'ok', key: key };
+      showDist(); render();
+    }).catch(function () {
+      if (dist.key !== key) return;
+      dist = { km: null, state: 'fail', key: key }; showDist(); render();
+    });
+  }
+  ['o-street', 'o-zip'].forEach(function (id) {
+    $(id).addEventListener('input', function () { clearTimeout(distTimer); distTimer = setTimeout(updateDistance, 700); });
+    $(id).addEventListener('change', updateDistance);
   });
 
   // Tidspunkter i kvarterer inden for åbningstiden (og leveringstiden)
@@ -303,6 +373,9 @@
     else if (phone.replace(/\D/g, '').length < 8) { problem = 'Skriv et telefonnummer med 8 cifre, så vi kan ringe, hvis der er spørgsmål.'; focus = 'o-phone'; }
     else if (del && street.length < 4) { problem = 'Skriv vejnavn og husnummer, så vi kan finde dig.'; focus = 'o-street'; }
     else if (del && !/^\d{4}/.test(zip)) { problem = 'Skriv postnummer og by, fx 8850 Bjerringbro.'; focus = 'o-zip'; }
+    else if (del && dist.state === 'busy') { problem = 'Vent et øjeblik, vi beregner afstanden til din adresse.'; }
+    else if (del && dist.state === 'far') { problem = 'Vi leverer desværre kun op til ' + DEL.km + ' km fra butikken. Ring på ' + CFG.phone + '.'; }
+    else if (del && dist.state === 'fail') { problem = 'Vi kunne ikke finde adressen. Tjek vejnavn, husnummer og postnummer, eller ring på ' + CFG.phone + '.'; focus = 'o-street'; }
     else if (del && !(document.querySelector('input[name=pay]:checked') || {}).value) { problem = 'Vælg, om du vil betale med MobilePay eller kontant ved levering.'; focus = null; }
     else if (!$('o-time').value) {
       problem = del ? 'Der er ingen ledige leveringstider lige nu. Ring til os på ' + CFG.phone + '.'
@@ -350,7 +423,8 @@
       var it = byKey[l.key];
       return { qty: l.qty, nr: it.nr, name: it.name, desc: it.desc, size: it.size, section: it.section, price: it.price };
     });
-    if (fee()) items.push({ qty: 1, nr: '', name: 'Levering', desc: '', size: '', section: '', price: fee() });
+    if (baseFee()) items.push({ qty: 1, nr: '', name: 'Levering', desc: '', size: '', section: '', price: baseFee() });
+    if (kmFee()) items.push({ qty: 1, nr: '', name: 'Kørselstillæg', desc: 'ca. ' + dist.km.toFixed(1).replace('.', ',') + ' km fra butikken · ' + extraKm() + ' km × ' + DEL.perKm + ' kr', size: '', section: '', price: kmFee() });
     var sum = total();
     var fullNote = (address ? 'Adresse: ' + address + '\nBetaling: ' + pay + (note ? '\n' : '') : '') + note;
     btn.disabled = true; btn.textContent = 'Sender bestilling …';
