@@ -28,5 +28,7 @@ window.CW_CONFIG = {
   lunch: { days: [1, 2, 3, 4, 5], from: 10, to: 16 },
 
   // Levering
-  delivery: { fee: 69, freeFrom: 199, from: 16, to: 20, km: 8, minutes: 45 }
+  // Levering: fee kr under freeFrom kr (gratis fra freeFrom). Over baseKm km fra butikken lægges perKm kr
+  // på for hver km ud over baseKm – talt både ud og hjem. km = længste afstand vi leverer til.
+  delivery: { fee: 49, freeFrom: 249, baseKm: 5, perKm: 5, roundTrip: true, from: 16, to: 20, km: 8, minutes: 45 }
 };
