@@ -272,8 +272,14 @@
     sel.innerHTML = opts.map(function (o) { return '<option value="' + o[0] + '">' + o[1] + '</option>'; }).join('');
     sel.disabled = !opts.length;
     if (!opts.length) sel.innerHTML = '<option value="">' + 'Ingen ledige tider' + '</option>';
-    $('delclosed').hidden = !(del && nextDay && opts.length);
-    if (del && nextDay && next) $('delclosed').textContent = 'Vi kan ikke nå at levere mere i dag, så du kan vælge et tidspunkt ' + next.label + ' (kl. ' + DEL.from + '–' + DEL.to + ').';
+    // Man kan altid bestille levering; selve leveringen sker kun i leveringstiden
+    var hint = '';
+    if (del && opts.length) {
+      if (nextDay && next) hint = (today ? 'Vi kan ikke nå at levere mere i dag' : 'Vi har lukket i dag') + ', men du kan bestille nu til levering ' + next.label + ' kl. ' + DEL.from + '–' + DEL.to + '.';
+      else if (mins < DEL.from * 60) hint = 'Du kan bestille nu. Vi leverer i dag mellem kl. ' + DEL.from + ' og ' + DEL.to + '.';
+    }
+    $('delclosed').hidden = !hint;
+    $('delclosed').textContent = hint;
     $('lunchhint').hidden = !lunchOnly;
     if (keep && opts.some(function (o) { return o[0] === keep; })) sel.value = keep;
   }
