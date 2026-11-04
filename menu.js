@@ -255,17 +255,18 @@
         opts.push([fmt(m), 'I dag kl. ' + fmt(m)]);
       }
     }
-    // Ellers næste åbningsdag (fx "i morgen") – både afhentning og levering
+    // Ellers næste åbningsdag (fx "i morgen") for afhentning.
+    // Levering: altid både resten af i dag og næste åbningsdag (fx "i morgen"), kl. 16–20
     var nextDay = false, next = null;
-    if (!opts.length) {
-      nextDay = true;
+    if (!opts.length || del) {
+      nextDay = !opts.length;
       next = nextOpenDay(now, 1);
       if (next) {
         w = windowFor(next.hours);
         var cap = next.label.charAt(0).toUpperCase() + next.label.slice(1);
         for (var m2 = del ? w[0] : w[0] + 15; m2 <= w[1]; m2 += 15) {
           if (lunchOnly && !isLunch(next.date, m2)) continue;
-          opts.push([fmt(m2), cap + ' kl. ' + fmt(m2)]);
+          opts.push(['n' + fmt(m2), cap + ' kl. ' + fmt(m2)]);
         }
       }
     }
@@ -276,7 +277,7 @@
     var hint = '';
     if (del && opts.length) {
       if (nextDay && next) hint = (today ? 'Vi kan ikke nå at levere mere i dag' : 'Vi har lukket i dag') + ', men du kan bestille nu til levering ' + next.label + ' kl. ' + DEL.from + '–' + DEL.to + '.';
-      else if (mins < DEL.from * 60) hint = 'Du kan bestille nu. Vi leverer i dag mellem kl. ' + DEL.from + ' og ' + DEL.to + '.';
+      else if (next) hint = 'Vælg levering i dag eller ' + next.label + ' mellem kl. ' + DEL.from + ' og ' + DEL.to + '.';
     }
     $('delclosed').hidden = !hint;
     $('delclosed').textContent = hint;
