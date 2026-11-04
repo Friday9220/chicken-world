@@ -155,9 +155,10 @@ window.CW_MENU = [
     id: 'drikke', title: 'Drikkevarer',
     items: [
       ['', 'Sodavand 0,33 l', '', 13],
-      ['', 'Sodavand 1,5 l', '', 33],
-      ['', 'Slush ice 0,3 l', '', 10],
-      ['', 'Slush ice 0,5 l', '', 15]
+      ['', 'Sodavand 1,5 l', '', 33]
+      // Slush ice sælges kun om sommeren. Fjern // foran de to linjer (og sæt komma efter linjen ovenfor) for at vise dem igen:
+      // ['', 'Slush ice 0,3 l', '', 10],
+      // ['', 'Slush ice 0,5 l', '', 15]
     ]
   }
 ];
