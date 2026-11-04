@@ -1,5 +1,7 @@
 # Chicken World
 
+Live: https://chickenworld.dk (domæne hos Simply, peger på GitHub Pages via filen `CNAME`).
+
 Hjemmeside for Chicken World, Banegårdspladsen 13, 8850 Bjerringbro.
 
 Siden er ren HTML, CSS og JavaScript uden byggetrin. Åbn `index.html` i en browser, eller læg mappen på GitHub Pages.
