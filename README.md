@@ -17,6 +17,7 @@ Siden er ren HTML, CSS og JavaScript uden byggetrin. Åbn `index.html` i en brow
 - `script.js` – åbent/lukket-status og scroll-animationer
 - `supabase/opsaetning.sql` – opsætning af databasen (nøglen indsættes før kørsel)
 - `supabase/opdatering-accepter-afvis.sql` – kør én gang efter opsætningen: køkkenet kan acceptere (15/30/45/60 min) eller afvise, og kunden ser status
+- `supabase/opdatering-forudbestilling.sql` – kør én gang: ordreskærmen viser aktive ordrer bestilt op til 14 dage frem
 - `tjek.html` – åbn i browseren for at tjekke hele siden: links, billeder, menu, tider og ordresystemet (opretter ingen ordrer)
 - `assets/img/` – billeder fra butikken og logo
 

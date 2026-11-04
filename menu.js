@@ -297,8 +297,8 @@
   });
 
   // Tidspunkter i kvarterer inden for åbningstiden (og leveringstiden)
-  // Dato først, derefter tidspunkt. Op til 7 dage frem; kun dage med ledige tider vises.
-  var DAYS_AHEAD = 7, slotDays = [];
+  // Dato først, derefter tidspunkt. Op til 14 dage frem; kun dage med ledige tider vises.
+  var DAYS_AHEAD = 15, slotDays = []; // i dag + 14 dage frem
   var MONTHS = ['jan.', 'feb.', 'mar.', 'apr.', 'maj', 'jun.', 'jul.', 'aug.', 'sep.', 'okt.', 'nov.', 'dec.'];
   function fillTimes() {
     var dsel = $('o-date'), keepDate = dsel.value, keepTime = $('o-time').value;
