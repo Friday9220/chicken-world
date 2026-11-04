@@ -6,8 +6,8 @@
   <title>Menu og bestilling – Chicken World Bjerringbro</title>
   <meta name="description" content="Hele menuen hos Chicken World i Bjerringbro: kylling, burgere, pizza, pita, bowls og frokosttilbud. Bestil til afhentning eller levering.">
   <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="styles.css?v=13">
-  <link rel="stylesheet" href="menu.css?v=13">
+  <link rel="stylesheet" href="styles.css?v=14">
+  <link rel="stylesheet" href="menu.css?v=14">
 </head>
 <body class="menu-page">
   <div class="frame">
@@ -118,8 +118,11 @@
           </fieldset>
         </div>
         <div class="field">
-          <label for="o-time" id="time-label">Afhentning</label>
-          <select id="o-time" name="time"></select>
+          <span class="field__label" id="time-label">Afhentning: dato og tidspunkt</span>
+          <div class="when">
+            <label><span class="sr-only">Dato</span><select id="o-date" name="date" aria-label="Dato"></select></label>
+            <label><span class="sr-only">Tidspunkt</span><select id="o-time" name="time" aria-label="Tidspunkt"></select></label>
+          </div>
           <p class="field__hint" id="delclosed" hidden>Vi kan ikke nå at levere mere i dag, så du kan vælge et tidspunkt i morgen (kl. 16–20).</p>
           <p class="field__hint" id="lunchhint" hidden>Frokosttilbud kan kun bestilles mandag–fredag kl. 10–16.</p>
         </div>
@@ -164,8 +167,8 @@
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <script src="site-config.js?v=13"></script>
-  <script src="menu-data.js?v=13"></script>
-  <script src="menu.js?v=13"></script>
+  <script src="site-config.js?v=14"></script>
+  <script src="menu-data.js?v=14"></script>
+  <script src="menu.js?v=14"></script>
 </body>
 </html>
