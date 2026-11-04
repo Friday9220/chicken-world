@@ -141,7 +141,7 @@
 
 .cart__form { display: grid; gap: 12px; margin-top: 10px; }
 .field { display: grid; gap: 4px; }
-.field label { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
+.field label, .field__label { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
 .field small { text-transform: none; letter-spacing: 0; font-weight: 400; color: var(--muted); }
 .field input, .field select, .field textarea {
   font: inherit; font-size: 16px; color: var(--ink); background: #fff;
@@ -230,3 +230,6 @@
 .paybox legend { padding: 0; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
 .modes--pay .mode span { text-transform: none; }
 .modes--pay { margin: 6px 0 0; }
+.when { display: grid; grid-template-columns: 1.4fr 1fr; gap: 8px; }
+.when label { display: block; font: inherit; text-transform: none; letter-spacing: 0; }
+.when select { width: 100%; }
