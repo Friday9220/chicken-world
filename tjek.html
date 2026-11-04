@@ -204,7 +204,7 @@
     add(bad.length ? 'bad' : 'ok', 'Åbningstider', bad.length ? bad.join(' · ') : txt);
     var delOk = D.from < D.to && Object.keys(H).some(function (k) { return H[k] && H[k][0] <= D.from && H[k][1] >= D.to; });
     add(delOk ? 'ok' : 'warn', 'Levering kl. ' + D.from + '–' + D.to + ', ' + D.fee + ' kr, gratis over ' + D.freeFrom + ' kr, inden for ' + D.km + ' km',
-      delOk ? 'Kun samme dag. Ca. ' + D.minutes + ' min.' : 'Leveringstiden ligger uden for åbningstiden nogle dage.');
+      delOk ? 'I dag eller næste åbningsdag. Ca. ' + D.minutes + ' min.' : 'Leveringstiden ligger uden for åbningstiden nogle dage.');
     add('ok', 'Frokosttilbud kl. ' + L.from + '–' + L.to, 'Dage: ' + (L.days || []).map(function (d) { return days[d]; }).join(', '));
     var now = new Date(), h = H[now.getDay()], m = now.getHours() * 60 + now.getMinutes();
     var open = h && m >= h[0] * 60 && m < h[1] * 60;
