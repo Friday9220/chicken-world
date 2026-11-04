@@ -16,8 +16,8 @@ window.CW_CONFIG = {
   hours: {
     0: null,
     1: [10, 20], 2: [10, 20], 3: [10, 20], 4: [10, 20],
-    5: [10, 21],
-    6: [12, 21]
+    5: [10, 20],
+    6: [12, 20]
   },
   // Onlinebestilling lukker så mange minutter før lukketid
   lastOrderMinutes: 15,
