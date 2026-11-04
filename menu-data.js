@@ -156,7 +156,6 @@ window.CW_MENU = [
     items: [
       ['', 'Sodavand 0,33 l', '', 13],
       ['', 'Sodavand 1,5 l', '', 33],
-      ['', 'Cocio', '', 20],
       ['', 'Slush ice 0,3 l', '', 10],
       ['', 'Slush ice 0,5 l', '', 15]
     ]
