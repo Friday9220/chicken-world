@@ -2,6 +2,7 @@
 // Skrevet af fra chicken-world.dk/menu (priser gældende 15. august – 31. december 2026).
 // Ret priser her. Hver ret: [nr, navn, beskrivelse, priser, mærke]
 // priser er enten et tal eller en liste med én pris pr. størrelse (se "sizes").
+// En ret kan have egne prisnavne som 6. felt, fx ['Pizza', '+ sodavand'].
 // "lunch: true" betyder, at retterne kun kan bestilles mandag–fredag kl. 10–16.
 window.CW_MENU = [
   {
@@ -16,7 +17,11 @@ window.CW_MENU = [
       ['', 'Sandwich: Skinke & ost', 'Skinke, ost, salat, tomat, agurk og dressing', 39],
       ['', 'Sandwich med sodavand', 'Vælg en af sandwichene ovenfor, og skriv hvilken i bemærkningen', 50],
       ['', 'Kyllingemix', 'Med pommes frites og cremefraiche-dressing', 39],
-      ['', 'Kebabmix', 'Med pommes frites og cremefraiche-dressing', 39]
+      ['', 'Kebabmix', 'Med pommes frites og cremefraiche-dressing', 39],
+      ['', 'Frokostpizza: Skinke', 'Alm. størrelse. Med sodavand: skriv hvilken i bemærkningen', [35, 45], '', ['Pizza', '+ sodavand']],
+      ['', 'Frokostpizza: Pepperoni', 'Alm. størrelse. Med sodavand: skriv hvilken i bemærkningen', [35, 45], '', ['Pizza', '+ sodavand']],
+      ['', 'Frokostpizza: Kebab', 'Alm. størrelse. Med sodavand: skriv hvilken i bemærkningen', [35, 45], '', ['Pizza', '+ sodavand']],
+      ['', 'Frokostpizza: Oksekød', 'Alm. størrelse. Med sodavand: skriv hvilken i bemærkningen', [35, 45], '', ['Pizza', '+ sodavand']]
     ]
   },
   {

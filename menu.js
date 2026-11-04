@@ -25,7 +25,8 @@
   function pricesOf(sec, item) {
     var p = item[3];
     if (typeof p === 'number') return [{ label: '', price: p }];
-    return p.map(function (v, i) { return { label: (sec.sizes || [])[i] || '', price: v }; })
+    var labels = item[5] || sec.sizes || []; // en ret kan have egne prisnavne, fx ['Pizza', '+ sodavand']
+    return p.map(function (v, i) { return { label: labels[i] || '', price: v }; })
             .filter(function (x) { return x.price != null; });
   }
 
