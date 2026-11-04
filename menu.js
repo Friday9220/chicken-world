@@ -255,13 +255,15 @@
         opts.push([fmt(m), 'I dag kl. ' + fmt(m)]);
       }
     }
-    // Ellers næste åbningsdag (kun afhentning; levering kan kun bestilles til samme dag)
-    if (!opts.length && !del) {
-      var next = nextOpenDay(now, 1);
+    // Ellers næste åbningsdag (fx "i morgen") – både afhentning og levering
+    var nextDay = false, next = null;
+    if (!opts.length) {
+      nextDay = true;
+      next = nextOpenDay(now, 1);
       if (next) {
         w = windowFor(next.hours);
         var cap = next.label.charAt(0).toUpperCase() + next.label.slice(1);
-        for (var m2 = w[0] + 15; m2 <= w[1]; m2 += 15) {
+        for (var m2 = del ? w[0] : w[0] + 15; m2 <= w[1]; m2 += 15) {
           if (lunchOnly && !isLunch(next.date, m2)) continue;
           opts.push([fmt(m2), cap + ' kl. ' + fmt(m2)]);
         }
@@ -269,8 +271,9 @@
     }
     sel.innerHTML = opts.map(function (o) { return '<option value="' + o[0] + '">' + o[1] + '</option>'; }).join('');
     sel.disabled = !opts.length;
-    if (!opts.length) sel.innerHTML = '<option value="">' + (del ? 'Levering er lukket for i dag' : 'Ingen ledige tider') + '</option>';
-    $('delclosed').hidden = !(del && !opts.length);
+    if (!opts.length) sel.innerHTML = '<option value="">' + 'Ingen ledige tider' + '</option>';
+    $('delclosed').hidden = !(del && nextDay && opts.length);
+    if (del && nextDay && next) $('delclosed').textContent = 'Vi kan ikke nå at levere mere i dag, så du kan vælge et tidspunkt ' + next.label + ' (kl. ' + DEL.from + '–' + DEL.to + ').';
     $('lunchhint').hidden = !lunchOnly;
     if (keep && opts.some(function (o) { return o[0] === keep; })) sel.value = keep;
   }
@@ -295,7 +298,7 @@
     else if (del && !/^\d{4}/.test(zip)) { problem = 'Skriv postnummer og by, fx 8850 Bjerringbro.'; focus = 'o-zip'; }
     else if (del && !(document.querySelector('input[name=pay]:checked') || {}).value) { problem = 'Vælg, om du vil betale med MobilePay eller kontant ved levering.'; focus = null; }
     else if (!$('o-time').value) {
-      problem = del ? 'Levering kan kun bestilles samme dag mellem kl. ' + DEL.from + ' og ' + DEL.to + '. Vælg afhentning, eller bestil levering i morgen.'
+      problem = del ? 'Der er ingen ledige leveringstider lige nu. Ring til os på ' + CFG.phone + '.'
                     : 'Der er ingen ledige tider lige nu. Ring til os på ' + CFG.phone + '.';
     }
     if (problem) {
