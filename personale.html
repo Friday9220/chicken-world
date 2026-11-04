@@ -62,6 +62,10 @@
 
     .gate { max-width: 520px; margin: 12vh auto 0; text-align: center; display: grid; gap: 14px; }
     .gate h1 { font-family: var(--display); font-weight: 400; font-size: 44px; }
+    .login { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+    .login input { flex: 1 1 220px; font: inherit; font-size: 20px; padding: 14px 18px; border-radius: 14px; border: 2px solid rgba(245,239,227,.4); background: rgba(245,239,227,.08); color: var(--cream); }
+    .login button { font: inherit; font-size: 20px; font-weight: 700; padding: 14px 24px; border-radius: 14px; border: 0; background: var(--yellow, #ffb81c); color: #2b1710; cursor: pointer; }
+    .login button:disabled { opacity: .6; cursor: wait; }
     .err { background: #c0392b; color: #fff; border-radius: 12px; padding: 10px 14px; font-weight: 700; margin-bottom: 14px; }
 
     .decide { display: grid; gap: 8px; background: #fff; border-radius: 14px; padding: 10px; }
@@ -100,7 +104,11 @@
   <div class="wrap">
     <div class="gate" id="gate" hidden>
       <h1>Kun for personale</h1>
-      <p id="gate-msg">Åbn siden med det hemmelige link, du har fået af ejeren.</p>
+      <p id="gate-msg">Skriv adgangskoden for at se ordrerne.</p>
+      <form class="login" id="login" hidden>
+        <input type="password" id="pw" autocomplete="current-password" placeholder="Adgangskode" aria-label="Adgangskode" required>
+        <button type="submit" id="pw-btn">Log ind</button>
+      </form>
     </div>
 
     <div id="app" hidden>
@@ -110,6 +118,7 @@
         <span class="spacer"></span>
         <button class="tbtn" id="autoprint" type="button" title="Printer nye ordrer på bonprinteren">Auto-print fra</button>
         <button class="tbtn" id="sound" type="button">Lyd til</button>
+        <button class="tbtn" id="logout" type="button">Log ud</button>
       </header>
       <button class="unlock" id="unlock" type="button" hidden>🔔 Tryk her for at aktivere lyden ved nye ordrer</button>
       <p class="err" id="err" hidden></p>
@@ -132,7 +141,14 @@
   <script>
   (function () {
     var CFG = window.CW_CONFIG || {};
-    var KEY = decodeURIComponent((location.hash || '').slice(1));
+    // Adgang: adgangskoden laves om til en nøgle (SHA-256), som databasen tjekker.
+    // Nøglen huskes på denne enhed, så man ikke skal logge ind igen efter genindlæsning.
+    var STORE = 'cw-personale';
+    var KEY = '';
+    try { KEY = localStorage.getItem(STORE) || ''; } catch (e) {}
+    var fromHash = decodeURIComponent((location.hash || '').slice(1));
+    if (fromHash.length >= 24) KEY = fromHash; // gammelt link virker stadig, indtil koden er skiftet i databasen
+    if (location.hash) history.replaceState(null, '', location.pathname + location.search);
     var $ = function (id) { return document.getElementById(id); };
     var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
     var kr = function (n) { return Number(n).toLocaleString('da-DK') + ',-'; };
@@ -142,7 +158,32 @@
       $('gate-msg').textContent = 'Bestilling på hjemmesiden er ikke slået til endnu.';
       return;
     }
-    if (KEY.length < 24) { $('gate').hidden = false; return; }
+    function showLogin(msg) {
+      $('app').hidden = true; $('gate').hidden = false; $('login').hidden = false;
+      $('gate-msg').textContent = msg || 'Skriv adgangskoden for at se ordrerne.';
+      $('pw-btn').disabled = false; $('pw').value = ''; $('pw').focus();
+    }
+    function hashPw(pw) {
+      var data = new TextEncoder().encode('chickenworld:' + pw.trim().toLowerCase());
+      return crypto.subtle.digest('SHA-256', data).then(function (buf) {
+        return Array.prototype.map.call(new Uint8Array(buf), function (b) { return ('0' + b.toString(16)).slice(-2); }).join('');
+      });
+    }
+    $('login').addEventListener('submit', function (e) {
+      e.preventDefault();
+      if (!$('pw').value.trim()) return;
+      $('pw-btn').disabled = true;
+      hashPw($('pw').value).then(function (k) {
+        KEY = k;
+        try { localStorage.setItem(STORE, KEY); } catch (er) {}
+        $('gate').hidden = true;
+        start();
+      });
+    });
+    $('logout').addEventListener('click', function () {
+      try { localStorage.removeItem(STORE); } catch (er) {}
+      KEY = ''; stop = true; showLogin();
+    });
 
     // Gammel "anon"-nøgle (JWT) sendes også som Bearer; ny "publishable"-nøgle kun som apikey
     function apiHeaders() {
@@ -370,9 +411,10 @@
         $('app').hidden = false;
       }).catch(function (e) {
         if (/Adgang/.test(e.message)) {
-          $('app').hidden = true; $('gate').hidden = false;
-          $('gate-msg').textContent = 'Linket er ikke gyldigt. Bed ejeren om det nye link.';
-          stop = true; return;
+          try { localStorage.removeItem(STORE); } catch (er) {}
+          KEY = ''; stop = true;
+          showLogin('Forkert adgangskode. Prøv igen.');
+          return;
         }
         $('app').hidden = false;
         $('livedot').classList.add('is-off');
@@ -425,8 +467,12 @@
       }).then(load);
     });
 
-    var stop = false;
-    (function tick() { if (stop) return; load().then(function () { setTimeout(tick, 7000); }); })();
+    var stop = true, run = 0;
+    function start() {
+      stop = false; known = null; var me = ++run;
+      (function tick() { if (stop || me !== run) return; load().then(function () { setTimeout(tick, 7000); }); })();
+    }
+    if (KEY.length >= 24) start(); else showLogin();
     setInterval(function () { if (!stop && orders.length) draw([]); }, 30000); // opdater "x min siden"
   })();
   </script>
