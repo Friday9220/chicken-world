@@ -12,7 +12,7 @@ Siden er ren HTML, CSS og JavaScript uden byggetrin. Åbn `index.html` i en brow
 - `site-config.js` – åbningstider, levering, telefon og forbindelse til ordre-databasen (Supabase)
 - `udlejning.html` – udlejning af slush ice- og candyflossmaskine med bookingformular
 - `handelsbetingelser.html` – handelsbetingelser
-- `personale.html` – ordreskærm til butikken; åbnes kun med det hemmelige link. Kan printe bon på en 80 mm bonprinter
+- `personale.html` – ordreskærm til butikken; kræver adgangskode (sættes med `supabase/opdatering-adgangskode.sql`). Kan printe bon på en 80 mm bonprinter
 - `styles.css` – design (farver øverst under `:root`)
 - `script.js` – åbent/lukket-status og scroll-animationer
 - `supabase/opsaetning.sql` – opsætning af databasen (nøglen indsættes før kørsel)
