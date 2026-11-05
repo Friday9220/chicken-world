@@ -29,5 +29,8 @@ Kunden betaler ved afhentning eller levering, og personalet slår salget ind i S
 
 ## Automatisk print af bon
 
-Tryk "Auto-print til" på ordreskærmen. For at undgå printdialogen hver gang kan Chrome startes med
-`--kiosk-printing`, så bonnen sendes direkte til standardprinteren.
+Nye ordrer printes automatisk, og hver ordre har en "Print igen"-knap.
+
+- **iPad + Star mC-Print (USB/Lightning):** Åbn ordresiden i appen "Star webPRNT Browser" (App Store).
+  Vælg printeren i appens indstillinger. Så printes bonen direkte uden dialog (`assets/js/star/` er Star's webPRNT-SDK).
+- **PC/anden browser:** Browserens printdialog åbner. I Chrome kan `--kiosk-printing` sende den direkte til standardprinteren.
