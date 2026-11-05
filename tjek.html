@@ -202,13 +202,14 @@
       return d + ' ' + (h ? h[0] + '–' + h[1] : 'lukket');
     }).join(' · ');
     add(bad.length ? 'bad' : 'ok', 'Åbningstider', bad.length ? bad.join(' · ') : txt);
-    var delOk = D.from < D.to && Object.keys(H).some(function (k) { return H[k] && H[k][0] <= D.from && H[k][1] >= D.to; });
-    add(delOk ? 'ok' : 'warn', 'Levering kl. ' + D.from + '–' + D.to + ', ' + D.fee + ' kr, gratis fra ' + D.freeFrom + ' kr, + ' + D.perKm + ' kr/km over ' + D.baseKm + ' km (ud og hjem), max ' + D.km + ' km',
-      delOk ? 'I dag eller næste åbningsdag. Ca. ' + D.minutes + ' min.' : 'Leveringstiden ligger uden for åbningstiden nogle dage.');
+    var delFrom = D.from != null ? D.from : 0, delTo = D.to != null ? D.to : 24;
+    var delOk = delFrom < delTo && Object.keys(H).some(function (k) { return H[k] && H[k][0] < delTo && H[k][1] > delFrom; });
+    add(delOk ? 'ok' : 'warn', 'Levering ' + (D.from != null || D.to != null ? 'kl. ' + delFrom + '–' + delTo : 'i hele åbningstiden') + ', ' + D.fee + ' kr, gratis fra ' + D.freeFrom + ' kr, + ' + D.perKm + ' kr/km over ' + D.baseKm + ' km (ud og hjem), max ' + D.km + ' km',
+      delOk ? 'Afhentning og levering kan bestilles til i dag eller i morgen. Ca. ' + D.minutes + ' min.' : 'Leveringstiden ligger uden for åbningstiden nogle dage.');
     add('ok', 'Frokosttilbud kl. ' + L.from + '–' + L.to, 'Dage: ' + (L.days || []).map(function (d) { return days[d]; }).join(', '));
     var now = new Date(), h = H[now.getDay()], m = now.getHours() * 60 + now.getMinutes();
     var open = h && m >= h[0] * 60 && m < h[1] * 60;
-    var delNow = open && m >= D.from * 60 && m + (D.minutes || 45) <= D.to * 60;
+    var delNow = open && m >= delFrom * 60 && m + (D.minutes || 45) <= Math.min(delTo, h[1]) * 60 - (CFG.lastOrderMinutes || 0);
     add('info', 'Lige nu (' + now.toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit' }) + '): ' + (open ? 'åbent' : 'lukket') + ', levering ' + (delNow ? 'kan bestilles' : 'kan ikke bestilles'));
   }
 
