@@ -3,7 +3,7 @@
 -- Den ændrer ikke eksisterende ordrer og kan trygt køres flere gange.
 --
 -- KYLLING20: 20 % rabat på maden (ikke levering) på kundens første bestilling online.
--- Gælder fra 6. november 2026 til og med 7. december 2026 (dansk tid).
+-- Gælder fra 6. november 2026 til og med 6. december 2026 (dansk tid).
 -- Én gang pr. mailadresse. Afviste og annullerede ordrer tæller ikke med.
 
 -- Nye kolonner på bestillingen
@@ -25,7 +25,7 @@ alter table private.discount_codes enable row level security;
 insert into private.discount_codes (code, percent, valid_from, valid_to, first_order_only)
 values ('kylling20', 20,
         timestamptz '2026-11-06 00:00 Europe/Copenhagen',
-        timestamptz '2026-12-08 00:00 Europe/Copenhagen',
+        timestamptz '2026-12-07 00:00 Europe/Copenhagen',
         true)
 on conflict (code) do update
   set percent = excluded.percent, valid_from = excluded.valid_from,
