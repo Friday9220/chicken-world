@@ -247,16 +247,37 @@
   });
 
   // ---------- Afstand fra butikken til kundens adresse ----------
-  // Adressen slås op i Danmarks Adresseregister (DAWA), og køreafstanden findes via OSRM.
-  // Kan ruten ikke hentes, bruges afstanden i luftlinje × 1,3.
-  var DAWA = 'https://api.dataforsyningen.dk/adresser?struktur=mini&per_side=1&fuzzy&q=';
-  var shopPos = null;
-  function geocode(text) {
-    return fetch(DAWA + encodeURIComponent(text)).then(function (r) { return r.json(); }).then(function (a) {
-      var x = a && a[0];
-      if (!x || x.x == null) throw new Error('ukendt');
-      return { lon: x.x, lat: x.y, text: x.betegnelse || text, zip: String(x.postnr || '') };
+  // Adressen slås op i OpenStreetMap (Nominatim, med Photon som reserve), og køreafstanden findes via OSRM.
+  // Kan ruten ikke hentes, bruges afstanden i luftlinje × 1,3. (DAWA lukkede i 2026.)
+  var SHOP = { lat: 56.37456, lon: 9.65760 }; // Banegårdspladsen 13, 8850 Bjerringbro
+  function inDK(p) { return p && p.lat > 54.4 && p.lat < 57.9 && p.lon > 7.9 && p.lon < 15.3; }
+  function nominatim(street, zip) {
+    var city = zip.replace(/^\d{4}\s*/, '');
+    var url = 'https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&countrycodes=dk&accept-language=da' +
+      '&street=' + encodeURIComponent(street) + '&postalcode=' + encodeURIComponent(zip.slice(0, 4)) + (city ? '&city=' + encodeURIComponent(city) : '');
+    return fetch(url).then(function (r) { if (!r.ok) throw new Error('net'); return r.json(); }).then(function (a) {
+      if (!a || !a[0]) {
+        if (city) return nominatim(street, zip.slice(0, 4)); // prøv igen uden bynavn
+        throw new Error('ukendt');
+      }
+      return { lat: Number(a[0].lat), lon: Number(a[0].lon) };
     });
+  }
+  function photon(street, zip) {
+    var url = 'https://photon.komoot.io/api/?limit=1&lat=' + SHOP.lat + '&lon=' + SHOP.lon + '&q=' + encodeURIComponent(street + ', ' + zip + ', Danmark');
+    return fetch(url).then(function (r) { if (!r.ok) throw new Error('net'); return r.json(); }).then(function (j) {
+      var f = j && j.features && j.features[0];
+      if (!f || (f.properties.postcode && f.properties.postcode.slice(0, 4) !== zip.slice(0, 4))) throw new Error('ukendt');
+      return { lat: f.geometry.coordinates[1], lon: f.geometry.coordinates[0] };
+    });
+  }
+  // Fejler begge tjenester med netværksfejl, markeres fejlen som "net" (så kan kunden stadig bestille)
+  function geocode(street, zip) {
+    return nominatim(street, zip).catch(function (e1) {
+      return photon(street, zip).catch(function (e2) {
+        throw new Error(e1.message === 'ukendt' || e2.message === 'ukendt' ? 'ukendt' : 'net');
+      });
+    }).then(function (p) { if (!inDK(p)) throw new Error('ukendt'); return p; });
   }
   function airKm(a, b) {
     var R = 6371, r = Math.PI / 180, dLat = (b.lat - a.lat) * r, dLon = (b.lon - a.lon) * r;
@@ -276,7 +297,8 @@
       ok: dist.km != null ? 'Afstand fra butikken: ca. ' + dist.km.toFixed(1).replace('.', ',') + ' km' +
         (kmFee() ? ' – kørselstillæg ' + kr(kmFee()) + ' (' + extraKm() + ' km ud og hjem ud over de første ' + DEL.baseKm + ' km).' : ' – intet kørselstillæg.') : '',
       far: 'Adressen ligger ca. ' + (dist.km || 0).toFixed(1).replace('.', ',') + ' km fra butikken. Vi leverer desværre kun op til ' + DEL.km + ' km. Ring på ' + CFG.phone + ', så finder vi en løsning.',
-      fail: 'Vi kunne ikke finde adressen. Tjek vejnavn, husnummer og postnummer.' }[dist.state];
+      fail: 'Vi kunne ikke finde adressen. Tjek vejnavn, husnummer og postnummer.',
+      unknown: 'Vi kunne ikke beregne afstanden lige nu. Du kan stadig bestille. Ligger adressen over ' + DEL.baseKm + ' km væk, ringer vi om kørselstillægget.' }[dist.state];
     el.textContent = t; el.hidden = !t;
     el.classList.toggle('form-error', dist.state === 'far' || dist.state === 'fail');
   }
@@ -284,18 +306,17 @@
     var street = $('o-street').value.trim(), zip = $('o-zip').value.trim();
     var key = street + '|' + zip;
     if (street.length < 4 || !/^\d{4}/.test(zip)) { dist = { km: null, state: 'none', key: '' }; showDist(); render(); return; }
-    if (key === dist.key && dist.state !== 'fail') return;
+    if (key === dist.key && dist.state !== 'fail' && dist.state !== 'unknown') return;
     dist = { km: null, state: 'busy', key: key }; showDist(); render();
-    var shop = shopPos ? Promise.resolve(shopPos) : geocode(CFG.address).then(function (p) { shopPos = p; return p; });
-    Promise.all([shop, geocode(street + ', ' + zip)]).then(function (p) {
-      return roadKm(p[0], p[1]);
+    geocode(street, zip).then(function (p) {
+      return roadKm(SHOP, p);
     }).then(function (km) {
       if (dist.key !== key) return;
       dist = { km: km, state: DEL.km && km > DEL.km ? 'far' : 'ok', key: key };
       showDist(); render();
-    }).catch(function () {
+    }).catch(function (e) {
       if (dist.key !== key) return;
-      dist = { km: null, state: 'fail', key: key }; showDist(); render();
+      dist = { km: null, state: e && e.message === 'net' ? 'unknown' : 'fail', key: key }; showDist(); render();
     });
   }
   ['o-street', 'o-zip'].forEach(function (id) {
@@ -478,6 +499,7 @@
     var off = discount();
     if (off) items.push({ qty: 1, nr: '', name: 'Rabat ' + disc.code.toUpperCase() + ' (' + disc.pct + ' %)', desc: '', size: '', section: '', price: -off });
     var sum = total();
+    if (address && dist.state === 'unknown') note = 'OBS: Afstanden kunne ikke beregnes – tjek kørselstillæg' + (note ? '\n' + note : '');
     var fullNote = (address ? 'Adresse: ' + address + '\nBetaling: ' + pay + (note ? '\n' : '') : '') + note;
     var payload = { p_name: name, p_phone: phone, p_pickup: when.slice(0, 60), p_note: fullNote.slice(0, 500), p_items: items, p_total: sum };
     if (EMAIL_RE.test(email)) payload.p_email = email;
