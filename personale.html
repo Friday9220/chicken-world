@@ -119,7 +119,6 @@
         <span class="live"><span class="dot" id="livedot"></span> <span id="livetext">Henter …</span></span>
         <span class="spacer"></span>
         <span class="pstat" id="pstat" title="Nye ordrer printes automatisk">🖨️ Printer automatisk</span>
-        <button class="tbtn" id="sound" type="button">Lyd til</button>
         <button class="tbtn" id="logout" type="button">Log ud</button>
       </header>
       <p class="err" id="err" hidden></p>
@@ -209,34 +208,19 @@
     }
 
     // ---------- Lyd ----------
-    // Lyden er slået til fra start. Browsere tillader først lyd, når man har trykket
-    // på siden én gang, så indtil da vises en bjælke, der beder om et tryk.
+    // Lyden er altid slået til og kan ikke slås fra. Browsere tillader først lyd efter
+    // første tryk på siden (fx "Log ind"), så ethvert tryk aktiverer lyden.
     var audio = null, soundOn = true;
-    // Lyden starter altid som "til", når siden åbnes (også hvis den blev slået fra sidst)
     try { localStorage.removeItem('cw-lyd'); } catch (e) {}
     try { audio = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {}
-    function audioReady() { return audio && audio.state === 'running'; }
-    function showSound() {
-      var btn = $('sound');
-      btn.classList.toggle('is-on', soundOn);
-      btn.textContent = soundOn ? 'Lyd til' : 'Lyd fra';
-      btn.setAttribute('aria-pressed', soundOn ? 'true' : 'false');
-    }
     function unlock() {
-      if (audio && audio.state === 'suspended') audio.resume().then(showSound, showSound);
-      if (soundOn) keepAwake();
+      if (audio && audio.state === 'suspended') audio.resume().catch(function () {});
+      keepAwake();
     }
     ['pointerdown', 'keydown', 'touchstart', 'touchend', 'click'].forEach(function (ev) {
       document.addEventListener(ev, unlock, { passive: true });
     });
-    if (audio) audio.addEventListener('statechange', showSound);
-    $('sound').addEventListener('click', function () {
-      soundOn = !soundOn;
-      if (soundOn) { unlock(); setTimeout(ding, 60); }
-      showSound();
-    });
     unlock();
-    showSound();
     function ding() {
       if (!soundOn || !audio) return;
       [0, 0.22, 0.44].forEach(function (t, i) {
