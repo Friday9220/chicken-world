@@ -7,8 +7,8 @@
   <meta name="description" content="Hele menuen hos Chicken World i Bjerringbro: kylling, burgere, pizza, pita, bowls og frokosttilbud. Bestil til afhentning eller levering.">
   <link rel="canonical" href="https://chickenworld.dk/menu.html">
   <link rel="icon" href="assets/img/favicon.svg?v=2" type="image/svg+xml">
-  <link rel="stylesheet" href="styles.css?v=22">
-  <link rel="stylesheet" href="menu.css?v=22">
+  <link rel="stylesheet" href="styles.css?v=23">
+  <link rel="stylesheet" href="menu.css?v=23">
 </head>
 <body class="menu-page">
   <div class="frame">
@@ -88,6 +88,7 @@
       <div class="cart__sum cart__sum--fee" id="feeline" hidden><span>Levering</span><b id="fee">49,-</b></div>
       <div class="cart__sum cart__sum--fee" id="kmline" hidden><span id="kmlabel">Kørselstillæg</span><b id="kmfee">0,-</b></div>
       <p class="freehint" id="freehint" hidden></p>
+      <div class="cart__sum cart__sum--fee cart__sum--disc" id="discline" hidden><span id="disclabel">Rabat</span><b id="discamt">0,-</b></div>
       <div class="cart__sum"><span>I alt</span><b id="carttotal">0,-</b></div>
 
       <form class="cart__form" id="orderform" novalidate>
@@ -98,6 +99,18 @@
         <div class="field">
           <label for="o-phone">Telefon</label>
           <input id="o-phone" name="phone" type="tel" required autocomplete="tel" inputmode="tel">
+        </div>
+        <div class="field">
+          <label for="o-email">Mail</label>
+          <input id="o-email" name="email" type="email" required autocomplete="email" inputmode="email">
+        </div>
+        <div class="field">
+          <label for="o-code">Rabatkode <small>(valgfri)</small></label>
+          <div class="codebox">
+            <input id="o-code" name="code" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Fx KYLLING20">
+            <button type="button" class="codebox__btn" id="o-code-btn">Brug</button>
+          </div>
+          <p class="codehint" id="codehint" hidden></p>
         </div>
         <div id="addrfields" hidden>
           <div class="field">
@@ -168,8 +181,8 @@
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <script src="site-config.js?v=22"></script>
-  <script src="menu-data.js?v=22"></script>
-  <script src="menu.js?v=22"></script>
+  <script src="site-config.js?v=23"></script>
+  <script src="menu-data.js?v=23"></script>
+  <script src="menu.js?v=23"></script>
 </body>
 </html>

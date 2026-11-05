@@ -7,7 +7,7 @@
   <meta name="referrer" content="no-referrer">
   <link rel="icon" href="assets/img/favicon.svg?v=2" type="image/svg+xml">
   <title>Ordrer – Chicken World</title>
-  <link rel="stylesheet" href="styles.css?v=22">
+  <link rel="stylesheet" href="styles.css?v=23">
   <style>
     body { background: var(--frame); }
     [hidden] { display: none !important; }
@@ -82,6 +82,7 @@
     .tag--udl { background: #3fa9f5; color: #fff; }
     .o-addr { font-weight: 700; font-size: 17px; background: #ffe1dc; border-radius: 10px; padding: 8px 10px; }
     .o-addr a { color: var(--ink); }
+    .o-disc { font-weight: 800; font-size: 15px; background: #d9f2e3; border-radius: 10px; padding: 6px 10px; }
     .o-pay { font-weight: 800; font-size: 16px; background: #e7e0ff; border-radius: 10px; padding: 6px 10px; margin-top: 6px; }
     .act--print { background: transparent; color: var(--ink); }
     #bon { display: none; }
@@ -137,7 +138,7 @@
   </div>
   <div id="bon" aria-hidden="true"></div>
 
-  <script src="site-config.js?v=22"></script>
+  <script src="site-config.js?v=23"></script>
   <script src="assets/js/star/StarWebPrintBuilder.js?v=1"></script>
   <script src="assets/js/star/StarWebPrintTrader.js?v=1"></script>
   <script>
@@ -319,7 +320,8 @@
       return '<article class="order' + (fresh ? ' is-new' : '') + '">' +
         '<div class="o-head"><span class="o-id">#' + o.id + '</span>' +
         '<span class="o-pick"><span class="tag tag--' + k + '">' + KIND[k] + (k === 'lev' && o.status === 'klar' ? ' · på vej' : '') + '</span><br>' + esc(when) + '<small>Bestilt kl. ' + clock(o.created_at) + ' · ' + ago(o.created_at) + '</small></span></div>' +
-        '<div class="o-who"><b>' + esc(o.name) + '</b> · <a href="tel:' + esc(o.phone) + '">' + esc(o.phone) + '</a></div>' +
+        '<div class="o-who"><b>' + esc(o.name) + '</b> · <a href="tel:' + esc(o.phone) + '">' + esc(o.phone) + '</a>' + (o.email ? '<br><small>' + esc(o.email) + '</small>' : '') + '</div>' +
+        (o.discount_code ? '<div class="o-disc">Rabatkode ' + esc(String(o.discount_code).toUpperCase()) + (o.discount ? ' · −' + kr(o.discount) : '') + '</div>' : '') +
         (n.addr ? '<div class="o-addr">📍 <a href="https://maps.google.com/?q=' + encodeURIComponent(n.addr) + '" target="_blank" rel="noopener">' + esc(n.addr) + '</a></div>' : '') +
         (n.pay ? '<div class="o-pay">Betaling: ' + esc(n.pay) + '</div>' : '') +
         '<ul class="o-items">' + items + '</ul>' +

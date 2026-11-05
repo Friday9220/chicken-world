@@ -168,6 +168,13 @@
 .mode input:focus-visible + span { outline: 3px solid var(--orange); outline-offset: 2px; }
 .cart__sum--fee { padding: 10px 0 0; }
 .cart__sum--fee b { font-family: var(--body); font-weight: 700; font-size: 17px; }
+.cart__sum--disc b, .cart__sum--disc span { color: var(--green, #2e8b57); }
+.codebox { display: flex; gap: 8px; }
+.codebox input { flex: 1; min-width: 0; text-transform: uppercase; }
+.codebox__btn { font: inherit; font-weight: 700; padding: 0 18px; border-radius: 12px; border: 2px solid var(--ink); background: var(--ink); color: var(--cream); cursor: pointer; }
+.codehint { font-size: 14px; font-weight: 700; margin: 2px 0 0; }
+.codehint[data-ok="1"] { color: var(--green, #2e8b57); }
+.codehint[data-ok="0"] { color: #c0392b; }
 .freehint { font-size: 14px; font-weight: 700; color: var(--yellow-deep); }
 #addrfields { display: grid; gap: 12px; }
 #addrfields[hidden] { display: none !important; }

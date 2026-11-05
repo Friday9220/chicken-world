@@ -143,7 +143,10 @@
   }
   function kmFee() { return extraKm() * (DEL.perKm || 0); }
   function fee() { return baseFee() + kmFee(); }
-  function total() { return subtotal() + fee(); }
+  // Rabatkode (fx KYLLING20): procent af maden, ikke af levering. Databasen tjekker koden og mailadressen.
+  var disc = { code: '', pct: 0, email: '' };
+  function discount() { return disc.pct ? Math.round(subtotal() * disc.pct / 100) : 0; }
+  function total() { return subtotal() - discount() + fee(); }
   function hasLunch() { return cart.some(function (l) { return byKey[l.key].lunch; }); }
   function label(it) {
     return (it.nr ? it.nr + '. ' : '') + (it.section ? it.section + ': ' : '') + it.name + (it.size ? ' (' + it.size + ')' : '');
@@ -174,6 +177,9 @@
     var missing = DEL.freeFrom - subtotal();
     $('freehint').hidden = !del || n === 0 || missing <= 0;
     $('freehint').textContent = 'Køb for ' + kr(missing) + ' mere, så slipper du for leveringsgebyret på ' + kr(DEL.fee) + '.';
+    $('discline').hidden = !discount() || n === 0;
+    $('disclabel').textContent = 'Rabat ' + disc.code.toUpperCase() + ' (' + disc.pct + ' %)';
+    $('discamt').textContent = '−' + kr(discount());
     $('carttotal').textContent = kr(total());
     save();
   }
@@ -374,7 +380,7 @@
   }
   $('orderform').addEventListener('submit', function (e) {
     e.preventDefault();
-    var name = $('o-name').value.trim(), phone = $('o-phone').value.trim();
+    var name = $('o-name').value.trim(), phone = $('o-phone').value.trim(), email = $('o-email').value.trim();
     var street = $('o-street').value.trim(), zip = $('o-zip').value.trim();
     var del = isDelivery();
     var err = $('formerror');
@@ -382,6 +388,9 @@
     var problem = null, focus = null;
     if (!name) { problem = 'Skriv dit navn, så vi ved, hvem maden er til.'; focus = 'o-name'; }
     else if (phone.replace(/\D/g, '').length < 8) { problem = 'Skriv et telefonnummer med 8 cifre, så vi kan ringe, hvis der er spørgsmål.'; focus = 'o-phone'; }
+    else if (ONLINE && !EMAIL_RE.test(email)) { problem = 'Skriv din mailadresse, fx navn@mail.dk.'; focus = 'o-email'; }
+    else if (ONLINE && $('o-code').value.trim() && !disc.pct) { problem = 'Tryk "Brug" for at bruge rabatkoden, eller slet den.'; focus = 'o-code'; }
+    else if (disc.pct && email.toLowerCase() !== disc.email) { problem = 'Du har skiftet mailadresse. Tryk "Brug" ved rabatkoden igen.'; focus = 'o-code'; }
     else if (del && street.length < 4) { problem = 'Skriv vejnavn og husnummer, så vi kan finde dig.'; focus = 'o-street'; }
     else if (del && !/^\d{4}/.test(zip)) { problem = 'Skriv postnummer og by, fx 8850 Bjerringbro.'; focus = 'o-zip'; }
     else if (del && dist.state === 'busy') { problem = 'Vent et øjeblik, vi beregner afstanden til din adresse.'; }
@@ -403,7 +412,7 @@
     var note = $('o-note').value.trim();
     var address = del ? street + ', ' + zip : '';
     var pay = del ? (document.querySelector('input[name=pay]:checked') || {}).value : '';
-    if (ONLINE) { sendOrder(name, phone, when, address, note, pay); return; }
+    if (ONLINE) { sendOrder(name, phone, email, when, address, note, pay); return; }
     var lines = cart.map(function (l) {
       var it = byKey[l.key];
       return l.qty + ' × ' + label(it) + '   ' + kr(it.price * l.qty);
@@ -424,10 +433,40 @@
     if (/^eyJ/.test(CFG.supabaseKey)) h.Authorization = 'Bearer ' + CFG.supabaseKey;
     return h;
   }
+  // ---------- Rabatkode ----------
+  var EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+  function codeHint(text, ok) { var h = $('codehint'); h.textContent = text; h.dataset.ok = ok ? '1' : '0'; h.hidden = !text; }
+  function applyCode() {
+    var code = $('o-code').value.trim(), email = $('o-email').value.trim();
+    disc = { code: '', pct: 0, email: '' }; render();
+    if (!code) { codeHint('', true); return; }
+    if (!ONLINE) { codeHint('Rabatkoder kan kun bruges, når du bestiller online.', false); return; }
+    if (!EMAIL_RE.test(email)) { codeHint('Skriv din mailadresse ovenfor først. Koden gælder én gang pr. mailadresse.', false); $('o-email').focus(); return; }
+    var btn = $('o-code-btn'); btn.disabled = true; btn.textContent = '…';
+    fetch(CFG.supabaseUrl.replace(/\/$/, '') + '/rest/v1/rpc/check_discount', {
+      method: 'POST', headers: apiHeaders(), body: JSON.stringify({ p_email: email, p_code: code })
+    }).then(function (r) {
+      return r.json().then(function (b) {
+        if (r.status === 404) throw new Error('Rabatkoder virker ikke lige nu. Ring til os, hvis du har en kode.');
+        if (!r.ok) throw new Error(b && b.message ? b.message : 'Koden kunne ikke tjekkes');
+        return b;
+      });
+    }).then(function (pct) {
+      disc = { code: code.toLowerCase(), pct: Number(pct) || 0, email: email.toLowerCase() };
+      render();
+      codeHint('Rabatkoden er godkendt: ' + disc.pct + ' % rabat på maden.', true);
+    }).catch(function (e) {
+      codeHint(e.message === 'Failed to fetch' ? 'Koden kunne ikke tjekkes. Prøv igen.' : e.message, false);
+    }).then(function () { btn.disabled = false; btn.textContent = 'Brug'; });
+  }
+  $('o-code-btn').addEventListener('click', applyCode);
+  $('o-code').addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); applyCode(); } });
+  $('o-code').addEventListener('input', function () { if (disc.pct) { disc = { code: '', pct: 0, email: '' }; render(); } codeHint('', true); });
+
   // ---------- Send bestillingen til butikken ----------
   // Levering sendes med i "pickup" (fx "Levering i dag kl. 17.30"), og adressen står øverst i bemærkningen,
   // så ordresiden i butikken kan vise den tydeligt.
-  function sendOrder(name, phone, when, address, note, pay) {
+  function sendOrder(name, phone, email, when, address, note, pay) {
     var btn = $('orderform').querySelector('button[type=submit]');
     var err = $('formerror');
     var items = cart.map(function (l) {
@@ -436,18 +475,29 @@
     });
     if (baseFee()) items.push({ qty: 1, nr: '', name: 'Levering', desc: '', size: '', section: '', price: baseFee() });
     if (kmFee()) items.push({ qty: 1, nr: '', name: 'Kørselstillæg', desc: 'ca. ' + dist.km.toFixed(1).replace('.', ',') + ' km fra butikken · ' + extraKm() + ' km × ' + DEL.perKm + ' kr', size: '', section: '', price: kmFee() });
+    var off = discount();
+    if (off) items.push({ qty: 1, nr: '', name: 'Rabat ' + disc.code.toUpperCase() + ' (' + disc.pct + ' %)', desc: '', size: '', section: '', price: -off });
     var sum = total();
     var fullNote = (address ? 'Adresse: ' + address + '\nBetaling: ' + pay + (note ? '\n' : '') : '') + note;
+    var payload = { p_name: name, p_phone: phone, p_pickup: when.slice(0, 60), p_note: fullNote.slice(0, 500), p_items: items, p_total: sum };
+    if (EMAIL_RE.test(email)) payload.p_email = email;
+    if (off) { payload.p_code = disc.code; payload.p_discount = off; }
     btn.disabled = true; btn.textContent = 'Sender bestilling …';
     fetch(CFG.supabaseUrl.replace(/\/$/, '') + '/rest/v1/rpc/place_order', {
       method: 'POST',
       headers: apiHeaders(),
-      body: JSON.stringify({ p_name: name, p_phone: phone, p_pickup: when.slice(0, 60), p_note: fullNote.slice(0, 500), p_items: items, p_total: sum })
+      body: JSON.stringify(payload)
     }).then(function (r) {
       return r.json().then(function (body) {
         if (!r.ok) throw new Error(body && body.message ? body.message : 'Fejl');
         return body;
       });
+    }).catch(function (e) {
+      // Databasen er ikke opdateret endnu (ingen mail/rabat): send uden mail, hvis der ikke er rabat
+      if (off || !/p_email|function|schema|Could not find/i.test(e.message || '')) throw e;
+      delete payload.p_email;
+      return fetch(CFG.supabaseUrl.replace(/\/$/, '') + '/rest/v1/rpc/place_order', { method: 'POST', headers: apiHeaders(), body: JSON.stringify(payload) })
+        .then(function (r) { return r.json().then(function (b) { if (!r.ok) throw new Error(b && b.message ? b.message : 'Fejl'); return b; }); });
     }).then(function (id) {
       $('sent-name').textContent = name.split(' ')[0];
       $('sent-id').textContent = id;
@@ -455,7 +505,7 @@
       $('sent-where-label').textContent = address ? 'Leveres til' : 'Hentes på';
       $('sent-where').textContent = address || CFG.address;
       $('sent-pay').textContent = (address ? pay + ' ved levering, ' : 'Når du henter, ') + kr(sum);
-      cart = []; render();
+      cart = []; disc = { code: '', pct: 0, email: '' }; $('o-code').value = ''; $('codehint').hidden = true; render();
       $('o-note').value = '';
       showStep('sent');
       saveOrder({ id: id, phone: phone, first: name.split(' ')[0], when: when, address: address, pay: $('sent-pay').textContent, at: Date.now() });
