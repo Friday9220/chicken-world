@@ -4,7 +4,7 @@
 --
 -- KYLLING20: 20 % rabat på maden (ikke levering) på kundens første bestilling online.
 -- Gælder fra 6. november 2026 til og med 6. december 2026 (dansk tid).
--- Én gang pr. mailadresse. Afviste og annullerede ordrer tæller ikke med.
+-- Kun ved køb af mad for mindst 250 kr. Én gang pr. mailadresse. Afviste og annullerede ordrer tæller ikke med.
 
 -- Nye kolonner på bestillingen
 alter table public.orders add column if not exists email text;
@@ -18,18 +18,21 @@ create table if not exists private.discount_codes (
   percent          integer not null check (percent between 1 and 100),
   valid_from       timestamptz not null,
   valid_to         timestamptz not null,
-  first_order_only boolean not null default true
+  first_order_only boolean not null default true,
+  min_food         integer not null default 0
 );
+alter table private.discount_codes add column if not exists min_food integer not null default 0;
 alter table private.discount_codes enable row level security;
 
-insert into private.discount_codes (code, percent, valid_from, valid_to, first_order_only)
+insert into private.discount_codes (code, percent, valid_from, valid_to, first_order_only, min_food)
 values ('kylling20', 20,
         timestamptz '2026-11-06 00:00 Europe/Copenhagen',
         timestamptz '2026-12-07 00:00 Europe/Copenhagen',
-        true)
+        true, 250)
 on conflict (code) do update
   set percent = excluded.percent, valid_from = excluded.valid_from,
-      valid_to = excluded.valid_to, first_order_only = excluded.first_order_only;
+      valid_to = excluded.valid_to, first_order_only = excluded.first_order_only,
+      min_food = excluded.min_food;
 
 -- Tjekker en rabatkode for en mailadresse. Giver procent tilbage eller en fejl med forklaring.
 create or replace function private.discount_percent(p_email text, p_code text)
@@ -83,6 +86,8 @@ declare
   v_code text := nullif(lower(trim(coalesce(p_code, ''))), '');
   v_discount integer := coalesce(p_discount, 0);
   v_pct integer;
+  v_food integer;
+  v_min integer;
 begin
   if length(trim(coalesce(p_name, ''))) not between 1 and 80 then
     raise exception 'Ugyldigt navn';
@@ -107,6 +112,14 @@ begin
     v_discount := 0;
   else
     v_pct := private.discount_percent(v_email, v_code);
+    -- Maden (uden levering og kørselstillæg) skal koste mindst kodens minimum
+    select coalesce(sum((i->>'qty')::numeric * (i->>'price')::numeric), 0)::integer into v_food
+      from jsonb_array_elements(p_items) i
+      where (i->>'price')::numeric > 0 and coalesce(i->>'name', '') not in ('Levering', 'Kørselstillæg');
+    select min_food into v_min from private.discount_codes where code = v_code;
+    if v_food < coalesce(v_min, 0) then
+      raise exception 'Rabatkoden gælder kun ved køb af mad for mindst % kr.', v_min;
+    end if;
     -- Rabatten må højst være procenten af beløbet før rabat (+1 kr for afrunding)
     if v_discount < 0 or v_discount > ((p_total + v_discount) * v_pct) / 100 + 1 then
       raise exception 'Ugyldig rabat';
