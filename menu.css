@@ -251,5 +251,5 @@
 /* Menu-knap og -tekst */
 .price--menu { border-color: var(--orange); }
 .price--menu small { color: var(--orange); opacity: 1; }
-.msec__head p.msec__menu { color: var(--ink); font-weight: 600; margin-top: 6px; }
+.msec__head p.msec__menu { flex-basis: 100%; color: var(--ink); font-weight: 600; margin: 0; }
 .field__hint--menu { color: var(--orange); font-weight: 600; }
