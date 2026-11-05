@@ -37,7 +37,7 @@
     var base = ps[0];
     return ps.concat([{ label: base.label ? base.label + ' menu' : 'Menu', price: base.price + sec.menu, menu: true }]);
   }
-  var MENU_TXT = 'Kan fås som menu med sodavand (+30 kr.). Husk at skrive hvilken sodavand du vil have i bemærkningen, når du bestiller.';
+  var MENU_TXT = 'Husk at skrive hvilken sodavand du vil have i bemærkningen, når du bestiller.';
 
   var list = $('menu-list'), links = $('catlinks');
   var byKey = {};
@@ -46,7 +46,7 @@
     section.className = 'msec msec--' + sec.id + (sec.lunch ? ' msec--lunch' : '');
     section.id = sec.id;
     var html = '<div class="msec__head"><h2 class="display">' + esc(sec.title) + '</h2>' +
-      (sec.note ? '<p>' + esc(sec.note) + '</p>' : '') + (sec.menu ? '<p class="msec__menu">🥤 ' + esc(MENU_TXT) + '</p>' : '') + '</div><ul class="dishes">';
+      (sec.note ? '<p>' + esc(sec.note) + '</p>' : '') + (sec.menu ? '<p class="msec__menu">' + esc(MENU_TXT) + '</p>' : '') + '</div><ul class="dishes">';
     sec.items.forEach(function (item, i) {
       var nr = item[0], name = item[1], desc = item[2], tag = item[4];
       var search = (nr + ' ' + name + ' ' + desc + ' ' + sec.title).toLowerCase();
