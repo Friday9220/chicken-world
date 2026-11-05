@@ -29,6 +29,15 @@
     return p.map(function (v, i) { return { label: labels[i] || '', price: v }; })
             .filter(function (x) { return x.price != null; });
   }
+  // Retter i en sektion med "menu" får også en menu-knap (alm. størrelse + tillæg). Tillæg og ekstra får ingen.
+  function isAddon(item) { return /^(Tillæg|Gør din)/.test(item[2]) || /^(Ekstra|Dobbelt|Menu-tillæg)/.test(item[1]); }
+  function pricesWithMenu(sec, item) {
+    var ps = pricesOf(sec, item);
+    if (!sec.menu || isAddon(item) || !ps.length) return ps;
+    var base = ps[0];
+    return ps.concat([{ label: base.label ? base.label + ' menu' : 'Menu', price: base.price + sec.menu, menu: true }]);
+  }
+  var MENU_TXT = 'Kan fås som menu med sodavand (+30 kr.). Husk at skrive hvilken sodavand du vil have i bemærkningen, når du bestiller.';
 
   var list = $('menu-list'), links = $('catlinks');
   var byKey = {};
@@ -37,7 +46,7 @@
     section.className = 'msec msec--' + sec.id + (sec.lunch ? ' msec--lunch' : '');
     section.id = sec.id;
     var html = '<div class="msec__head"><h2 class="display">' + esc(sec.title) + '</h2>' +
-      (sec.note ? '<p>' + esc(sec.note) + '</p>' : '') + '</div><ul class="dishes">';
+      (sec.note ? '<p>' + esc(sec.note) + '</p>' : '') + (sec.menu ? '<p class="msec__menu">🥤 ' + esc(MENU_TXT) + '</p>' : '') + '</div><ul class="dishes">';
     sec.items.forEach(function (item, i) {
       var nr = item[0], name = item[1], desc = item[2], tag = item[4];
       var search = (nr + ' ' + name + ' ' + desc + ' ' + sec.title).toLowerCase();
@@ -47,13 +56,13 @@
         (tag ? '<span class="dish__tag">' + esc(tag) + '</span>' : '') + '</h3>' +
         (desc ? '<p class="dish__desc">' + esc(desc) + '</p>' : '') + '</div>' +
         '<div class="dish__prices">';
-      pricesOf(sec, item).forEach(function (p) {
+      pricesWithMenu(sec, item).forEach(function (p) {
         var key = sec.id + '|' + i + '|' + p.label;
         byKey[key] = {
-          key: key, nr: nr, name: name, desc: desc, size: p.label, price: p.price, lunch: !!sec.lunch,
+          key: key, nr: nr, name: name, desc: desc, size: p.label, price: p.price, lunch: !!sec.lunch, menu: !!p.menu,
           section: sec.lunch ? 'Frokost' : (sec.id === 'pizza' || sec.id === 'kylling' || sec.id === 'burgere' ? '' : sec.title)
         };
-        html += '<button class="price" type="button" data-key="' + esc(key) + '" aria-label="Læg ' +
+        html += '<button class="price' + (p.menu ? ' price--menu' : '') + '" type="button" data-key="' + esc(key) + '" aria-label="Læg ' +
           esc(name + (p.label ? ' ' + p.label : '')) + ' i kurven, ' + p.price + ' kr">' +
           (p.label ? '<small>' + esc(p.label) + '</small>' : '') + kr(p.price) + '</button>';
       });
@@ -152,6 +161,7 @@
     return (it.nr ? it.nr + '. ' : '') + (it.section ? it.section + ': ' : '') + it.name + (it.size ? ' (' + it.size + ')' : '');
   }
 
+  function hasMenu() { return cart.some(function (l) { return byKey[l.key] && byKey[l.key].menu; }); }
   function render() {
     var n = count();
     $('cartbtn').hidden = n === 0;
@@ -178,6 +188,7 @@
     $('freehint').hidden = !del || n === 0 || missing <= 0;
     $('freehint').textContent = 'Køb for ' + kr(missing) + ' mere, så slipper du for leveringsgebyret på ' + kr(DEL.fee) + '.';
     $('discline').hidden = !discount() || n === 0;
+    $('menuhint').hidden = !hasMenu();
     $('disclabel').textContent = 'Rabat ' + disc.code.toUpperCase() + ' (' + disc.pct + ' %)';
     $('discamt').textContent = '−' + kr(discount());
     $('carttotal').textContent = kr(total());
@@ -487,6 +498,7 @@
     else if (del && dist.state === 'far') { problem = 'Vi leverer desværre kun op til ' + DEL.km + ' km fra butikken. Ring på ' + CFG.phone + '.'; }
     else if (del && dist.state === 'fail') { problem = 'Vi kunne ikke finde adressen. Tjek vejnavn, husnummer og postnummer, eller ring på ' + CFG.phone + '.'; focus = 'o-street'; }
     else if (del && !(document.querySelector('input[name=pay]:checked') || {}).value) { problem = 'Vælg, om du vil betale med MobilePay eller kontant ved levering.'; focus = null; }
+    else if (hasMenu() && $('o-note').value.trim().length < 3) { problem = 'Skriv i bemærkningen, hvilken sodavand du vil have til din menu.'; focus = 'o-note'; }
     else if (!$('o-time').value) {
       problem = del ? 'Der er ingen ledige leveringstider lige nu. Ring til os på ' + CFG.phone + '.'
                     : 'Der er ingen ledige tider lige nu. Ring til os på ' + CFG.phone + '.';
