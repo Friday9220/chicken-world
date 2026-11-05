@@ -23,7 +23,6 @@
     .pstat.is-ok { background: var(--green); }
     .pstat.is-bad { background: #c0392b; }
     .tbtn.is-on { background: var(--green); border-color: var(--green); }
-    .unlock { display: block; width: 100%; margin-bottom: 16px; font: inherit; font-weight: 700; font-size: 17px; padding: 14px 18px; border-radius: 14px; border: 0; background: var(--orange); color: #fff; cursor: pointer; animation: pulse 1.6s ease infinite; }
     @keyframes pulse { 50% { opacity: .75; } }
     .tbtn:focus-visible, .act:focus-visible { outline: 3px solid var(--orange); outline-offset: 2px; }
 
@@ -120,10 +119,8 @@
         <span class="live"><span class="dot" id="livedot"></span> <span id="livetext">Henter …</span></span>
         <span class="spacer"></span>
         <span class="pstat" id="pstat" title="Nye ordrer printes automatisk">🖨️ Printer automatisk</span>
-        <button class="tbtn" id="sound" type="button">Lyd til</button>
         <button class="tbtn" id="logout" type="button">Log ud</button>
       </header>
-      <button class="unlock" id="unlock" type="button" hidden>🔔 Tryk her for at aktivere lyden ved nye ordrer</button>
       <p class="err" id="err" hidden></p>
 
       <div class="board">
@@ -211,36 +208,19 @@
     }
 
     // ---------- Lyd ----------
-    // Lyden er slået til fra start. Browsere tillader først lyd, når man har trykket
-    // på siden én gang, så indtil da vises en bjælke, der beder om et tryk.
+    // Lyden er altid slået til og kan ikke slås fra. Browsere tillader først lyd efter
+    // første tryk på siden (fx "Log ind"), så ethvert tryk aktiverer lyden.
     var audio = null, soundOn = true;
-    // Lyden starter altid som "til", når siden åbnes (også hvis den blev slået fra sidst)
     try { localStorage.removeItem('cw-lyd'); } catch (e) {}
     try { audio = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {}
-    function audioReady() { return audio && audio.state === 'running'; }
-    function showSound() {
-      var btn = $('sound');
-      btn.classList.toggle('is-on', soundOn);
-      btn.textContent = soundOn ? 'Lyd til' : 'Lyd fra';
-      btn.setAttribute('aria-pressed', soundOn ? 'true' : 'false');
-      $('unlock').hidden = !soundOn || audioReady();
-    }
     function unlock() {
-      if (audio && audio.state === 'suspended') audio.resume().then(showSound, showSound);
-      if (soundOn) keepAwake();
+      if (audio && audio.state === 'suspended') audio.resume().catch(function () {});
+      keepAwake();
     }
-    ['pointerdown', 'keydown', 'touchstart'].forEach(function (ev) {
+    ['pointerdown', 'keydown', 'touchstart', 'touchend', 'click'].forEach(function (ev) {
       document.addEventListener(ev, unlock, { passive: true });
     });
-    if (audio) audio.addEventListener('statechange', showSound);
-    $('sound').addEventListener('click', function () {
-      soundOn = !soundOn;
-      if (soundOn) { unlock(); setTimeout(ding, 60); }
-      showSound();
-    });
-    $('unlock').addEventListener('click', function () { setTimeout(ding, 60); });
     unlock();
-    showSound();
     function ding() {
       if (!soundOn || !audio) return;
       [0, 0.22, 0.44].forEach(function (t, i) {
