@@ -27,8 +27,8 @@ window.CW_CONFIG = {
   // Frokosttilbud kan kun bestilles i dette tidsrum (mandag–fredag)
   lunch: { days: [1, 2, 3, 4, 5], from: 10, to: 16 },
 
-  // Levering
+  // Levering kan bestilles i hele åbningstiden (dog senest lastOrderMinutes før lukketid).
   // Levering: fee kr under freeFrom kr (gratis fra freeFrom). Over baseKm km fra butikken lægges perKm kr
   // på for hver km ud over baseKm – talt både ud og hjem. km = længste afstand vi leverer til.
-  delivery: { fee: 49, freeFrom: 249, baseKm: 5, perKm: 5, roundTrip: true, from: 16, to: 20, km: 8, minutes: 45 }
+  delivery: { fee: 49, freeFrom: 249, baseKm: 5, perKm: 5, roundTrip: true, km: 8, minutes: 45 }
 };
