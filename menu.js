@@ -321,6 +321,7 @@
     });
   }
   // ---------- Adresseforslag mens man skriver (Photon / OpenStreetMap) ----------
+  var SUG_KM = 20; // forslag fra alle adresser inden for 20 km
   var picked = null; // { key, lat, lon } når kunden har valgt et forslag
   var sugTimer = null, sugReq = 0, sugItems = [], sugIdx = -1;
   function sugBox() { return $('addr-sug'); }
@@ -337,8 +338,11 @@
     var q = $('o-street').value.trim();
     if (q.length < 3) { closeSug(); return; }
     var my = ++sugReq;
-    var url = 'https://photon.komoot.io/api/?limit=8&lat=' + SHOP.lat + '&lon=' + SHOP.lon +
-      '&bbox=9.35,56.22,9.98,56.53&q=' + encodeURIComponent(q);
+    // Søg kun inden for SUG_KM km fra butikken (firkant til søgningen, cirkel bagefter)
+    var dLat = SUG_KM / 111.2, dLon = SUG_KM / (111.32 * Math.cos(SHOP.lat * Math.PI / 180));
+    var url = 'https://photon.komoot.io/api/?limit=15&lat=' + SHOP.lat + '&lon=' + SHOP.lon +
+      '&bbox=' + [SHOP.lon - dLon, SHOP.lat - dLat, SHOP.lon + dLon, SHOP.lat + dLat].map(function (n) { return n.toFixed(4); }).join(',') +
+      '&q=' + encodeURIComponent(q);
     fetch(url).then(function (r) { return r.json(); }).then(function (j) {
       if (my !== sugReq) return;
       var seen = {};
@@ -347,6 +351,7 @@
         if (p.countrycode && p.countrycode !== 'DK') return null;
         var street = p.street || (p.type === 'street' ? p.name : '');
         if (!street || !p.postcode || !c) return null;
+        if (airKm(SHOP, { lat: c[1], lon: c[0] }) > SUG_KM) return null;
         var line1 = street + (p.housenumber ? ' ' + p.housenumber : '');
         var zip = p.postcode + ' ' + (p.city || p.district || '');
         if (seen[line1 + zip]) return null; seen[line1 + zip] = 1;
