@@ -1,6 +1,7 @@
 // Chicken World – menukortet.
 // Skrevet af fra chicken-world.dk/menu (priser gældende 15. august – 31. december 2026).
 // Ret priser her. Hver ret: [nr, navn, beskrivelse, priser, mærke]
+// menu: 30 på en sektion giver hver ret en ekstra "Menu"-knap til prisen + 30 kr. (ikke tillæg).
 // priser er enten et tal eller en liste med én pris pr. størrelse (se "sizes").
 // En ret kan have egne prisnavne som 6. felt, fx ['Pizza', '+ sodavand'].
 // "lunch: true" betyder, at retterne kun kan bestilles mandag–fredag kl. 10–16.
@@ -38,7 +39,7 @@ window.CW_MENU = [
     ]
   },
   {
-    id: 'burgere', title: 'Burgere', note: '150 g oksekød fra Himmerland',
+    id: 'burgere', title: 'Burgere', note: '150 g oksekød fra Himmerland', menu: 30,
     items: [
       ['', 'Kylling bacon & cheese', 'Grillet kyllingebryst, bacon, ost, salat og husets dressing', 79],
       ['', 'Hamburger', 'Oksebøf, salat, tomat, agurk, syltede løg og ketchup', 79],
@@ -55,7 +56,7 @@ window.CW_MENU = [
     ]
   },
   {
-    id: 'pita', title: 'Pita', note: 'Vælg haydari, tzatziki eller hummus i bemærkningen',
+    id: 'pita', title: 'Pita', note: 'Vælg haydari, tzatziki eller hummus i bemærkningen', menu: 30,
     items: [
       ['', 'Crispy fried chicken', 'Salat, grønt, feta, syltede løg og kål, karrydressing og basilikumpesto', 79],
       ['', 'Grillet kylling', 'Grillet kyllingefilet, salat, grønt og urtedressing', 79],
@@ -77,17 +78,17 @@ window.CW_MENU = [
     ]
   },
   {
-    id: 'ruller', title: 'Ruller',
+    id: 'ruller', title: 'Ruller', menu: 30,
     items: [
       ['', 'Rulle med kebab', '', 69],
       ['', 'Rulle med kylling', '', 69],
       ['', 'Rulle med crispy kylling', '', 69],
       ['', 'Rulle med falafel', '', 69, 'Vegetar'],
-      ['', 'Menu-tillæg', 'Gør din pita, bowl, rulle eller burger til en menu', 30]
+      ['', 'Menu-tillæg til bowl', 'Gør din bowl til en menu. Skriv hvilken sodavand i bemærkningen', 30]
     ]
   },
   {
-    id: 'pizza', title: 'Pizza', note: 'Almindelig eller familie',
+    id: 'pizza', title: 'Pizza', note: 'Almindelig eller familie', menu: 30,
     sizes: ['Alm.', 'Fam.'],
     items: [
       ['1', 'Margherita', 'Tomatsauce og ost', [50, 95]],
