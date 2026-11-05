@@ -308,7 +308,8 @@
     if (street.length < 4 || !/^\d{4}/.test(zip)) { dist = { km: null, state: 'none', key: '' }; showDist(); render(); return; }
     if (key === dist.key && dist.state !== 'fail' && dist.state !== 'unknown') return;
     dist = { km: null, state: 'busy', key: key }; showDist(); render();
-    geocode(street, zip).then(function (p) {
+    var known = picked && picked.key === key ? Promise.resolve({ lat: picked.lat, lon: picked.lon }) : geocode(street, zip);
+    known.then(function (p) {
       return roadKm(SHOP, p);
     }).then(function (km) {
       if (dist.key !== key) return;
@@ -319,6 +320,69 @@
       dist = { km: null, state: e && e.message === 'net' ? 'unknown' : 'fail', key: key }; showDist(); render();
     });
   }
+  // ---------- Adresseforslag mens man skriver (Photon / OpenStreetMap) ----------
+  var picked = null; // { key, lat, lon } når kunden har valgt et forslag
+  var sugTimer = null, sugReq = 0, sugItems = [], sugIdx = -1;
+  function sugBox() { return $('addr-sug'); }
+  function closeSug() { sugBox().hidden = true; sugItems = []; sugIdx = -1; $('o-street').setAttribute('aria-expanded', 'false'); }
+  function drawSug() {
+    var box = sugBox();
+    if (!sugItems.length) { closeSug(); return; }
+    box.innerHTML = sugItems.map(function (a, i) {
+      return '<li role="option" data-i="' + i + '" aria-selected="' + (i === sugIdx) + '">' + esc(a.line1) + '<small>' + esc(a.line2) + '</small></li>';
+    }).join('');
+    box.hidden = false; $('o-street').setAttribute('aria-expanded', 'true');
+  }
+  function fetchSug() {
+    var q = $('o-street').value.trim();
+    if (q.length < 3) { closeSug(); return; }
+    var my = ++sugReq;
+    var url = 'https://photon.komoot.io/api/?limit=8&lat=' + SHOP.lat + '&lon=' + SHOP.lon +
+      '&bbox=9.35,56.22,9.98,56.53&q=' + encodeURIComponent(q);
+    fetch(url).then(function (r) { return r.json(); }).then(function (j) {
+      if (my !== sugReq) return;
+      var seen = {};
+      sugItems = (j.features || []).map(function (f) {
+        var p = f.properties || {}, c = f.geometry && f.geometry.coordinates;
+        if (p.countrycode && p.countrycode !== 'DK') return null;
+        var street = p.street || (p.type === 'street' ? p.name : '');
+        if (!street || !p.postcode || !c) return null;
+        var line1 = street + (p.housenumber ? ' ' + p.housenumber : '');
+        var zip = p.postcode + ' ' + (p.city || p.district || '');
+        if (seen[line1 + zip]) return null; seen[line1 + zip] = 1;
+        return { line1: line1, line2: zip.trim(), zip: zip.trim(), house: !!p.housenumber, lat: c[1], lon: c[0] };
+      }).filter(Boolean).slice(0, 6);
+      sugIdx = -1; drawSug();
+    }).catch(function () { closeSug(); });
+  }
+  function pickSug(i) {
+    var a = sugItems[i]; if (!a) return;
+    closeSug();
+    $('o-street').value = a.line1 + (a.house ? '' : ' ');
+    $('o-zip').value = a.zip;
+    if (a.house) {
+      picked = { key: $('o-street').value.trim() + '|' + a.zip, lat: a.lat, lon: a.lon };
+      updateDistance();
+      $('o-zip').blur();
+    } else {
+      picked = null;
+      $('o-street').focus(); // mangler husnummer
+    }
+  }
+  $('o-street').addEventListener('input', function () { clearTimeout(sugTimer); sugTimer = setTimeout(fetchSug, 250); });
+  $('o-street').addEventListener('keydown', function (e) {
+    if (sugBox().hidden) return;
+    if (e.key === 'ArrowDown') { e.preventDefault(); sugIdx = Math.min(sugItems.length - 1, sugIdx + 1); drawSug(); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); sugIdx = Math.max(0, sugIdx - 1); drawSug(); }
+    else if (e.key === 'Enter' && sugIdx >= 0) { e.preventDefault(); pickSug(sugIdx); }
+    else if (e.key === 'Escape') closeSug();
+  });
+  sugBox().addEventListener('mousedown', function (e) {
+    var li = e.target.closest('li'); if (!li) return;
+    e.preventDefault(); pickSug(Number(li.dataset.i));
+  });
+  $('o-street').addEventListener('blur', function () { setTimeout(closeSug, 150); });
+
   ['o-street', 'o-zip'].forEach(function (id) {
     $(id).addEventListener('input', function () { clearTimeout(distTimer); distTimer = setTimeout(updateDistance, 700); });
     $(id).addEventListener('change', updateDistance);
