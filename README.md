@@ -18,7 +18,7 @@ Siden er ren HTML, CSS og JavaScript uden byggetrin. Åbn `index.html` i en brow
 - `supabase/opsaetning.sql` – opsætning af databasen (nøglen indsættes før kørsel)
 - `supabase/opdatering-accepter-afvis.sql` – kør én gang efter opsætningen: køkkenet kan acceptere (15/30/45/60 min) eller afvise, og kunden ser status
 - `supabase/opdatering-forudbestilling.sql` – kør én gang: ordreskærmen viser aktive ordrer bestilt op til 14 dage frem
-- `supabase/opdatering-rabatkode.sql` – kør én gang: mailadresse på bestillinger og rabatkoden KYLLING20 (20 %, 6.11.–5.12.2026, én gang pr. mail)
+- `supabase/opdatering-rabatkode.sql` – kør én gang: mailadresse på bestillinger og rabatkoden KYLLING20 (20 %, 6.11.–7.12.2026, én gang pr. mail)
 - `tjek.html` – åbn i browseren for at tjekke hele siden: links, billeder, menu, tider og ordresystemet (opretter ingen ordrer)
 - `assets/img/` – billeder fra butikken og logo
 
