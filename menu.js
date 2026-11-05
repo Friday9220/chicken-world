@@ -154,7 +154,14 @@
   function fee() { return baseFee() + kmFee(); }
   // Rabatkode: procent af maden, ikke af levering. Databasen tjekker koden og mailadressen.
   var disc = { code: '', pct: 0, email: '' };
-  function discount() { return disc.pct ? Math.round(subtotal() * disc.pct / 100) : 0; }
+  var DISC_MIN = 250; // rabatkoden gælder kun ved køb af mad for mindst 250 kr. (samme grænse står i databasen)
+  function discount() { return disc.pct && subtotal() >= DISC_MIN ? Math.round(subtotal() * disc.pct / 100) : 0; }
+  function discHint() {
+    if (!disc.pct) return;
+    var miss = DISC_MIN - subtotal();
+    if (miss > 0) codeHint('Rabatkoden gælder ved køb af mad for mindst ' + DISC_MIN + ' kr. Køb for ' + kr(miss) + ' mere for at få ' + disc.pct + ' % rabat.', false);
+    else codeHint('Rabatkoden er godkendt: ' + disc.pct + ' % rabat på maden.', true);
+  }
   function total() { return subtotal() - discount() + fee(); }
   function hasLunch() { return cart.some(function (l) { return byKey[l.key].lunch; }); }
   function label(it) {
@@ -188,6 +195,7 @@
     $('freehint').hidden = !del || n === 0 || missing <= 0;
     $('freehint').textContent = 'Køb for ' + kr(missing) + ' mere, så slipper du for leveringsgebyret på ' + kr(DEL.fee) + '.';
     $('discline').hidden = !discount() || n === 0;
+    discHint();
     $('menuhint').hidden = !hasMenu();
     $('disclabel').textContent = 'Rabat ' + disc.code.toUpperCase() + ' (' + disc.pct + ' %)';
     $('discamt').textContent = '−' + kr(discount());
@@ -556,7 +564,6 @@
     }).then(function (pct) {
       disc = { code: code.toLowerCase(), pct: Number(pct) || 0, email: email.toLowerCase() };
       render();
-      codeHint('Rabatkoden er godkendt: ' + disc.pct + ' % rabat på maden.', true);
     }).catch(function (e) {
       codeHint(e.message === 'Failed to fetch' ? 'Koden kunne ikke tjekkes. Prøv igen.' : e.message, false);
     }).then(function () { btn.disabled = false; btn.textContent = 'Brug'; });
