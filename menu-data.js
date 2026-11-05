@@ -1,257 +1,164 @@
-// Menukortet – skrevet af fra assets/img/menu.jpg.
-// Ret priser her. Hver ret: [nr, navn, beskrivelse, priser]
-// priser er enten et tal eller en liste af [størrelse, pris].
-window.DILANS_MENU = [
+// Chicken World – menukortet.
+// Skrevet af fra chicken-world.dk/menu (priser gældende 15. august – 31. december 2026).
+// Ret priser her. Hver ret: [nr, navn, beskrivelse, priser, mærke]
+// priser er enten et tal eller en liste med én pris pr. størrelse (se "sizes").
+// En ret kan have egne prisnavne som 6. felt, fx ['Pizza', '+ sodavand'].
+// "lunch: true" betyder, at retterne kun kan bestilles mandag–fredag kl. 10–16.
+window.CW_MENU = [
   {
-    id: 'frokost', title: 'Frokosttilbud', note: 'Mellem kl. 11–14',
+    id: 'frokost', title: 'Frokosttilbud', note: 'Mandag–fredag kl. 10–16', lunch: true,
     items: [
-      ['', 'Pizza', 'Vælg mellem nr. 1–14', 69],
-      ['', 'Durum rulle', 'Vælg mellem kebab / kylling / falafel', 55],
-      ['', 'Pizza sandwich', 'Vælg mellem kebab / kylling / falafel', 65],
-      ['', 'Pitabrød', 'Vælg mellem kebab / kylling / falafel', 37],
-      ['', 'Husets bøf', 'Med salat, pommes frites og bearnaisesauce', 75],
-      ['', 'Box', 'Vælg mellem kebab / kylling / falafel', 55]
+      ['', 'Sandwich: Kylling bacon', 'Kylling, bacon, salat, tomat, agurk og dressing', 39],
+      ['', 'Sandwich: Spicy kylling', 'Spicy kylling, chilimayo, jalapeños, salat, tomat og agurk', 39],
+      ['', 'Sandwich: Kylling & karry', 'Kylling, karry, bacon, salat, tomat og agurk', 39],
+      ['', 'Sandwich: BBQ kylling', 'BBQ-kylling, bacon, ost, coleslaw og rå løg', 39],
+      ['', 'Sandwich: Æg & rejer', 'Æg, rejer, salat, tomat, agurk og dressing', 39],
+      ['', 'Sandwich: Tun', 'Tun, salat, tomat, agurk, løg og dressing', 39],
+      ['', 'Sandwich: Skinke & ost', 'Skinke, ost, salat, tomat, agurk og dressing', 39],
+      ['', 'Sandwich med sodavand', 'Vælg en af sandwichene ovenfor, og skriv hvilken i bemærkningen', 50],
+      ['', 'Kyllingemix', 'Med pommes frites og cremefraiche-dressing', 39],
+      ['', 'Kebabmix', 'Med pommes frites og cremefraiche-dressing', 39],
+      ['', 'Frokostpizza: Skinke', 'Alm. størrelse. Med sodavand: skriv hvilken i bemærkningen', [35, 45], '', ['Pizza', '+ sodavand']],
+      ['', 'Frokostpizza: Pepperoni', 'Alm. størrelse. Med sodavand: skriv hvilken i bemærkningen', [35, 45], '', ['Pizza', '+ sodavand']],
+      ['', 'Frokostpizza: Kebab', 'Alm. størrelse. Med sodavand: skriv hvilken i bemærkningen', [35, 45], '', ['Pizza', '+ sodavand']],
+      ['', 'Frokostpizza: Oksekød', 'Alm. størrelse. Med sodavand: skriv hvilken i bemærkningen', [35, 45], '', ['Pizza', '+ sodavand']]
     ]
   },
   {
-    id: 'pizza', title: 'Pizza', note: 'Almindelig, deep pan eller familie',
-    sizes: ['Alm.', 'Deep', 'Fam.'],
+    id: 'kylling', title: 'Kylling', note: 'Dansk kylling, marineret i mindst 24 timer. Bestil på forhånd eller fra kl. 15',
     items: [
-      ['1', 'Vesuvio', 'Tomatsauce, ost og skinke', [80, 95, 154]],
-      ['2', 'Kebab', 'Tomatsauce, ost, kebab, salat og dressing', [85, 100, 161]],
-      ['3', 'København', 'Tomatsauce, ost, pepperoni og champignon', [85, 100, 161]],
-      ['4', 'Hawaii', 'Tomatsauce, ost, skinke og ananas', [85, 100, 161]],
-      ['5', 'Margherita', 'Tomatsauce og ost', [75, 90, 140]],
-      ['6', 'Capricciosa', 'Tomatsauce, ost, skinke og champignon', [85, 100, 161]],
-      ['7', 'Italiana', 'Tomatsauce, ost, kødsauce og løg', [85, 100, 161]],
-      ['8', 'Tonny Special', 'Tomatsauce, ost, pepperoni og ananas', [85, 100, 161]],
-      ['9', 'Milano', 'Tomatsauce, ost, kebab og champignon', [85, 100, 161]],
-      ['10', 'Napoli', 'Tomatsauce, ost, kylling, salat og dressing', [85, 100, 161]],
-      ['11', 'Pep', 'Tomatsauce, ost og pepperoni', [80, 95, 154]],
-      ['12', 'Pollo', 'Tomatsauce, ost, kylling og champignon', [85, 100, 160]],
-      ['13', 'Vegetaria', 'Tomatsauce, ost, champignon, paprika, artiskok og løg', [85, 100, 158]],
-      ['14', 'Apollo', 'Tomatsauce, ost, kebab, løg og chili', [85, 100, 161]],
-      ['15', 'La Luna', 'Tomatsauce, ost, skinke, bacon, kebab og chili', [97, 112, 184]],
-      ['16', 'Calzone', 'Indbagt. Tomatsauce, ost og skinke', [89, null, null]],
-      ['17', 'Balkan', 'Tomatsauce, ost, friske tomater, rucola, pesto og oliven', [89, 106, 172]],
-      ['18', 'Matador', 'Tomatsauce, ost, kebab, løg og bearnaise', [87, 102, 164]],
-      ['19', 'Mama Mia', 'Tomatsauce, ost, skinke og cocktailpølser', [90, 106, 172]],
-      ['20', 'Græsk', 'Tomatsauce, ost, fetaost, oliven, paprika, rucolasalat og pesto', [90, 106, 172]],
-      ['21', 'Orientale', 'Tomatsauce, ost, cherrytomater, lufttørret skinke, rucola og pesto', [93, 110, 180]],
-      ['22', 'Amore', 'Tomatsauce, ost, pepperoni, skinke og bacon', [97, 112, 184]],
-      ['23', 'Palermo', 'Tomatsauce, ost, lufttørret skinke, artiskok og løg', [93, 108, 176]],
-      ['24', 'Parma', 'Tomatsauce, ost, lufttørret skinke og gorgonzola', [95, 110, 172]],
-      ['25', 'Mamma Rosa', 'Tomatsauce, ost, hakket kød, pepperoni og chili', [90, 105, 170]],
-      ['26', 'Pompei', 'Tomatsauce, ost, skinke, løg og bacon', [90, 107, 178]],
-      ['27', 'Delal', 'Indbagt. Tomatsauce, ost, kødsauce og spaghetti', [89, null, null]],
-      ['28', 'Dilan', 'Tomatsauce, ost, tun og rejer', [90, 108, 170]],
-      ['29', 'Viking', 'Tomatsauce, ost, hk. oksekød, champignon og paprika', [90, 106, 172]],
-      ['30', 'Gorgonzola', 'Tomatsauce, ost, kebab, gorgonzola og grøn peber', [90, 108, 172]],
-      ['31', 'Carlo', 'Tomatsauce, ost, skinke og pepperoni', [90, 106, 172]],
-      ['32', 'Roma', 'Tomatsauce, ost, kebab, grøn peber, champignon, fetaost, salat og dressing', [97, 112, 184]],
-      ['33', 'Rhodos', 'Tomatsauce, ost, hk. oksekød, paprika, løg og chili', [90, 108, 176]],
-      ['34', 'Pepperoni', 'Tomatsauce, ost, pepperoni og gorgonzola', [90, 108, 176]],
-      ['35', 'Paris', 'Tomatsauce, ost, hakket kød, løg, jalapeños og hvidløg', [90, 108, 176]],
-      ['36', 'Orino', 'Tomatsauce, ost, pepperoni, bacon og pølser', [97, 112, 184]],
-      ['37', 'Bello', 'Tomatsauce, ost, kylling, fetaost, cherrytomater, rucola og pesto', [97, 112, 184]],
-      ['38', 'Nexus', 'Tomatsauce, ost, bacon, kylling og pølser', [97, 112, 184]],
-      ['39', 'Amazon', 'Tomatsauce, ost, kebab, grøn peber, bacon og hvidløg', [90, 105, 170]],
-      ['40', 'Inca', 'Tomatsauce, ost, pepperoni, hakket oksekød, jalapeños, løg og tacosauce', [93, 108, 176]],
-      ['41', 'New Mexico', 'Tomatsauce, ost, kylling, løg, paprika, jalapeños og tacosauce', [93, 108, 176]],
-      ['42', 'Atlantic', 'Tomatsauce, ost, kebab, paprika, løg, jalapeños, tacosauce og hvidløg', [93, 108, 176]],
-      ['43', 'Danish', 'Tomatsauce, ost, kartofler, rucola, cherrytomater og pesto', [91, 106, 172]],
-      ['44', 'Kartoffel', 'Tomatsauce, ost, kartofler, kylling, cherrytomater, rucola og pesto', [93, 108, 176]],
-      ['45', 'Århus', 'Tomatsauce, ost, kartofler, hakket oksekød, løg, jalapeños, chili og hvidløg', [93, 108, 176]],
-      ['46', 'Kreta', 'Tomatsauce, ost, skinke, kylling, kebab, chili og hvidløg', [97, 112, 174]],
-      ['63', 'Ny pizza', 'Tomatsauce, ost, grillede auberginer, grillede squash og artiskok', [91, 106, 172], 'Ny'],
-      ['64', 'Ny pizza', 'Tomatsauce, ost, grillede auberginer, grillede squash, kartoffel og løg', [91, 106, 172], 'Ny'],
-      ['65', 'Ny pizza', 'Tomatsauce, mozzarella, gorgonzola og feta cheddarost', [91, 106, 172], 'Ny']
+      ['', '½ kylling fra ovnen', 'Med coleslaw, agurkesalat og pommes frites eller ris', 110],
+      ['', '½ kylling fra frituren', 'Med coleslaw, agurkesalat og pommes frites eller ris', 95],
+      ['', 'Hel kylling', 'Hel grillet kylling på 1300 g', 129],
+      ['', 'Marineret kyllingebryst', '200 g med bearnaise, salat og pommes frites eller ris', 95],
+      ['', '2 kyllingespyd', 'Med salat og pommes frites eller ris', 95],
+      ['', 'Box med crispy tenders', '5 crispy tenders med pommes frites', 89],
+      ['', '2 personers menu', '2 halve kyllinger, 2 tenders, 2 tops, 2 mozzarellasticks, 2 nuggets, halvt ris og halvt pommes frites, coleslaw og pickles', 269, 'Til 2'],
+      ['', 'Familiemenu', '4 halve kyllinger, 4 tenders, 4 tops, 4 mozzarellasticks, 4 nuggets, halvt ris og halvt pommes frites, 2 coleslaw og 2 pickles', 449, 'Til 4']
     ]
   },
   {
-    id: 'tilbehoer', title: 'Ekstra på pizzaen',
+    id: 'burgere', title: 'Burgere', note: '150 g oksekød fra Himmerland',
+    items: [
+      ['', 'Kylling bacon & cheese', 'Grillet kyllingebryst, bacon, ost, salat og husets dressing', 79],
+      ['', 'Hamburger', 'Oksebøf, salat, tomat, agurk, syltede løg og ketchup', 79],
+      ['', 'BBQ burger', 'Oksebøf, løg, pickles, ost og BBQ-dressing', 79],
+      ['', 'Bearnaise burger', 'Oksebøf, løg, pickles, ost og bearnaise', 79, 'Populær'],
+      ['', 'Tops burger', 'Oksebøf, ost, salat, spicy tops og burgerdressing', 79],
+      ['', 'Hot jalapeño burger', 'Oksebøf, ost, jalapeños, salsa og nachochips', 79],
+      ['', 'Bøfsandwich', 'Oksebøf, ketchup, remoulade, rødbeder, agurkesalat og rå løg', 79],
+      ['', 'Bacon cheese burger', 'Oksebøf, bacon, ost og salat', 89],
+      ['', 'Big double bacon cheese', '2 × 150 g oksebøf, dobbelt bacon og ost', 99],
+      ['', 'Ribbensandwich', 'Ribbensteg, salatmayo, rødkål og agurkesalat', 55],
+      ['', 'Dobbelt kylling', 'Tillæg på en kyllingeburger', 20],
+      ['', 'Ekstra 150 g oksebøf', 'Tillæg på en burger', 30]
+    ]
+  },
+  {
+    id: 'pita', title: 'Pita', note: 'Vælg haydari, tzatziki eller hummus i bemærkningen',
+    items: [
+      ['', 'Crispy fried chicken', 'Salat, grønt, feta, syltede løg og kål, karrydressing og basilikumpesto', 79],
+      ['', 'Grillet kylling', 'Grillet kyllingefilet, salat, grønt og urtedressing', 79],
+      ['', 'Kebab', 'Kebab, salat, grønt, syltede løg og kål og urtedressing', 79],
+      ['', 'Grillet oksebøf', 'Grillet hakket oksekød, cheddar, salat, grønt, coleslaw, rødkål og hvidløgsdressing', 79],
+      ['', 'Grillet oksesteak', 'Grillet oksesteak, salat, grønt, feta og urtedressing', 95],
+      ['', 'Falafel', 'Falafel, salat, grønt, syltede løg og urtedressing', 69, 'Vegetar']
+    ]
+  },
+  {
+    id: 'bowls', title: 'Bowls', note: 'Samme fyld som pitaen, serveret i en skål',
+    items: [
+      ['', 'Crispy fried chicken bowl', 'Salat, grønt, feta, syltede løg og kål, karrydressing og basilikumpesto', 85],
+      ['', 'Grillet kylling bowl', 'Grillet kyllingefilet, salat, grønt og urtedressing', 85],
+      ['', 'Kebab bowl', 'Kebab, salat, grønt, syltede løg og kål og urtedressing', 85],
+      ['', 'Grillet oksebøf bowl', 'Grillet hakket oksekød, cheddar, salat, grønt, coleslaw, rødkål og hvidløgsdressing', 85],
+      ['', 'Grillet oksesteak bowl', 'Grillet oksesteak, salat, grønt, feta og urtedressing', 95],
+      ['', 'Falafel bowl', 'Falafel, salat, grønt, syltede løg og urtedressing', 79, 'Vegetar']
+    ]
+  },
+  {
+    id: 'ruller', title: 'Ruller',
+    items: [
+      ['', 'Rulle med kebab', '', 69],
+      ['', 'Rulle med kylling', '', 69],
+      ['', 'Rulle med crispy kylling', '', 69],
+      ['', 'Rulle med falafel', '', 69, 'Vegetar'],
+      ['', 'Menu-tillæg', 'Gør din pita, bowl, rulle eller burger til en menu', 30]
+    ]
+  },
+  {
+    id: 'pizza', title: 'Pizza', note: 'Almindelig eller familie',
     sizes: ['Alm.', 'Fam.'],
     items: [
-      ['', 'Grønt', 'Champignon, oliven, artiskok, løg, æg, jalapeños, paprika eller ananas', [12, 22]],
-      ['', 'Kød, fisk og ost', 'Tunfisk, rejer, skinke, kylling, bacon, kødboller, pepperoni, kebab, gorgonzola, cocktailpølser, ost eller salat og dressing', [14, 24]]
+      ['1', 'Margherita', 'Tomatsauce og ost', [50, 95]],
+      ['2', 'Hawaii', 'Skinke, ananas og oregano', [79, 129]],
+      ['3', 'Pepperoni', 'Pepperoni og oregano', [79, 129]],
+      ['4', 'Chicken World Special', 'Oksekød, kylling, pepperoni, kebab og majs', [79, 129], 'Husets egen'],
+      ['5', 'Tuna', 'Tun, rejer og majs', [79, 129]],
+      ['6', 'Meat Lover', 'Oksekød, skinke, bacon og rødløg', [79, 129]],
+      ['7', 'BBQ Deluxe', 'Oksekød, bacon, cocktailpølser og BBQ-sauce', [79, 129]],
+      ['8', 'Byg din egen', 'Skriv dit fyld i bemærkningen', [119, 199]],
+      ['9', 'Chicken Fresh', 'Kylling, champignon og friske tomater', [79, 129]],
+      ['10', 'Salatpizza', 'Kebab eller kylling, frisk salat, agurk, tomat og dressing', [85, 150]],
+      ['', 'Ekstra kød eller ost', 'Tillæg pr. pizza', [10, 10]]
     ]
   },
   {
-    id: 'durum', title: 'Durum ruller', note: 'Med iceberg, tomat, agurk, løg, rødkål og dressing',
+    id: 'grill', title: 'Grill & steg',
     items: [
-      ['47', 'Mix', 'Kebab og kylling', 70],
-      ['48', 'Kebab', '', 62],
-      ['49', 'Kylling', '', 62],
-      ['50a', 'Falafel', '', 62],
-      ['50', 'Græsk bøf', '', 70]
+      ['', 'Oksefilet steak', 'Ca. 200 g med salat, pommes frites og bearnaise', 169],
+      ['', 'Spareribs', '500 g med pommes frites og coleslaw', 149],
+      ['', 'Ekstra spareribs', '', 65],
+      ['', '2 fiskefileter', 'Med pommes frites og remoulade', 79],
+      ['', 'Skinkeschnitzel', '160 g med pommes frites og bearnaise', 95]
     ]
   },
   {
-    id: 'pita', title: 'Pitabrød', note: 'Med iceberg, tomat, agurk, løg, rødkål og dressing',
-    sizes: ['Alm.', 'Hj.lavet'],
+    id: 'boern', title: 'Børnemenu', note: 'Med pommes frites og juice',
     items: [
-      ['86', 'Kebab', '', [39, 55]],
-      ['87', 'Kebab med bacon', '', [43, 59]],
-      ['88', 'Kylling', '', [37, 55]],
-      ['89', 'Kylling med bacon', '', [43, 59]],
-      ['90', 'Græsk bøf', '', [null, 62]],
-      ['91', 'Falafel', '', [39, 55]],
-      ['92', 'Skinke, tun eller rejer', '', [43, 59]],
-      ['105', 'Mix', 'Kebab og kylling', [43, 59]]
+      ['', '2 tenders', '', 49],
+      ['', '4 nuggets', '', 49],
+      ['', 'Crispy burger', 'Kylling, salat og ketchup', 49]
     ]
   },
   {
-    id: 'panino', title: 'Pizza sandwich', note: 'Panino med ost, iceberg, tomat, agurk, løg, rødkål og dressing',
+    id: 'snacks', title: 'Snacks & tilbehør',
     items: [
-      ['93', 'Kebab', '', 75],
-      ['94', 'Kebab med bacon', '', 79],
-      ['95', 'Kylling', '', 75],
-      ['96', 'Kylling med bacon', '', 79],
-      ['97', 'Græsk bøf', '', 79],
-      ['98', 'Falafel', '', 75],
-      ['99', 'Vælg mellem', 'Skinke, rejer, pepperoni, gorgonzola eller tun', 79],
-      ['100', 'Mix', 'Kebab og kylling', 79],
-      ['101', 'Pizza sandwich menu', 'Med pommes frites og sodavand. Kebab, kylling eller falafel', 120]
+      ['', 'Snackkurv lille', '2 af hver: mozzarellasticks, chili cheese tops, tenders og nuggets', 59],
+      ['', 'Snackkurv stor', '4 af hver: mozzarellasticks, chili cheese tops, tenders og nuggets', 99],
+      ['', 'Pommes frites lille', '', 25],
+      ['', 'Pommes frites XL', '', 45],
+      ['', 'World fries', 'Pommes frites med ostesauce og bacon', 55],
+      ['', 'Kylling- eller kebabmix', 'Med pommes frites og husets dressing', 55],
+      ['', 'Hotwings', '5 stk.', 49],
+      ['', 'Tenders', '5 stk.', 49],
+      ['', 'Chili cheese tops', '8 stk.', 39],
+      ['', 'Mozzarellasticks', '8 stk.', 39],
+      ['', 'Nuggets', '8 stk.', 39],
+      ['', 'Pitabrød', '', 10],
+      ['', 'Coleslaw', '', 15]
     ]
   },
   {
-    id: 'burgere', title: 'Burgere', note: 'Med tomat, agurk, ketchup, iceberg og salatmayonnaise',
+    id: 'dip', title: 'Dip', note: '5 kr. pr. stk.',
     items: [
-      ['69', 'Dilans burger', '', 56],
-      ['70', 'Dilans burger', 'Med ost', 58],
-      ['71', 'Dilans burger', 'Med bacon', 60],
-      ['72', 'Dilans burger', 'Med bacon og ost', 61],
-      ['73', 'Dobbelt burger', '', 70],
-      ['74', 'Dobbelt burger', 'Med ost', 72],
-      ['75', 'Dobbelt burger', 'Med ost og bacon', 75],
-      ['76', 'Dobbelt burger', 'Med bløde løg', 71],
-      ['77', 'Kyllingeburger', 'Med creme fraiche', 62],
-      ['78', 'Kyllingeburger', 'Med bacon og creme fraiche', 65],
-      ['', 'Ekstra ost', '', 6]
+      ['', 'Mayo', '', 5],
+      ['', 'Hvidløgsmayo', '', 5],
+      ['', 'Chilimayo', '', 5],
+      ['', 'Chili', '', 5],
+      ['', 'BBQ', '', 5],
+      ['', 'Ketchup', '', 5],
+      ['', 'Remoulade', '', 5]
     ]
   },
   {
-    id: 'store-burgere', title: 'Store burgere', note: 'Hjemmelavede, med tomat, agurk, ketchup, iceberg og salatmayonnaise',
+    id: 'drikke', title: 'Drikkevarer',
     items: [
-      ['79', 'Jagt burger', '', 68],
-      ['80', 'Jagt burger', 'Med ost', 70],
-      ['81', 'Jagt burger', 'Med bacon', 72],
-      ['82', 'Jagt burger', 'Med ost og bacon', 74],
-      ['83', 'Jagt burger', 'Med ost, bacon og spejlæg', 77],
-      ['84', 'Jagt burger', 'Mexicansk, med chili og jalapeños', 70],
-      ['85', 'Jagt burger', 'Med hjemmelavet brød', 71],
-      ['164', 'Jagt dobbelt burger', '', 84],
-      ['165', 'Jagt burger', 'Med bløde løg og bearnaisesauce', 70],
-      ['', 'Ekstra ost', '', 6]
-    ]
-  },
-  {
-    id: 'menuer', title: "Dilan's menuer", note: 'Med lille pommes frites og mayonnaise',
-    items: [
-      ['M1', 'Dilan burger', 'Dåse sodavand', 99],
-      ['M2', 'Kylling burger', 'Dåse sodavand', 99],
-      ['M3', 'Hj. lavet durum', 'Mellem sodavand', 109],
-      ['M4', 'Hj. lavet burger', 'Mellem sodavand', 109],
-      ['M5', 'Alm. pitabrød', 'Dåse sodavand', 95],
-      ['M6', 'Hj. lavet pitabrød', 'Mellem sodavand', 105]
-    ]
-  },
-  {
-    id: 'a-la-carte', title: 'A la carte', note: 'Med dressing. Vælg bagt kartoffel eller pommes frites',
-    items: [
-      ['102', 'Husets bøf', '2 stk. hjemmelavede bøffer med pommes frites og bearnaisesauce', 105],
-      ['103', 'Græsk bøf', '2 stk. hjemmelavede krydderbøffer med pommes frites og bearnaisesauce', 105],
-      ['104', 'Kebab ret', 'Med kebab, pommes frites, bearnaisesauce og brød', 100],
-      ['108', 'Chicken dipper', '10 stk. med pommes frites og remoulade', 90],
-      ['110', 'Fiskefilet', '2 stk. med pommes frites og remoulade', 95],
-      ['111', 'Hotwings og inderfilet', 'Med pommes frites og mayonnaise', 90],
-      ['112', '½ kylling', 'Uden tilbehør', 75],
-      ['113', '½ kylling', 'Med pommes frites, salat og remoulade', 99],
-      ['115', 'Kylling ret', 'Med pommes frites, salat og bearnaisesauce', 100],
-      ['116', 'Oksefilet', 'Med pommes frites og bearnaisesauce', 139],
-      ['117', 'Oksefilet', 'Med kartoffelbåde og gorgonzolasauce', 139],
-      ['118', 'Oksefilet', 'Med kartoffelbåde og champignonsauce', 139],
-      ['119', 'Oksefilet', 'Med kartoffelbåde og pebersauce', 139]
-    ]
-  },
-  {
-    id: 'pasta', title: 'Pasta',
-    items: [
-      ['55', 'Lasagne', 'Med kødsauce', 85],
-      ['56', 'Lasagne', 'Med kødsauce, ost og gorgonzola', 85],
-      ['57', 'Lasagne', 'Med kødsauce og bacon', 85],
-      ['58', 'Spaghetti bolognese', 'Med kødsauce', 85],
-      ['59', 'Carbonara spaghetti', 'Med bacon, æg og flødesauce', 85],
-      ['60', 'Pomodori spaghetti', 'Med kylling, bacon, paprika og tomat-flødesauce', 85],
-      ['61', 'Lucabna spaghetti', 'Med gorgonzola, kebab, champignon og fløde-tomatsauce', 85],
-      ['62', 'A la matica', 'Spaghetti med bacon, champignon og fløde-tomatsauce', 85]
-    ]
-  },
-  {
-    id: 'salater', title: 'Store salater', note: 'Med flûte, iceberg, tomat, agurk, løg, rødkål og dressing',
-    items: [
-      ['124', 'Naturel salat', '', 63],
-      ['125', 'Græsk salat', '', 69],
-      ['126', 'Tun salat', '', 74],
-      ['127', 'Reje salat', '', 74],
-      ['128', 'Kylling salat', '', 69],
-      ['129', 'Kylling & bacon salat', '', 72],
-      ['130', 'Kebab salat', '', 69],
-      ['131', 'Skinke & ost salat', '', 69]
-    ]
-  },
-  {
-    id: 'nachos', title: 'Nachos', note: 'Sprøde mexicanske chips, varmet i ovnen',
-    items: [
-      ['121', 'Nachos', 'Med cheddarost, salsa, guacamole og jalapeños', 75],
-      ['122', 'Nachos', 'Med kylling, cheddarost, salsa, guacamole og jalapeños', 78],
-      ['123', 'Nachos', 'Med hakket oksekød, cheddarost, salsa, guacamole og jalapeños', 78]
-    ]
-  },
-  {
-    id: 'kartoffel', title: 'Bagt kartoffel', note: 'Med iceberg, tomat, agurk, løg, rødkål og dressing',
-    items: [
-      ['132', 'Creme fraiche dressing', '', 50],
-      ['133', 'Kylling & bacon', '', 73],
-      ['134', 'Vælg mellem', 'Kebab, kylling, falafel eller skinke', 69],
-      ['150', 'Bagt kartoffel', 'Med tun eller rejer', 73]
-    ]
-  },
-  {
-    id: 'boern', title: 'Børnemenu',
-    items: [
-      ['51', 'Børne pizza', 'Tomatsauce, ost og skinke', 65],
-      ['52', 'Børne pizza', 'Tomatsauce, ost og kødsauce', 65],
-      ['53', 'Børne pizza', 'Tomatsauce, ost og pepperoni', 65],
-      ['54', 'Fiskefilet', 'Med pommes frites og remoulade', 65],
-      ['162', 'Børne chicken dipper', 'Med pommes frites og remoulade', 65],
-      ['163', 'Børneburger menu', 'Med lille cola, pommes frites og mayonnaise', 88]
-    ]
-  },
-  {
-    id: 'diverse', title: 'Pommes frites & diverse',
-    items: [
-      ['135', 'Pommes frites', 'Lille', 33],
-      ['136', 'Pommes frites', 'Stor', 41],
-      ['137', 'Forårsrulle', '150 g', 32],
-      ['138', 'Hvidløgsbrød', '', 48],
-      ['139', 'Kartoffelbåde', 'Lille', 39],
-      ['140', 'Kartoffelbåde', 'Stor', 49],
-      ['141', 'Box', 'Kebab, kylling eller falafel med iceberg, tomat, agurk, løg, rødkål, pommes frites og dressing', 60],
-      ['142', 'Box mix kebab og kylling', 'Med iceberg, tomat, agurk, løg, rødkål, pommes frites og dressing', 65],
-      ['143', 'Snack mix', '3 chicken nuggets, 3 chili cheese, 3 mozzarella sticks og 3 crispy onion rings med salatmayonnaise', 80],
-      ['', 'Dyppelse', 'Ketchup, mayonnaise, remoulade, bearnaise, hummus, chili eller dressing', 9]
-    ]
-  },
-  {
-    id: 'drikke', title: 'Drikkevarer', note: 'Cola, Fanta, Sport, Cola Zero, Lemon, Danskvand',
-    items: [
-      ['', 'Sodavand', '', [['Lille', 25], ['Mellem', 35], ['Stor', 43]]],
-      ['', 'Sodavand 1,5 l', '', 39],
-      ['', 'Dåse sodavand 0,33 l', '', 17],
-      ['', 'Kaffe', '', 25],
-      ['', 'Cocio', '', 30],
-      ['', 'Nestea', '', 30]
+      ['', 'Sodavand 0,33 l', '', 13],
+      ['', 'Sodavand 1,5 l', '', 33]
+      // Slush ice sælges kun om sommeren. Fjern // foran de to linjer (og sæt komma efter linjen ovenfor) for at vise dem igen:
+      // ['', 'Slush ice 0,3 l', '', 10],
+      // ['', 'Slush ice 0,5 l', '', 15]
     ]
   }
 ];

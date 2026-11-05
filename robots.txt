@@ -1,0 +1,6 @@
+User-agent: *
+Disallow: /personale.html
+Disallow: /tjek.html
+Disallow: /supabase/
+
+Sitemap: https://chickenworld.dk/sitemap.xml

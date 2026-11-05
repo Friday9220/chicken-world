@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="da">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Tjek af hjemmesiden – Chicken World</title>
+  <link rel="icon" href="assets/img/favicon.svg?v=2" type="image/svg+xml">
+  <style>
+    :root { --ink: #2b1710; --cream: #fff5e3; --ok: #1f8a3b; --warn: #b86e00; --bad: #e0261b; --line: #e9d9bd; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--cream); color: var(--ink); font: 16px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+    main { max-width: 860px; margin: 0 auto; padding: 28px 16px 60px; }
+    h1 { font-size: 32px; margin: 0 0 4px; }
+    .lead { margin: 0 0 18px; color: #6b5444; }
+    .sum { display: flex; gap: 10px; flex-wrap: wrap; margin: 0 0 22px; }
+    .pill { padding: 8px 14px; border-radius: 999px; font-weight: 700; background: #fff; border: 2px solid var(--line); }
+    .pill b { font-size: 20px; margin-right: 4px; }
+    .pill.ok b { color: var(--ok); } .pill.warn b { color: var(--warn); } .pill.bad b { color: var(--bad); }
+    button { font: inherit; font-weight: 700; padding: 10px 18px; border-radius: 999px; border: 0; background: var(--bad); color: #fff; cursor: pointer; }
+    section { background: #fff; border: 2px solid var(--line); border-radius: 16px; padding: 14px 16px; margin-bottom: 14px; }
+    h2 { font-size: 18px; margin: 0 0 8px; }
+    ul { list-style: none; margin: 0; padding: 0; }
+    li { display: grid; grid-template-columns: 26px 1fr; gap: 6px; padding: 6px 0; border-top: 1px solid #f3e7d2; }
+    li:first-child { border-top: 0; }
+    .ic { font-weight: 900; text-align: center; }
+    li.ok .ic { color: var(--ok); } li.warn .ic { color: var(--warn); } li.bad .ic { color: var(--bad); } li.info .ic { color: #6b5444; }
+    small { display: block; color: #6b5444; word-break: break-word; }
+    .running { color: #6b5444; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Tjek af hjemmesiden</h1>
+  <p class="lead">Siden gennemgår hele hjemmesiden og ordresystemet. Den laver ingen bestillinger. <span id="state" class="running">Tjekker …</span></p>
+  <div class="sum" id="sum"></div>
+  <p><button id="again" type="button">Tjek igen</button></p>
+  <div id="out"></div>
+</main>
+
+<script src="site-config.js"></script>
+<script src="menu-data.js"></script>
+<script>
+(function () {
+  'use strict';
+  var PAGES = ['index.html', 'menu.html', 'udlejning.html', 'handelsbetingelser.html', 'personale.html'];
+  var CFG = window.CW_CONFIG || {}, MENU = window.CW_MENU || [];
+  var out = document.getElementById('out'), counts;
+
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function group(title) {
+    var sec = document.createElement('section');
+    sec.innerHTML = '<h2>' + esc(title) + '</h2><ul></ul>';
+    out.appendChild(sec);
+    var ul = sec.querySelector('ul');
+    return function (state, text, detail) {
+      counts[state] = (counts[state] || 0) + 1;
+      var li = document.createElement('li'); li.className = state;
+      li.innerHTML = '<span class="ic">' + { ok: '✓', warn: '!', bad: '✕', info: 'i' }[state] + '</span><span>' + esc(text) +
+        (detail ? '<small>' + esc(detail) + '</small>' : '') + '</span>';
+      ul.appendChild(li); summary();
+    };
+  }
+  function summary() {
+    document.getElementById('sum').innerHTML =
+      '<span class="pill ok"><b>' + (counts.ok || 0) + '</b>i orden</span>' +
+      '<span class="pill warn"><b>' + (counts.warn || 0) + '</b>advarsler</span>' +
+      '<span class="pill bad"><b>' + (counts.bad || 0) + '</b>fejl</span>';
+  }
+  function get(url) {
+    return fetch(url + (url.indexOf('?') < 0 ? '?' : '&') + 'tjek=' + Date.now(), { cache: 'no-store' })
+      .then(function (r) { return r.text().then(function (t) { return { ok: r.ok, status: r.status, text: t, type: r.headers.get('content-type') || '' }; }); })
+      .catch(function (e) { return { ok: false, status: 0, text: '', error: e.message }; });
+  }
+  function loadImage(url) {
+    return new Promise(function (res) {
+      var img = new Image();
+      img.onload = function () { res(img.naturalWidth > 0 ? { ok: true, w: img.naturalWidth, h: img.naturalHeight } : { ok: false }); };
+      img.onerror = function () { res({ ok: false }); };
+      img.src = url;
+    });
+  }
+  function rpc(fn, body) {
+    return fetch(CFG.supabaseUrl.replace(/\/$/, '') + '/rest/v1/rpc/' + fn, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', apikey: CFG.supabaseKey, Authorization: 'Bearer ' + CFG.supabaseKey },
+      body: JSON.stringify(body)
+    }).then(function (r) { return r.text().then(function (t) { var j = null; try { j = JSON.parse(t); } catch (e) {} return { status: r.status, body: j, text: t }; }); })
+      .catch(function (e) { return { status: 0, error: e.message }; });
+  }
+
+  // ---------- 1. Sider, links, billeder ----------
+  function checkPages() {
+    var add = group('Sider, links og billeder');
+    var docs = {}, assets = {}, versions = {};
+    return Promise.all(PAGES.map(function (p) {
+      return get(p).then(function (r) {
+        if (!r.ok) { add('bad', p + ' kan ikke åbnes', 'Svar: ' + (r.status || r.error)); return; }
+        var d = new DOMParser().parseFromString(r.text, 'text/html');
+        docs[p] = { doc: d, text: r.text };
+        add('ok', p + ' åbner', (d.title || '(ingen titel)'));
+        d.querySelectorAll('img[src], link[href], script[src], a[href], source[srcset]').forEach(function (el) {
+          var u = el.getAttribute('src') || el.getAttribute('href') || el.getAttribute('srcset');
+          if (!u || /^(https?:|mailto:|tel:|data:|#|javascript:)/i.test(u)) return;
+          var v = u.match(/\?v=(\d+)/); if (v && el.tagName !== 'A') (versions[v[1]] = versions[v[1]] || []).push(p);
+          var clean = u.split('#')[0].split('?')[0];
+          if (!clean) return;
+          (assets[clean] = assets[clean] || { from: [], img: el.tagName === 'IMG' }).from.push(p);
+        });
+      });
+    })).then(function () {
+      // Billeder brugt som baggrund i CSS
+      return get('styles.css').then(function (r) {
+        (r.text.match(/url\((['"]?)([^)'"]+)\1\)/g) || []).forEach(function (m) {
+          var u = m.replace(/^url\((['"]?)/, '').replace(/['"]?\)$/, '');
+          if (/^(data:|https?:|#)/.test(u)) return;
+          (assets[u] = assets[u] || { from: [], img: /\.(png|jpe?g|webp|svg|gif)$/i.test(u) }).from.push('styles.css');
+        });
+      });
+    }).then(function () {
+      var list = Object.keys(assets).sort(), broken = [], imgs = 0, big = [];
+      return Promise.all(list.map(function (u) {
+        var a = assets[u];
+        if (a.img || /\.(png|jpe?g|webp|svg|gif)$/i.test(u)) {
+          imgs++;
+          return Promise.all([loadImage(u), fetch(u, { cache: 'no-store' }).then(function (r) { return r.blob(); }).catch(function () { return null; })])
+            .then(function (res) {
+              if (!res[0].ok) broken.push(u + '  (bruges på ' + a.from.join(', ') + ')');
+              else if (res[1] && res[1].size > 600 * 1024) big.push(u + ' – ' + Math.round(res[1].size / 1024) + ' kB');
+            });
+        }
+        return fetch(u, { method: 'GET', cache: 'no-store' }).then(function (r) { if (!r.ok) broken.push(u + '  (svar ' + r.status + ', bruges på ' + a.from.join(', ') + ')'); })
+          .catch(function () { broken.push(u + '  (kan ikke hentes)'); });
+      })).then(function () {
+        add(broken.length ? 'bad' : 'ok', broken.length ? broken.length + ' links/filer virker ikke' : 'Alle ' + list.length + ' interne links og filer virker (' + imgs + ' billeder)', broken.join('\n'));
+        if (big.length) add('warn', big.length + ' billeder er store og kan gøre siden langsom på mobil', big.join(' · '));
+        var vs = Object.keys(versions);
+        add(vs.length <= 1 ? 'ok' : 'warn', vs.length <= 1 ? 'Alle sider bruger samme version af CSS/JS (v=' + (vs[0] || '–') + ')' : 'Siderne bruger forskellige versioner af CSS/JS: v=' + vs.join(', v='),
+          vs.length > 1 ? 'Kan give gammelt design hos nogle besøgende.' : '');
+        return docs;
+      });
+    });
+  }
+
+  // ---------- 2. Indhold og tekster ----------
+  function checkContent(docs) {
+    var add = group('Indhold og tekster');
+    PAGES.forEach(function (p) {
+      var d = docs[p]; if (!d) return;
+      var doc = d.doc, txt = doc.body ? doc.body.textContent : '';
+      var miss = [];
+      if (doc.documentElement.getAttribute('lang') !== 'da') miss.push('sproget er ikke sat til dansk');
+      if (!doc.title) miss.push('mangler titel');
+      if (p !== 'personale.html' && p !== 'handelsbetingelser.html' && !doc.querySelector('meta[name=description]')) miss.push('mangler beskrivelse til Google');
+      if (!doc.querySelector('meta[name=viewport]')) miss.push('mangler mobilindstilling');
+      doc.querySelectorAll('img:not([alt])').forEach(function (i) { miss.push('billede uden alt-tekst: ' + i.getAttribute('src')); });
+      if (/dilan/i.test(d.text)) miss.push('der står stadig "Dilan" på siden');
+      if (/lorem ipsum|TODO|XXX/i.test(txt)) miss.push('der står pladsholder-tekst');
+      if (p !== 'personale.html' && txt.indexOf('21 98 88 50') < 0 && d.text.indexOf('+4521988850') < 0) miss.push('telefonnummeret står der ikke');
+      add(miss.length ? 'warn' : 'ok', p + (miss.length ? ': ' + miss.length + ' ting at se på' : ': i orden'), miss.join(' · '));
+    });
+    var hb = docs['handelsbetingelser.html'];
+    if (hb) add(hb.text.indexOf('45464342') >= 0 ? 'ok' : 'bad', 'CVR-nummer står i handelsbetingelserne', hb.text.indexOf('45464342') >= 0 ? 'CVR 45464342' : 'CVR mangler');
+    var ix = docs['index.html'];
+    if (ix) add(ix.text.indexOf('Banegårdspladsen 13') >= 0 ? 'ok' : 'bad', 'Adressen står på forsiden');
+  }
+
+  // ---------- 3. Menu og priser ----------
+  function checkMenu() {
+    var add = group('Menu og priser');
+    if (!MENU.length) { add('bad', 'Menuen kunne ikke indlæses (menu-data.js)'); return; }
+    var n = 0, problems = [], nrs = {}, dupl = [];
+    MENU.forEach(function (sec) {
+      if (!sec.items || !sec.items.length) problems.push('Kategorien "' + sec.title + '" er tom');
+      (sec.items || []).forEach(function (it) {
+        n++;
+        var nr = it[0], name = it[1], price = it[3];
+        if (!name) problems.push(sec.title + ': en ret mangler navn');
+        var prices = Array.isArray(price) ? price : [price];
+        if (sec.sizes && Array.isArray(price) && price.length !== sec.sizes.length) problems.push(sec.title + ' – ' + name + ': antal priser passer ikke med størrelserne');
+        prices.forEach(function (pr) {
+          if (pr === null || pr === '' || pr === undefined) return;
+          if (typeof pr !== 'number' || !(pr > 0)) problems.push(sec.title + ' – ' + name + ': ugyldig pris "' + pr + '"');
+          else if (pr > 1000) problems.push(sec.title + ' – ' + name + ': pris ' + pr + ' kr virker høj');
+        });
+        if (nr) { if (nrs[nr]) dupl.push(nr + ' (' + nrs[nr] + ' / ' + name + ')'); nrs[nr] = name; }
+      });
+    });
+    add('ok', MENU.length + ' kategorier med ' + n + ' retter', MENU.map(function (s) { return s.title + ' (' + (s.items || []).length + ')'; }).join(' · '));
+    add(problems.length ? 'bad' : 'ok', problems.length ? problems.length + ' problemer med retter eller priser' : 'Alle retter har navn og gyldige priser', problems.join('\n'));
+    if (dupl.length) add('warn', 'Samme nummer bruges til flere retter', dupl.join(' · '));
+  }
+
+  // ---------- 4. Åbningstider og levering ----------
+  function checkTimes() {
+    var add = group('Åbningstider og levering');
+    var H = CFG.hours || {}, D = CFG.delivery || {}, L = CFG.lunch || {};
+    var days = ['søndag', 'mandag', 'tirsdag', 'onsdag', 'torsdag', 'fredag', 'lørdag'], bad = [];
+    var txt = days.map(function (d, i) {
+      var h = H[i];
+      if (h && !(h[0] < h[1])) bad.push(d + ': lukketid er før åbningstid');
+      return d + ' ' + (h ? h[0] + '–' + h[1] : 'lukket');
+    }).join(' · ');
+    add(bad.length ? 'bad' : 'ok', 'Åbningstider', bad.length ? bad.join(' · ') : txt);
+    var delOk = D.from < D.to && Object.keys(H).some(function (k) { return H[k] && H[k][0] <= D.from && H[k][1] >= D.to; });
+    add(delOk ? 'ok' : 'warn', 'Levering kl. ' + D.from + '–' + D.to + ', ' + D.fee + ' kr, gratis fra ' + D.freeFrom + ' kr, + ' + D.perKm + ' kr/km over ' + D.baseKm + ' km (ud og hjem), max ' + D.km + ' km',
+      delOk ? 'I dag eller næste åbningsdag. Ca. ' + D.minutes + ' min.' : 'Leveringstiden ligger uden for åbningstiden nogle dage.');
+    add('ok', 'Frokosttilbud kl. ' + L.from + '–' + L.to, 'Dage: ' + (L.days || []).map(function (d) { return days[d]; }).join(', '));
+    var now = new Date(), h = H[now.getDay()], m = now.getHours() * 60 + now.getMinutes();
+    var open = h && m >= h[0] * 60 && m < h[1] * 60;
+    var delNow = open && m >= D.from * 60 && m + (D.minutes || 45) <= D.to * 60;
+    add('info', 'Lige nu (' + now.toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit' }) + '): ' + (open ? 'åbent' : 'lukket') + ', levering ' + (delNow ? 'kan bestilles' : 'kan ikke bestilles'));
+  }
+
+  // ---------- 5. Ordresystemet ----------
+  function checkOrders() {
+    var add = group('Ordresystemet (database)');
+    if (!CFG.supabaseUrl || !CFG.supabaseKey) { add('bad', 'Forbindelsen til databasen er ikke sat op i site-config.js'); return Promise.resolve(); }
+    function exists(r) { return r.status && r.status !== 404 && !(r.body && r.body.code === 'PGRST202'); }
+    function denied(r) { return r.body && /Adgang n/.test(r.body.message || ''); }
+    var wrongKey = 'tjek-forkert-noegle';
+    return Promise.all([
+      rpc('order_status', { p_id: 0, p_phone: '0' }),
+      rpc('staff_orders', { p_key: wrongKey, p_hours: 1 }),
+      rpc('staff_accept', { p_key: wrongKey, p_id: 0, p_minutes: 15 }),
+      rpc('staff_reject', { p_key: wrongKey, p_id: 0 }),
+      rpc('staff_set_status', { p_key: wrongKey, p_id: 0, p_status: 'ny' }),
+      rpc('place_order', { p_name: '', p_phone: '0', p_pickup: 'tjek', p_note: '', p_items: [], p_total: 0 })
+    ]).then(function (r) {
+      if (!r[0].status) { add('bad', 'Kan ikke få forbindelse til databasen', r[0].error || ''); return; }
+      add(r[0].status === 200 ? 'ok' : 'bad', 'Forbindelse til databasen', r[0].status === 200 ? 'Svarer normalt.' : 'Svar ' + r[0].status + ': ' + (r[0].text || '').slice(0, 160));
+      var poOk = r[5].body && /Ugyldigt navn/.test(r[5].body.message || '');
+      add(poOk ? 'ok' : 'bad', 'Kunder kan sende bestillinger', poOk ? 'Funktionen place_order findes (testet uden at oprette en ordre).' : 'Uventet svar: ' + (r[5].text || '').slice(0, 160));
+      add(denied(r[1]) ? 'ok' : 'bad', 'Ordreskærmen kan hente ordrer, og den er beskyttet med nøgle', denied(r[1]) ? 'En forkert nøgle bliver afvist.' : 'Uventet svar: ' + (r[1].text || '').slice(0, 160));
+      add(denied(r[4]) ? 'ok' : 'bad', 'Ordreskærmen kan skifte status (i gang, klar/på vej, udleveret)');
+      var accOk = denied(r[2]) && denied(r[3]);
+      add(accOk ? 'ok' : 'bad', 'Accepter med 15/30/45/60 min og afvis', accOk ? 'Funktionerne findes.' : 'Mangler – kør supabase/opdatering-accepter-afvis.sql.');
+      add(r[0].status === 200 ? 'ok' : 'bad', 'Kunden kan se, om ordren er bekræftet', r[0].status === 200 ? 'Funktionen order_status findes.' : 'Mangler – kør supabase/opdatering-accepter-afvis.sql.');
+    });
+  }
+
+  function run() {
+    counts = {}; out.innerHTML = ''; summary();
+    var st = document.getElementById('state'); st.textContent = 'Tjekker …'; st.className = 'running';
+    checkPages().then(function (docs) {
+      checkContent(docs); checkMenu(); checkTimes();
+      return checkOrders();
+    }).then(function () {
+      st.className = '';
+      st.textContent = counts.bad ? 'Færdig – der er fejl, se de røde punkter.' : counts.warn ? 'Færdig – alt virker, men se advarslerne.' : 'Færdig – alt ser fint ud.';
+    });
+  }
+  document.getElementById('again').addEventListener('click', run);
+  run();
+})();
+</script>
+</body>
+</html>

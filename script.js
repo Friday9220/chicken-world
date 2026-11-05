@@ -1,8 +1,28 @@
-// Dilan's – scroll-animationer
+// Chicken World – åbent/lukket og scroll-animationer
 (function () {
   var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   document.getElementById('year').textContent = new Date().getFullYear();
+
+  // "Åbent nu til kl. 20.00" / "Lukket nu · åbner i morgen kl. 10.00"
+  var CFG = window.CW_CONFIG || {}, HOURS = CFG.hours || {};
+  var st = document.getElementById('openstatus');
+  if (st) {
+    var DAYS = ['søndag', 'mandag', 'tirsdag', 'onsdag', 'torsdag', 'fredag', 'lørdag'];
+    var now = new Date(), mins = now.getHours() * 60 + now.getMinutes(), h = HOURS[now.getDay()];
+    var t = function (hr) { return (hr < 10 ? '0' : '') + hr + '.00'; };
+    if (h && mins >= h[0] * 60 && mins < h[1] * 60) {
+      st.innerHTML = '<span class="dot"></span> Åbent nu til kl. ' + t(h[1]);
+    } else {
+      for (var i = (h && mins < h[0] * 60) ? 0 : 1; i < 8; i++) {
+        var d = new Date(now.getFullYear(), now.getMonth(), now.getDate() + i), n = HOURS[d.getDay()];
+        if (n) {
+          st.innerHTML = '<span class="dot is-closed"></span> Lukket nu · åbner ' + (i === 0 ? 'i dag' : i === 1 ? 'i morgen' : DAYS[d.getDay()]) + ' kl. ' + t(n[0]);
+          break;
+        }
+      }
+    }
+  }
 
   // Elementer glider ind, når de kommer i syne
   var reveals = document.querySelectorAll('.reveal');
@@ -37,7 +57,7 @@
       row.style.transform = 'translateX(' + (dir < 0 ? -x : x - half) + 'px)';
     });
 
-    // Pizzaer drejer, når man scroller
+    // Kyllingelåret drejer, når man scroller
     spinners.forEach(function (el) {
       el.style.rotate = (y * 0.25) + 'deg';
     });
@@ -50,7 +70,7 @@
       el.style.transform = 'translateY(' + off + 'px) scale(1.15)';
     });
 
-    // Pizzaæsken svæver og vipper
+    // Æsken svæver og vipper
     if (box) {
       var bob = Math.sin(t * 1.4) * 14;
       var tilt = Math.sin(t * 0.9) * 8;

@@ -1,27 +1,32 @@
-// Dilan's – menu og kurv
+// Chicken World – menu, kurv og bestilling
 (function () {
-  var MENU = window.DILANS_MENU || [];
-  var PHONE = '35 37 19 09';
-  var OPEN = 11, CLOSE = 23; // åbent hver dag 11–23
-  var STORE_KEY = 'dilans-kurv';
-  var CFG = window.DILANS_CONFIG || {};
+  var MENU = window.CW_MENU || [];
+  var CFG = window.CW_CONFIG || {};
+  var HOURS = CFG.hours || {};
+  var DEL = CFG.delivery || { fee: 0, freeFrom: 0, from: 0, to: 0 };
+  var LUNCH = CFG.lunch || { days: [], from: 0, to: 0 };
+  var LAST = CFG.lastOrderMinutes || 15;
+  var PREP = CFG.prepMinutes || 20;
+  var STORE_KEY = 'cw-kurv';
   var ONLINE = !!(CFG.supabaseUrl && CFG.supabaseKey); // ellers: kunden ringer bestillingen ind
+  var DAYS = ['søndag', 'mandag', 'tirsdag', 'onsdag', 'torsdag', 'fredag', 'lørdag'];
 
   var $ = function (id) { return document.getElementById(id); };
   var kr = function (n) { return n.toLocaleString('da-DK') + ',-'; };
   var esc = function (s) {
     return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; });
   };
+  var pad = function (n) { return (n < 10 ? '0' : '') + n; };
+  var fmt = function (m) { return pad(Math.floor(m / 60)) + '.' + pad(m % 60); };
 
   document.getElementById('year').textContent = new Date().getFullYear();
 
   // ---------- Byg menuen ----------
-  // Lav priserne om til en ens liste: [{ label, price }]
   function pricesOf(sec, item) {
     var p = item[3];
     if (typeof p === 'number') return [{ label: '', price: p }];
-    if (Array.isArray(p[0])) return p.map(function (x) { return { label: x[0], price: x[1] }; });
-    return p.map(function (v, i) { return { label: (sec.sizes || [])[i] || '', price: v }; })
+    var labels = item[5] || sec.sizes || []; // en ret kan have egne prisnavne, fx ['Pizza', '+ sodavand']
+    return p.map(function (v, i) { return { label: labels[i] || '', price: v }; })
             .filter(function (x) { return x.price != null; });
   }
 
@@ -29,7 +34,7 @@
   var byKey = {};
   MENU.forEach(function (sec) {
     var section = document.createElement('section');
-    section.className = 'msec msec--' + sec.id;
+    section.className = 'msec msec--' + sec.id + (sec.lunch ? ' msec--lunch' : '');
     section.id = sec.id;
     var html = '<div class="msec__head"><h2 class="display">' + esc(sec.title) + '</h2>' +
       (sec.note ? '<p>' + esc(sec.note) + '</p>' : '') + '</div><ul class="dishes">';
@@ -45,8 +50,8 @@
       pricesOf(sec, item).forEach(function (p) {
         var key = sec.id + '|' + i + '|' + p.label;
         byKey[key] = {
-          key: key, nr: nr, name: name, desc: desc, size: p.label, price: p.price,
-          section: sec.id === 'frokost' ? 'Frokosttilbud' : (sec.id === 'pizza' ? '' : sec.title)
+          key: key, nr: nr, name: name, desc: desc, size: p.label, price: p.price, lunch: !!sec.lunch,
+          section: sec.lunch ? 'Frokost' : (sec.id === 'pizza' || sec.id === 'kylling' || sec.id === 'burgere' ? '' : sec.title)
         };
         html += '<button class="price" type="button" data-key="' + esc(key) + '" aria-label="Læg ' +
           esc(name + (p.label ? ' ' + p.label : '')) + ' i kurven, ' + p.price + ' kr">' +
@@ -96,14 +101,50 @@
     document.querySelectorAll('.msec').forEach(function (s) { io.observe(s); });
   }
 
+  // ---------- Åbningstider ----------
+  function hoursOn(d) { return HOURS[d.getDay()] || null; }
+  function isLunch(d, mins) {
+    return LUNCH.days.indexOf(d.getDay()) !== -1 && mins >= LUNCH.from * 60 && mins < LUNCH.to * 60;
+  }
+  // Status i toppen: "Åbent nu til 20.00" / "Lukket – åbner i morgen kl. 10.00"
+  (function showOpen() {
+    var el = $('openstatus'); if (!el) return;
+    var now = new Date(), mins = now.getHours() * 60 + now.getMinutes(), h = hoursOn(now);
+    var open = h && mins >= h[0] * 60 && mins < h[1] * 60;
+    if (open) { el.innerHTML = '<span class="dot"></span> Åbent nu til kl. ' + fmt(h[1] * 60); return; }
+    var next = nextOpenDay(now, h && mins < h[0] * 60 ? 0 : 1);
+    el.innerHTML = '<span class="dot is-closed"></span> Lukket nu · åbner ' + next.label + ' kl. ' + fmt(next.hours[0] * 60);
+  })();
+  function nextOpenDay(from, offset) {
+    for (var i = offset; i < offset + 8; i++) {
+      var d = new Date(from.getFullYear(), from.getMonth(), from.getDate() + i);
+      var h = hoursOn(d);
+      if (h) return { date: d, hours: h, label: i === 0 ? 'i dag' : i === 1 ? 'i morgen' : DAYS[d.getDay()] };
+    }
+    return null;
+  }
+
   // ---------- Kurv ----------
   var cart = [];
   try { cart = JSON.parse(localStorage.getItem(STORE_KEY)) || []; } catch (e) { cart = []; }
   cart = cart.filter(function (l) { return byKey[l.key]; });
 
   function save() { try { localStorage.setItem(STORE_KEY, JSON.stringify(cart)); } catch (e) {} }
-  function total() { return cart.reduce(function (s, l) { return s + byKey[l.key].price * l.qty; }, 0); }
+  function subtotal() { return cart.reduce(function (s, l) { return s + byKey[l.key].price * l.qty; }, 0); }
   function count() { return cart.reduce(function (s, l) { return s + l.qty; }, 0); }
+  function isDelivery() { var r = document.querySelector('input[name=mode]:checked'); return r && r.value === 'levering'; }
+  function baseFee() { return isDelivery() && subtotal() < DEL.freeFrom ? DEL.fee : 0; }
+  // Kørselstillæg: perKm kr pr. km ud over baseKm, talt ud og hjem (afrundet op til hele km)
+  var dist = { km: null, state: 'none', key: '' }; // state: none | busy | ok | fail | far
+  function extraKm() {
+    if (!isDelivery() || dist.km == null || !DEL.perKm) return 0;
+    var over = Math.max(0, dist.km - (DEL.baseKm || 0));
+    return over > 0 ? Math.ceil(over * (DEL.roundTrip ? 2 : 1)) : 0;
+  }
+  function kmFee() { return extraKm() * (DEL.perKm || 0); }
+  function fee() { return baseFee() + kmFee(); }
+  function total() { return subtotal() + fee(); }
+  function hasLunch() { return cart.some(function (l) { return byKey[l.key].lunch; }); }
   function label(it) {
     return (it.nr ? it.nr + '. ' : '') + (it.section ? it.section + ': ' : '') + it.name + (it.size ? ' (' + it.size + ')' : '');
   }
@@ -112,8 +153,7 @@
     var n = count();
     $('cartbtn').hidden = n === 0;
     $('cartcount').textContent = n;
-    $('carttotal-btn').textContent = kr(total());
-    $('carttotal').textContent = kr(total());
+    $('carttotal-btn').textContent = kr(subtotal());
     $('cartempty').hidden = n > 0;
     $('orderform').querySelector('button[type=submit]').disabled = n === 0;
     $('cartitems').innerHTML = cart.map(function (l, i) {
@@ -125,6 +165,16 @@
         '<button type="button" data-q="1" data-i="' + i + '" aria-label="Tilføj én">+</button></div></div>' +
         '<div class="citem__price">' + kr(it.price * l.qty) + '</div></li>';
     }).join('');
+    var del = isDelivery();
+    $('feeline').hidden = !del || n === 0;
+    $('fee').textContent = baseFee() ? kr(baseFee()) : 'Gratis';
+    $('kmline').hidden = !del || n === 0 || !kmFee();
+    $('kmlabel').textContent = 'Kørselstillæg (' + extraKm() + ' km × ' + DEL.perKm + ' kr)';
+    $('kmfee').textContent = kr(kmFee());
+    var missing = DEL.freeFrom - subtotal();
+    $('freehint').hidden = !del || n === 0 || missing <= 0;
+    $('freehint').textContent = 'Køb for ' + kr(missing) + ' mere, så slipper du for leveringsgebyret på ' + kr(DEL.fee) + '.';
+    $('carttotal').textContent = kr(total());
     save();
   }
 
@@ -156,6 +206,7 @@
     l.qty += Number(b.dataset.q);
     if (l.qty <= 0) cart.splice(Number(b.dataset.i), 1);
     render();
+    fillTimes();
   });
 
   // Åbn og luk kurven
@@ -178,23 +229,142 @@
   $('scrim').addEventListener('click', closeCart);
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeCart(); });
 
-  // Afhentningstider i kvarterer inden for åbningstiden
+  // Afhentning eller levering
+  document.querySelectorAll('input[name=mode]').forEach(function (r) {
+    r.addEventListener('change', function () {
+      var del = isDelivery();
+      $('addrfields').hidden = !del;
+      $('time-label').textContent = del ? 'Levering: dato og tidspunkt' : 'Afhentning: dato og tidspunkt';
+      if (del) updateDistance();
+      render(); fillTimes();
+    });
+  });
+
+  // ---------- Afstand fra butikken til kundens adresse ----------
+  // Adressen slås op i Danmarks Adresseregister (DAWA), og køreafstanden findes via OSRM.
+  // Kan ruten ikke hentes, bruges afstanden i luftlinje × 1,3.
+  var DAWA = 'https://api.dataforsyningen.dk/adresser?struktur=mini&per_side=1&fuzzy&q=';
+  var shopPos = null;
+  function geocode(text) {
+    return fetch(DAWA + encodeURIComponent(text)).then(function (r) { return r.json(); }).then(function (a) {
+      var x = a && a[0];
+      if (!x || x.x == null) throw new Error('ukendt');
+      return { lon: x.x, lat: x.y, text: x.betegnelse || text, zip: String(x.postnr || '') };
+    });
+  }
+  function airKm(a, b) {
+    var R = 6371, r = Math.PI / 180, dLat = (b.lat - a.lat) * r, dLon = (b.lon - a.lon) * r;
+    var h = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(a.lat * r) * Math.cos(b.lat * r) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    return 2 * R * Math.asin(Math.sqrt(h));
+  }
+  function roadKm(a, b) {
+    return fetch('https://router.project-osrm.org/route/v1/driving/' + a.lon + ',' + a.lat + ';' + b.lon + ',' + b.lat + '?overview=false')
+      .then(function (r) { return r.json(); })
+      .then(function (j) { if (!j.routes || !j.routes[0]) throw new Error('rute'); return j.routes[0].distance / 1000; })
+      .catch(function () { return airKm(a, b) * 1.3; });
+  }
+  var distTimer = null;
+  function showDist() {
+    var el = $('disthint');
+    var t = { none: '', busy: 'Beregner afstand …',
+      ok: dist.km != null ? 'Afstand fra butikken: ca. ' + dist.km.toFixed(1).replace('.', ',') + ' km' +
+        (kmFee() ? ' – kørselstillæg ' + kr(kmFee()) + ' (' + extraKm() + ' km ud og hjem ud over de første ' + DEL.baseKm + ' km).' : ' – intet kørselstillæg.') : '',
+      far: 'Adressen ligger ca. ' + (dist.km || 0).toFixed(1).replace('.', ',') + ' km fra butikken. Vi leverer desværre kun op til ' + DEL.km + ' km. Ring på ' + CFG.phone + ', så finder vi en løsning.',
+      fail: 'Vi kunne ikke finde adressen. Tjek vejnavn, husnummer og postnummer.' }[dist.state];
+    el.textContent = t; el.hidden = !t;
+    el.classList.toggle('form-error', dist.state === 'far' || dist.state === 'fail');
+  }
+  function updateDistance() {
+    var street = $('o-street').value.trim(), zip = $('o-zip').value.trim();
+    var key = street + '|' + zip;
+    if (street.length < 4 || !/^\d{4}/.test(zip)) { dist = { km: null, state: 'none', key: '' }; showDist(); render(); return; }
+    if (key === dist.key && dist.state !== 'fail') return;
+    dist = { km: null, state: 'busy', key: key }; showDist(); render();
+    var shop = shopPos ? Promise.resolve(shopPos) : geocode(CFG.address).then(function (p) { shopPos = p; return p; });
+    Promise.all([shop, geocode(street + ', ' + zip)]).then(function (p) {
+      return roadKm(p[0], p[1]);
+    }).then(function (km) {
+      if (dist.key !== key) return;
+      dist = { km: km, state: DEL.km && km > DEL.km ? 'far' : 'ok', key: key };
+      showDist(); render();
+    }).catch(function () {
+      if (dist.key !== key) return;
+      dist = { km: null, state: 'fail', key: key }; showDist(); render();
+    });
+  }
+  ['o-street', 'o-zip'].forEach(function (id) {
+    $(id).addEventListener('input', function () { clearTimeout(distTimer); distTimer = setTimeout(updateDistance, 700); });
+    $(id).addEventListener('change', updateDistance);
+  });
+
+  // Tidspunkter i kvarterer inden for åbningstiden (og leveringstiden)
+  // Dato først, derefter tidspunkt. Op til 14 dage frem; kun dage med ledige tider vises.
+  var DAYS_AHEAD = 15, slotDays = []; // i dag + 14 dage frem
+  var MONTHS = ['jan.', 'feb.', 'mar.', 'apr.', 'maj', 'jun.', 'jul.', 'aug.', 'sep.', 'okt.', 'nov.', 'dec.'];
   function fillTimes() {
-    var sel = $('o-time'), keep = sel.value;
+    var dsel = $('o-date'), keepDate = dsel.value, keepTime = $('o-time').value;
     var now = new Date();
-    var opts = [];
     var mins = now.getHours() * 60 + now.getMinutes();
-    var open = OPEN * 60, close = CLOSE * 60;
-    var pad = function (n) { return (n < 10 ? '0' : '') + n; };
-    var fmt = function (m) { return pad(Math.floor(m / 60)) + '.' + pad(m % 60); };
-    if (mins >= open && mins < close - 20) opts.push(['asap', 'Hurtigst muligt (ca. 20 min)']);
-    var start = Math.max(open + 15, Math.ceil((mins + 30) / 15) * 15);
-    var prefix = '';
-    if (mins >= close - 30) { start = open + 15; prefix = 'I morgen '; }
-    for (var m = start; m <= close - 15; m += 15) opts.push([fmt(m), prefix + 'kl. ' + fmt(m)]);
-    sel.innerHTML = opts.map(function (o) { return '<option value="' + o[0] + '">' + o[1] + '</option>'; }).join('');
+    var del = isDelivery();
+    var lunchOnly = hasLunch();
+    function windowFor(h) {
+      var from = h[0] * 60, to = h[1] * 60 - LAST;
+      if (del) { from = Math.max(from, DEL.from * 60); to = Math.min(to, DEL.to * 60); }
+      return [from, to];
+    }
+    slotDays = [];
+    for (var i = 0; i < DAYS_AHEAD; i++) {
+      var d = new Date(now.getFullYear(), now.getMonth(), now.getDate() + i);
+      var h = hoursOn(d); if (!h) continue;
+      var w = windowFor(h), slots = [];
+      if (i === 0) {
+        var lead = del ? (DEL.minutes || 45) : PREP;
+        if (mins >= w[0] - lead && mins + lead <= w[1] && mins >= h[0] * 60 && (!lunchOnly || isLunch(d, mins + lead))) {
+          slots.push(['asap', 'Hurtigst muligt (ca. ' + lead + ' min)']);
+        }
+        for (var m = Math.max(w[0], Math.ceil((mins + lead + 10) / 15) * 15); m <= w[1]; m += 15) {
+          if (!lunchOnly || isLunch(d, m)) slots.push([fmt(m), 'kl. ' + fmt(m)]);
+        }
+      } else {
+        for (var m2 = del ? w[0] : w[0] + 15; m2 <= w[1]; m2 += 15) {
+          if (!lunchOnly || isLunch(d, m2)) slots.push([fmt(m2), 'kl. ' + fmt(m2)]);
+        }
+      }
+      if (!slots.length) continue;
+      var lbl = i === 0 ? 'i dag' : i === 1 ? 'i morgen' : DAYS[d.getDay()] + ' ' + d.getDate() + '. ' + MONTHS[d.getMonth()];
+      var full = i <= 1 ? lbl + ' (' + DAYS[d.getDay()] + ' ' + d.getDate() + '. ' + MONTHS[d.getMonth()] + ')' : lbl;
+      slotDays.push({ key: d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(), label: lbl, text: full.charAt(0).toUpperCase() + full.slice(1), slots: slots });
+    }
+    dsel.innerHTML = slotDays.length
+      ? slotDays.map(function (x) { return '<option value="' + x.key + '">' + x.text + '</option>'; }).join('')
+      : '<option value="">Ingen ledige dage</option>';
+    dsel.disabled = !slotDays.length;
+    if (keepDate && slotDays.some(function (x) { return x.key === keepDate; })) dsel.value = keepDate;
+    fillSlots(keepTime);
+    var hint = '';
+    if (del && slotDays.length) {
+      hint = slotDays[0].label === 'i dag'
+        ? 'Vi leverer mellem kl. ' + DEL.from + ' og ' + DEL.to + '.'
+        : (hoursOn(now) ? 'Vi kan ikke nå at levere mere i dag' : 'Vi har lukket i dag') + ', men du kan bestille nu til en anden dag mellem kl. ' + DEL.from + ' og ' + DEL.to + '.';
+    }
+    $('delclosed').hidden = !hint;
+    $('delclosed').textContent = hint;
+    $('lunchhint').hidden = !lunchOnly;
+  }
+  function chosenDay() {
+    var k = $('o-date').value;
+    return slotDays.filter(function (x) { return x.key === k; })[0] || null;
+  }
+  function fillSlots(keep) {
+    var sel = $('o-time'), day = chosenDay(), opts = day ? day.slots : [];
+    sel.innerHTML = opts.length
+      ? opts.map(function (o) { return '<option value="' + o[0] + '">' + o[1].charAt(0).toUpperCase() + o[1].slice(1) + '</option>'; }).join('')
+      : '<option value="">Ingen ledige tider</option>';
+    sel.disabled = !opts.length;
     if (keep && opts.some(function (o) { return o[0] === keep; })) sel.value = keep;
   }
+  $('o-date').addEventListener('change', function () { fillSlots($('o-time').value); });
+
 
   // Videre til bestilling
   function showStep(s) {
@@ -205,26 +375,43 @@
   $('orderform').addEventListener('submit', function (e) {
     e.preventDefault();
     var name = $('o-name').value.trim(), phone = $('o-phone').value.trim();
+    var street = $('o-street').value.trim(), zip = $('o-zip').value.trim();
+    var del = isDelivery();
     var err = $('formerror');
     if (!count()) return;
-    if (!name || phone.replace(/\D/g, '').length < 8) {
-      err.textContent = !name ? 'Skriv dit navn, så vi ved, hvem maden er til.' : 'Skriv et telefonnummer med 8 cifre, så vi kan ringe, hvis der er spørgsmål.';
-      err.hidden = false;
-      (!name ? $('o-name') : $('o-phone')).focus();
+    var problem = null, focus = null;
+    if (!name) { problem = 'Skriv dit navn, så vi ved, hvem maden er til.'; focus = 'o-name'; }
+    else if (phone.replace(/\D/g, '').length < 8) { problem = 'Skriv et telefonnummer med 8 cifre, så vi kan ringe, hvis der er spørgsmål.'; focus = 'o-phone'; }
+    else if (del && street.length < 4) { problem = 'Skriv vejnavn og husnummer, så vi kan finde dig.'; focus = 'o-street'; }
+    else if (del && !/^\d{4}/.test(zip)) { problem = 'Skriv postnummer og by, fx 8850 Bjerringbro.'; focus = 'o-zip'; }
+    else if (del && dist.state === 'busy') { problem = 'Vent et øjeblik, vi beregner afstanden til din adresse.'; }
+    else if (del && dist.state === 'far') { problem = 'Vi leverer desværre kun op til ' + DEL.km + ' km fra butikken. Ring på ' + CFG.phone + '.'; }
+    else if (del && dist.state === 'fail') { problem = 'Vi kunne ikke finde adressen. Tjek vejnavn, husnummer og postnummer, eller ring på ' + CFG.phone + '.'; focus = 'o-street'; }
+    else if (del && !(document.querySelector('input[name=pay]:checked') || {}).value) { problem = 'Vælg, om du vil betale med MobilePay eller kontant ved levering.'; focus = null; }
+    else if (!$('o-time').value) {
+      problem = del ? 'Der er ingen ledige leveringstider lige nu. Ring til os på ' + CFG.phone + '.'
+                    : 'Der er ingen ledige tider lige nu. Ring til os på ' + CFG.phone + '.';
+    }
+    if (problem) {
+      err.textContent = problem; err.hidden = false;
+      if (focus) $(focus).focus();
       return;
     }
     err.hidden = true;
-    var sel = $('o-time');
-    var pickup = sel.options[sel.selectedIndex].text;
-    if (ONLINE) { sendOrder(name, phone, pickup, $('o-note').value.trim()); return; }
+    var sel = $('o-time'), day = chosenDay();
+    var when = (del ? 'Levering ' : 'Afhentning ') + (day ? day.label + ' ' : '') + sel.options[sel.selectedIndex].text.replace(/^./, function (s) { return s.toLowerCase(); });
+    var note = $('o-note').value.trim();
+    var address = del ? street + ', ' + zip : '';
+    var pay = del ? (document.querySelector('input[name=pay]:checked') || {}).value : '';
+    if (ONLINE) { sendOrder(name, phone, when, address, note, pay); return; }
     var lines = cart.map(function (l) {
       var it = byKey[l.key];
       return l.qty + ' × ' + label(it) + '   ' + kr(it.price * l.qty);
     });
-    var note = $('o-note').value.trim();
+    if (fee()) lines.push('Levering   ' + kr(fee()));
     $('summary').textContent =
-      'Bestilling til afhentning\n' +
-      'Navn: ' + name + '\nTelefon: ' + phone + '\nAfhentning: ' + sel.options[sel.selectedIndex].text + '\n\n' +
+      'Bestilling hos Chicken World\n' +
+      'Navn: ' + name + '\nTelefon: ' + phone + '\n' + when + (address ? '\nAdresse: ' + address + '\nBetaling: ' + pay : '') + '\n\n' +
       lines.join('\n') + '\n\nI alt: ' + kr(total()) + (note ? '\n\nBemærkning: ' + note : '');
     showStep('done');
     cartEl.scrollTop = 0;
@@ -237,20 +424,25 @@
     if (/^eyJ/.test(CFG.supabaseKey)) h.Authorization = 'Bearer ' + CFG.supabaseKey;
     return h;
   }
-  // ---------- Send bestillingen til restauranten ----------
-  function sendOrder(name, phone, pickup, note) {
+  // ---------- Send bestillingen til butikken ----------
+  // Levering sendes med i "pickup" (fx "Levering i dag kl. 17.30"), og adressen står øverst i bemærkningen,
+  // så ordresiden i butikken kan vise den tydeligt.
+  function sendOrder(name, phone, when, address, note, pay) {
     var btn = $('orderform').querySelector('button[type=submit]');
     var err = $('formerror');
     var items = cart.map(function (l) {
       var it = byKey[l.key];
       return { qty: l.qty, nr: it.nr, name: it.name, desc: it.desc, size: it.size, section: it.section, price: it.price };
     });
+    if (baseFee()) items.push({ qty: 1, nr: '', name: 'Levering', desc: '', size: '', section: '', price: baseFee() });
+    if (kmFee()) items.push({ qty: 1, nr: '', name: 'Kørselstillæg', desc: 'ca. ' + dist.km.toFixed(1).replace('.', ',') + ' km fra butikken · ' + extraKm() + ' km × ' + DEL.perKm + ' kr', size: '', section: '', price: kmFee() });
     var sum = total();
+    var fullNote = (address ? 'Adresse: ' + address + '\nBetaling: ' + pay + (note ? '\n' : '') : '') + note;
     btn.disabled = true; btn.textContent = 'Sender bestilling …';
     fetch(CFG.supabaseUrl.replace(/\/$/, '') + '/rest/v1/rpc/place_order', {
       method: 'POST',
       headers: apiHeaders(),
-      body: JSON.stringify({ p_name: name, p_phone: phone, p_pickup: pickup, p_note: note, p_items: items, p_total: sum })
+      body: JSON.stringify({ p_name: name, p_phone: phone, p_pickup: when.slice(0, 60), p_note: fullNote.slice(0, 500), p_items: items, p_total: sum })
     }).then(function (r) {
       return r.json().then(function (body) {
         if (!r.ok) throw new Error(body && body.message ? body.message : 'Fejl');
@@ -259,21 +451,90 @@
     }).then(function (id) {
       $('sent-name').textContent = name.split(' ')[0];
       $('sent-id').textContent = id;
-      $('sent-time').textContent = pickup;
-      $('sent-total').textContent = kr(sum);
+      $('sent-time').textContent = when;
+      $('sent-where-label').textContent = address ? 'Leveres til' : 'Hentes på';
+      $('sent-where').textContent = address || CFG.address;
+      $('sent-pay').textContent = (address ? pay + ' ved levering, ' : 'Når du henter, ') + kr(sum);
       cart = []; render();
       $('o-note').value = '';
       showStep('sent');
+      saveOrder({ id: id, phone: phone, first: name.split(' ')[0], when: when, address: address, pay: $('sent-pay').textContent, at: Date.now() });
+      watchOrder(id, phone, !!address);
       cartEl.scrollTop = 0;
     }).catch(function (e) {
       err.textContent = 'Bestillingen kunne ikke sendes' + (e.message && e.message !== 'Fejl' && e.message !== 'Failed to fetch' ? ': ' + e.message : '') +
-        '. Prøv igen, eller ring på 35 37 19 09.';
+        '. Prøv igen, eller ring på ' + CFG.phone + '.';
       err.hidden = false;
     }).then(function () {
       btn.textContent = 'Send bestilling'; btn.disabled = count() === 0;
     });
   }
-  $('sent-new').addEventListener('click', function () { closeCart(); showStep('cart'); });
+  // ---------- Følg ordren: afventer bekræftelse → bekræftet (med tid) / afvist ----------
+  // Ordren gemmes i browseren, så status står der stadig, hvis kunden genindlæser siden.
+  var watchTimer = null, ORDER_KEY = 'cw-ordre';
+  function saveOrder(o) { try { localStorage.setItem(ORDER_KEY, JSON.stringify(o)); } catch (e) {} }
+  function forgetOrder() { try { localStorage.removeItem(ORDER_KEY); } catch (e) {} }
+  function clockOf(d) { return fmt(d.getHours() * 60 + d.getMinutes()); }
+  function watchOrder(id, phone, delivery) {
+    clearTimeout(watchTimer);
+    var box = $('sent-status'), started = Date.now();
+    box.hidden = false;
+    function set(state, title, text) {
+      box.dataset.state = state;
+      $('sent-status-title').textContent = title;
+      $('sent-status-text').textContent = text;
+      $('sent-badge').textContent = state === 'no' ? '✕' : state === 'wait' ? '…' : '✓';
+      $('sent-badge').dataset.state = state;
+    }
+    set('wait', 'Afventer bekræftelse', 'Butikken har modtaget din bestilling og bekræfter den om et øjeblik. Siden opdaterer sig selv.');
+    function poll() {
+      fetch(CFG.supabaseUrl.replace(/\/$/, '') + '/rest/v1/rpc/order_status', {
+        method: 'POST', headers: apiHeaders(), body: JSON.stringify({ p_id: id, p_phone: phone })
+      }).then(function (r) {
+        if (!r.ok) throw new Error('mangler');
+        return r.json();
+      }).then(function (rows) {
+        var o = rows && rows[0];
+        if (!o) throw new Error('mangler');
+        var done = false, where = delivery ? 'leveret ved din adresse' : 'klar til afhentning';
+        if (o.status === 'ny') {
+          set('wait', 'Afventer bekræftelse', 'Butikken har modtaget din bestilling og bekræfter den om et øjeblik. Siden opdaterer sig selv.');
+        } else if (o.status === 'afvist' || o.status === 'annulleret') {
+          set('no', 'Bestillingen er afvist', 'Desværre kan vi ikke tage imod bestillingen lige nu. Ring på ' + CFG.phone + ', hvis du har spørgsmål.');
+          done = true;
+        } else if (o.status === 'klar') {
+          set('ok', delivery ? 'Din mad er på vej' : 'Din mad er klar', delivery ? 'Chaufføren er på vej til din adresse.' : 'Du kan hente den nu på ' + CFG.address + '.');
+          done = true;
+        } else if (o.status === 'afhentet') {
+          set('ok', 'Tak for din bestilling', 'Velbekomme!'); done = true;
+        } else if (o.eta_minutes && o.accepted_at) {
+          var at = new Date(new Date(o.accepted_at).getTime() + o.eta_minutes * 60000);
+          set('ok', 'Bekræftet · kl. ' + clockOf(at), 'Din mad er ' + where + ' ca. kl. ' + clockOf(at) + ' (' + o.eta_minutes + ' min efter bekræftelsen).');
+        } else {
+          set('ok', 'Bekræftet', 'Din mad er ' + where + ' ' + $('sent-time').textContent.replace(/^(Levering|Afhentning)\s*/i, '') + '.');
+        }
+        if (done) setTimeout(forgetOrder, 30 * 60000);
+        if (!done && Date.now() - started < 3 * 3600000) watchTimer = setTimeout(poll, 5000);
+      }).catch(function (e) {
+        if (e.message === 'mangler') { box.hidden = true; forgetOrder(); return; }
+        watchTimer = setTimeout(poll, 10000); // netværksfejl: prøv igen
+      });
+    }
+    poll();
+  }
+  // Vis status igen efter genindlæsning (op til 4 timer efter bestillingen)
+  (function resume() {
+    var o = null;
+    try { o = JSON.parse(localStorage.getItem(ORDER_KEY) || 'null'); } catch (e) {}
+    if (!o || !o.id || Date.now() - o.at > 4 * 3600000) { forgetOrder(); return; }
+    $('sent-name').textContent = o.first; $('sent-id').textContent = o.id; $('sent-time').textContent = o.when;
+    $('sent-where-label').textContent = o.address ? 'Leveres til' : 'Hentes på';
+    $('sent-where').textContent = o.address || CFG.address; $('sent-pay').textContent = o.pay;
+    showStep('sent'); openCart();
+    watchOrder(o.id, o.phone, !!o.address);
+  })();
+
+  $('sent-new').addEventListener('click', function () { clearTimeout(watchTimer); forgetOrder(); closeCart(); showStep('cart'); });
   $('copy').addEventListener('click', function () {
     var text = $('summary').textContent;
     var done = function () { toast('Bestillingen er kopieret'); };
@@ -290,17 +551,8 @@
     cart = []; render(); closeCart(); toast('Kurven er tømt');
   });
 
-  if (ONLINE) {
-    $('orderform').querySelector('button[type=submit]').textContent = 'Send bestilling';
-    document.querySelector('.cart__fine').textContent = 'Du betaler, når du henter maden. Vi leverer ikke.';
-  }
+  if (ONLINE) $('orderform').querySelector('button[type=submit]').textContent = 'Send bestilling';
   render();
-
-  // Pizzaen i toppen drejer, når man scroller
-  var spin = document.querySelector('[data-spin]');
-  if (spin && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    window.addEventListener('scroll', function () { spin.style.rotate = (window.scrollY * 0.25) + 'deg'; }, { passive: true });
-  }
 
   // Hop direkte til en kategori fra et link, fx menu.html#pizza
   if (location.hash && document.querySelector(location.hash)) {

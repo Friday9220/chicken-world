@@ -1,4 +1,4 @@
-/* Dilan's – menu- og bestillingsside (bygger på styles.css) */
+/* Chicken World – menu- og bestillingsside (bygger på styles.css) */
 
 [hidden] { display: none !important; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
@@ -53,11 +53,11 @@
 .msec__head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 20px; margin-bottom: 18px; }
 .msec__head h2 { font-size: clamp(42px, 6vw, 84px); }
 .msec__head p { color: var(--muted); }
-.msec--frokost { background: var(--frame); color: var(--cream); border-radius: var(--radius); padding: 34px clamp(18px, 3vw, 36px) 26px; margin-top: 30px; }
-.msec--frokost .msec__head p { color: var(--orange-soft); font-weight: 700; }
-.msec--frokost .dish { border-color: rgba(245,239,227,.18); }
-.msec--frokost .dish__desc { color: rgba(245,239,227,.7); }
-.msec--frokost .price { border-color: rgba(245,239,227,.5); color: var(--cream); }
+.msec--lunch { background: var(--frame); color: var(--cream); border-radius: var(--radius); padding: 34px clamp(18px, 3vw, 36px) 26px; margin-top: 30px; }
+.msec--lunch .msec__head p { color: var(--orange-soft); font-weight: 700; }
+.msec--lunch .dish { border-color: rgba(245,239,227,.18); }
+.msec--lunch .dish__desc { color: rgba(245,239,227,.7); }
+.msec--lunch .price { border-color: rgba(245,239,227,.5); color: var(--cream); }
 
 .dishes { list-style: none; display: grid; grid-template-columns: 1fr 1fr; column-gap: 40px; }
 .dish {
@@ -141,7 +141,7 @@
 
 .cart__form { display: grid; gap: 12px; margin-top: 10px; }
 .field { display: grid; gap: 4px; }
-.field label { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
+.field label, .field__label { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
 .field small { text-transform: none; letter-spacing: 0; font-weight: 400; color: var(--muted); }
 .field input, .field select, .field textarea {
   font: inherit; font-size: 16px; color: var(--ink); background: #fff;
@@ -152,6 +152,26 @@
 .cart__go { width: 100%; margin-top: 4px; }
 .cart__go:disabled { opacity: .45; cursor: not-allowed; transform: none; }
 .cart__fine { font-size: 13px; color: var(--muted); text-align: center; }
+
+/* Afhentning / levering */
+.modes { border: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 14px 0 4px; }
+.mode { position: relative; cursor: pointer; }
+.mode input { position: absolute; opacity: 0; pointer-events: none; }
+.mode span {
+  display: grid; gap: 2px; height: 100%; padding: 12px 14px; border-radius: 14px;
+  border: 1.5px solid var(--ink); background: #fff; font-weight: 700; font-size: 16px;
+  transition: background .15s, color .15s;
+}
+.mode small { font-weight: 500; font-size: 12px; color: var(--muted); }
+.mode input:checked + span { background: var(--ink); color: var(--cream); }
+.mode input:checked + span small { color: var(--red-soft); }
+.mode input:focus-visible + span { outline: 3px solid var(--orange); outline-offset: 2px; }
+.cart__sum--fee { padding: 10px 0 0; }
+.cart__sum--fee b { font-family: var(--body); font-weight: 700; font-size: 17px; }
+.freehint { font-size: 14px; font-weight: 700; color: var(--yellow-deep); }
+#addrfields { display: grid; gap: 12px; }
+#addrfields[hidden] { display: none !important; }
+.field__hint { font-size: 13px; color: var(--muted); }
 
 .done__lead { font-size: 18px; margin-bottom: 14px; }
 .done__call { width: 100%; font-size: 20px; padding: 16px; }
@@ -169,6 +189,13 @@
 .sent__facts dt { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); padding-top: 3px; }
 .sent__facts dd { font-weight: 700; }
 .sent__new { width: 100%; margin-top: 16px; }
+.sent__status { display: flex; gap: 14px; align-items: center; padding: 16px 18px; border-radius: 16px; background: var(--cream-2); margin-bottom: 4px; }
+.sent__status[data-state="ok"] { background: #dff3df; }
+.sent__status[data-state="no"] { background: #fde0dc; color: #8a1d12; }
+.sent__pulse { width: 12px; height: 12px; border-radius: 50%; flex: none; background: var(--yellow-deep); animation: pulse 1.2s ease-in-out infinite; }
+.sent__status[data-state="ok"] .sent__pulse { background: var(--open); animation: none; }
+.sent__status[data-state="no"] .sent__pulse { background: var(--red); animation: none; }
+@keyframes pulse { 50% { transform: scale(1.5); opacity: .5; } }
 .done__clear { margin-top: 18px; background: none; border: 0; font: inherit; color: var(--muted); text-decoration: underline; cursor: pointer; }
 
 .toast {
@@ -193,3 +220,16 @@
   .mhero__title { font-size: 21vw; }
   .menu-page .footer__cols { grid-template-columns: 1fr; }
 }
+
+.sent__msg { display: grid; gap: 3px; }
+.sent__msg b { font-size: 19px; }
+.sent__msg span { font-size: 15px; }
+.sent__badge[data-state="wait"] { background: var(--yellow); color: var(--frame); }
+.sent__badge[data-state="no"] { background: var(--red); color: #fff; }
+.paybox { border: 0; padding: 0; margin: 4px 0 0; }
+.paybox legend { padding: 0; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
+.modes--pay .mode span { text-transform: none; }
+.modes--pay { margin: 6px 0 0; }
+.when { display: grid; grid-template-columns: 1.4fr 1fr; gap: 8px; }
+.when label { display: block; font: inherit; text-transform: none; letter-spacing: 0; }
+.when select { width: 100%; }
