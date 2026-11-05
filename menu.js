@@ -297,9 +297,9 @@
     $(id).addEventListener('change', updateDistance);
   });
 
-  // Tidspunkter i kvarterer inden for åbningstiden (og leveringstiden)
-  // Dato først, derefter tidspunkt. Op til 14 dage frem; kun dage med ledige tider vises.
-  var DAYS_AHEAD = 15, slotDays = []; // i dag + 14 dage frem
+  // Tidspunkter i kvarterer inden for åbningstiden – både afhentning og levering.
+  // Dato først, derefter tidspunkt. Der kan bestilles til i dag og i morgen; kun dage med ledige tider vises.
+  var DAYS_AHEAD = 2, slotDays = []; // i dag + i morgen
   var MONTHS = ['jan.', 'feb.', 'mar.', 'apr.', 'maj', 'jun.', 'jul.', 'aug.', 'sep.', 'okt.', 'nov.', 'dec.'];
   function fillTimes() {
     var dsel = $('o-date'), keepDate = dsel.value, keepTime = $('o-time').value;
@@ -309,7 +309,8 @@
     var lunchOnly = hasLunch();
     function windowFor(h) {
       var from = h[0] * 60, to = h[1] * 60 - LAST;
-      if (del) { from = Math.max(from, DEL.from * 60); to = Math.min(to, DEL.to * 60); }
+      if (del && DEL.from != null) from = Math.max(from, DEL.from * 60);
+      if (del && DEL.to != null) to = Math.min(to, DEL.to * 60);
       return [from, to];
     }
     slotDays = [];
@@ -322,11 +323,13 @@
         if (mins >= w[0] - lead && mins + lead <= w[1] && mins >= h[0] * 60 && (!lunchOnly || isLunch(d, mins + lead))) {
           slots.push(['asap', 'Hurtigst muligt (ca. ' + lead + ' min)']);
         }
-        for (var m = Math.max(w[0], Math.ceil((mins + lead + 10) / 15) * 15); m <= w[1]; m += 15) {
+        for (var m = Math.max(Math.ceil((w[0] + lead) / 15) * 15, Math.ceil((mins + lead + 10) / 15) * 15); m <= w[1]; m += 15) {
           if (!lunchOnly || isLunch(d, m)) slots.push([fmt(m), 'kl. ' + fmt(m)]);
         }
       } else {
-        for (var m2 = del ? w[0] : w[0] + 15; m2 <= w[1]; m2 += 15) {
+        // Første tid: når køkkenet (og chaufføren) kan nå det efter åbning
+        var first = Math.ceil((w[0] + (del ? (DEL.minutes || 45) : PREP)) / 15) * 15;
+        for (var m2 = first; m2 <= w[1]; m2 += 15) {
           if (!lunchOnly || isLunch(d, m2)) slots.push([fmt(m2), 'kl. ' + fmt(m2)]);
         }
       }
@@ -344,8 +347,8 @@
     var hint = '';
     if (del && slotDays.length) {
       hint = slotDays[0].label === 'i dag'
-        ? 'Vi leverer mellem kl. ' + DEL.from + ' og ' + DEL.to + '.'
-        : (hoursOn(now) ? 'Vi kan ikke nå at levere mere i dag' : 'Vi har lukket i dag') + ', men du kan bestille nu til en anden dag mellem kl. ' + DEL.from + ' og ' + DEL.to + '.';
+        ? 'Vi leverer i hele åbningstiden.'
+        : (hoursOn(now) ? 'Vi kan ikke nå at levere mere i dag' : 'Vi har lukket i dag') + ', men du kan bestille nu til i morgen.';
     }
     $('delclosed').hidden = !hint;
     $('delclosed').textContent = hint;
