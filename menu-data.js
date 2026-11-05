@@ -83,8 +83,7 @@ window.CW_MENU = [
       ['', 'Rulle med kebab', '', 69],
       ['', 'Rulle med kylling', '', 69],
       ['', 'Rulle med crispy kylling', '', 69],
-      ['', 'Rulle med falafel', '', 69, 'Vegetar'],
-      ['', 'Menu-tillæg til bowl', 'Gør din bowl til en menu. Skriv hvilken sodavand i bemærkningen', 30]
+      ['', 'Rulle med falafel', '', 69, 'Vegetar']
     ]
   },
   {
