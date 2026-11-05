@@ -147,9 +147,20 @@
     // Nøglen huskes på denne enhed, så man ikke skal logge ind igen efter genindlæsning.
     var STORE = 'cw-personale';
     var KEY = '';
-    try { KEY = localStorage.getItem(STORE) || ''; } catch (e) {}
+    // Login gælder kun til kl. 05 næste morgen, så koden skal skrives hver dag
+    var RESET_HOUR = 5, until = 0;
+    function nextReset() {
+      var d = new Date(); d.setHours(RESET_HOUR, 0, 0, 0);
+      if (d.getTime() <= Date.now()) d.setDate(d.getDate() + 1);
+      return d.getTime();
+    }
+    try {
+      var saved = JSON.parse(localStorage.getItem(STORE) || 'null');
+      if (saved && saved.k && saved.until > Date.now()) { KEY = saved.k; until = saved.until; }
+      else localStorage.removeItem(STORE);
+    } catch (e) { try { localStorage.removeItem(STORE); } catch (er) {} }
     var fromHash = decodeURIComponent((location.hash || '').slice(1));
-    if (fromHash.length >= 24) KEY = fromHash; // gammelt link virker stadig, indtil koden er skiftet i databasen
+    if (fromHash.length >= 24) { KEY = fromHash; until = nextReset(); } // gammelt link virker stadig, indtil koden er skiftet i databasen
     if (location.hash) history.replaceState(null, '', location.pathname + location.search);
     var $ = function (id) { return document.getElementById(id); };
     var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
@@ -177,7 +188,8 @@
       $('pw-btn').disabled = true;
       hashPw($('pw').value).then(function (k) {
         KEY = k;
-        try { localStorage.setItem(STORE, KEY); } catch (er) {}
+        until = nextReset();
+        try { localStorage.setItem(STORE, JSON.stringify({ k: KEY, until: until })); } catch (er) {}
         $('gate').hidden = true;
         start();
       });
@@ -548,7 +560,15 @@
       (function tick() { if (stop || me !== run) return; load().then(function () { setTimeout(tick, 7000); }); })();
     }
     if (KEY.length >= 24) start(); else showLogin();
-    setInterval(function () { if (!stop && orders.length) draw([]); }, 30000); // opdater "x min siden"
+    setInterval(function () {
+      if (!stop && until && Date.now() > until) { // ny dag: log ud
+        try { localStorage.removeItem(STORE); } catch (er) {}
+        KEY = ''; until = 0; stop = true;
+        showLogin('Godmorgen! Skriv adgangskoden for at se dagens ordrer.');
+        return;
+      }
+      if (!stop && orders.length) draw([]);
+    }, 30000); // opdater "x min siden"
   })();
   </script>
 </body>
