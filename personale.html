@@ -19,6 +19,9 @@
     .live .dot.is-off { background: #c0392b; box-shadow: 0 0 0 4px rgba(192,57,43,.3); }
     .top .spacer { flex: 1; }
     .tbtn { font: inherit; font-weight: 700; font-size: 15px; border-radius: 999px; padding: 10px 18px; cursor: pointer; border: 2px solid var(--cream); background: transparent; color: var(--cream); }
+    .pstat { font-weight: 700; font-size: 14px; border-radius: 999px; padding: 8px 14px; background: rgba(245,239,227,.12); }
+    .pstat.is-ok { background: var(--green); }
+    .pstat.is-bad { background: #c0392b; }
     .tbtn.is-on { background: var(--green); border-color: var(--green); }
     .unlock { display: block; width: 100%; margin-bottom: 16px; font: inherit; font-weight: 700; font-size: 17px; padding: 14px 18px; border-radius: 14px; border: 0; background: var(--orange); color: #fff; cursor: pointer; animation: pulse 1.6s ease infinite; }
     @keyframes pulse { 50% { opacity: .75; } }
@@ -116,7 +119,7 @@
         <h1>Chicken <span>World</span> ordrer</h1>
         <span class="live"><span class="dot" id="livedot"></span> <span id="livetext">Henter …</span></span>
         <span class="spacer"></span>
-        <button class="tbtn" id="autoprint" type="button" title="Printer nye ordrer på bonprinteren">Auto-print fra</button>
+        <span class="pstat" id="pstat" title="Nye ordrer printes automatisk">🖨️ Printer automatisk</span>
         <button class="tbtn" id="sound" type="button">Lyd til</button>
         <button class="tbtn" id="logout" type="button">Log ud</button>
       </header>
@@ -138,6 +141,8 @@
   <div id="bon" aria-hidden="true"></div>
 
   <script src="site-config.js?v=22"></script>
+  <script src="assets/js/star/StarWebPrintBuilder.js?v=1"></script>
+  <script src="assets/js/star/StarWebPrintTrader.js?v=1"></script>
   <script>
   (function () {
     var CFG = window.CW_CONFIG || {};
@@ -292,13 +297,13 @@
         return '<li><span class="q">' + esc(it.qty) + ' ×</span><span>' + esc(itemLabel(it)) + '</span><span class="p">' + kr((it.price || 0) * (it.qty || 1)) + '</span></li>';
       }).join('');
       var isLev = kind(o) === 'lev';
-      var acts = o.status === 'ny' ? '' : (NEXT[o.status] || []).map(function (a) {
+      var acts = (o.status === 'ny' ? [] : (NEXT[o.status] || [])).map(function (a) {
         // Levering: "Klar" hedder "På vej", og "Udleveret" hedder "Leveret"
         if (isLev && a[0] === 'klar' && o.status === 'i gang') a = ['klar', 'På vej', a[2]];
         if (isLev && a[0] === 'afhentet') a = ['afhentet', 'Leveret', a[2]];
         var warn = a[0] === 'annulleret' && confirmCancel === o.id;
         return '<button class="act ' + (warn ? 'act--warn' : a[2]) + '" data-id="' + o.id + '" data-to="' + a[0] + '">' + (warn ? 'Tryk igen for at annullere' : a[1]) + '</button>';
-      }).join('') + '<button class="act act--print" data-print="' + o.id + '" title="Print bon">Print</button>';
+      }).join('') + '<button class="act act--print" data-print="' + o.id + '" title="Print bonen igen">🖨️ Print igen</button>';
       var k = kind(o), n = splitNote(o);
       var when = String(o.pickup || '').replace(/^(Levering|Afhentning|Udlejning)\s*/i, '');
       // Nye ordrer: accepter med 15/30/45/60 min (eller til det valgte tidspunkt) – eller afvis
@@ -350,29 +355,119 @@
         '<table><tr><td class="big">I alt</td><td class="r big">' + kr(o.total) + '</td></tr></table>' +
         '<div>Betales ' + (k === 'lev' ? 'ved levering' : 'ved afhentning') + '</div>';
     }
+    // ---------- Bon som billede til Star-printeren (576 punkter = 80 mm) ----------
+    // Teksten tegnes på et canvas, så æ, ø og å altid kommer rigtigt ud.
+    function bonCanvas(o) {
+      var W = 576, PAD = 8, k = kind(o), n = splitNote(o);
+      var c = document.createElement('canvas'), g = c.getContext('2d');
+      var lines = [];
+      function add(text, size, bold, right, gap) { lines.push({ t: String(text), s: size, b: bold, r: right, gap: gap || 0 }); }
+      function rule() { lines.push({ rule: true }); }
+      add('#' + o.id, 64, true);
+      add(KIND[k].toUpperCase(), 34, true);
+      add(String(o.pickup || '').replace(/^(Levering|Afhentning|Udlejning)\s*/i, ''), 30, true);
+      add('Bestilt ' + new Date(o.created_at).toLocaleString('da-DK', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }), 24);
+      rule();
+      add(o.name, 32, true); add('Tlf. ' + o.phone, 26);
+      if (n.addr) add(n.addr, 30, true);
+      if (n.pay) add('BETALING: ' + n.pay.toUpperCase(), 30, true);
+      rule();
+      (o.items || []).forEach(function (it) { lines.push({ item: true, l: it.qty + ' × ' + itemLabel(it), p: kr((it.price || 0) * (it.qty || 1)) }); });
+      rule();
+      if (n.note) { add('OBS: ' + n.note, 30, true); rule(); }
+      lines.push({ item: true, l: 'I alt', p: kr(o.total), big: true });
+      add('Betales ' + (k === 'lev' ? 'ved levering' : 'ved afhentning'), 24);
+
+      function font(size, bold) { return (bold ? '700 ' : '400 ') + size + 'px system-ui, -apple-system, Helvetica, Arial, sans-serif'; }
+      function wrap(text, size, bold, width) {
+        g.font = font(size, bold);
+        var out = [];
+        String(text).split('\n').forEach(function (para) {
+          var cur = '';
+          para.split(' ').forEach(function (w) {
+            var t = cur ? cur + ' ' + w : w;
+            if (g.measureText(t).width > width && cur) { out.push(cur); cur = w; } else cur = t;
+          });
+          out.push(cur);
+        });
+        return out;
+      }
+      // Første gennemløb måler højden, andet tegner
+      function layout(paint) {
+        var y = PAD;
+        lines.forEach(function (ln) {
+          if (ln.rule) {
+            if (paint) { g.fillStyle = '#000'; for (var x = PAD; x < W - PAD; x += 12) g.fillRect(x, y + 10, 7, 3); }
+            y += 24; return;
+          }
+          if (ln.item) {
+            var sz = ln.big ? 34 : 26, bold = !!ln.big;
+            g.font = font(sz, bold);
+            var pw = g.measureText(ln.p).width;
+            var parts = wrap(ln.l, sz, bold, W - PAD * 2 - pw - 16);
+            parts.forEach(function (t, i) {
+              if (paint) {
+                g.font = font(sz, bold); g.fillStyle = '#000'; g.textBaseline = 'top';
+                g.fillText(t, PAD, y);
+                if (i === 0) g.fillText(ln.p, W - PAD - pw, y);
+              }
+              y += Math.round(sz * 1.3);
+            });
+            return;
+          }
+          wrap(ln.t, ln.s, ln.b, W - PAD * 2).forEach(function (t) {
+            if (paint) { g.font = font(ln.s, ln.b); g.fillStyle = '#000'; g.textBaseline = 'top'; g.fillText(t, PAD, y); }
+            y += Math.round(ln.s * 1.3);
+          });
+        });
+        return y + PAD;
+      }
+      c.width = W; c.height = 10;
+      var h = layout(false);
+      c.width = W; c.height = h;
+      g.fillStyle = '#fff'; g.fillRect(0, 0, W, h);
+      layout(true);
+      return c;
+    }
+
+    // ---------- Print ----------
+    // I appen "Star webPRNT Browser" printes direkte på Star-printeren uden dialog.
+    // I en almindelig browser bruges browserens print.
+    var STAR = /webPRNT/i.test(navigator.userAgent) && typeof StarWebPrintTrader === 'function';
+    var STAR_URL = 'http://localhost:8001/StarWebPRNT/SendMessage';
+    function setPstat(text, cls) {
+      var el = $('pstat'); el.textContent = text;
+      el.classList.toggle('is-ok', cls === 'ok'); el.classList.toggle('is-bad', cls === 'bad');
+    }
+    setPstat(STAR ? '🖨️ Star-printer · printer automatisk' : '🖨️ Printer automatisk');
+
     var printQueue = [], printing = false;
     function printOrder(o) { printQueue.push(o); if (!printing) nextPrint(); }
     function nextPrint() {
       var o = printQueue.shift();
       if (!o) { printing = false; return; }
       printing = true;
+      if (STAR) return starPrint(o, function () { setTimeout(nextPrint, 300); });
       $('bon').innerHTML = bonHtml(o);
       setTimeout(function () { window.print(); setTimeout(nextPrint, 400); }, 50);
     }
-    var autoPrint = false;
-    try { autoPrint = localStorage.getItem('cw-autoprint') === 'til'; } catch (e) {}
-    function showAuto() {
-      var b = $('autoprint');
-      b.classList.toggle('is-on', autoPrint);
-      b.textContent = autoPrint ? 'Auto-print til' : 'Auto-print fra';
-      b.setAttribute('aria-pressed', autoPrint ? 'true' : 'false');
+    function starPrint(o, done) {
+      var c = bonCanvas(o), b = new StarWebPrintBuilder();
+      var req = b.createInitializationElement() +
+        b.createBitImageElement({ context: c.getContext('2d'), x: 0, y: 0, width: c.width, height: c.height }) +
+        b.createCutPaperElement({ feed: true, type: 'partial' });
+      var t = new StarWebPrintTrader({ url: STAR_URL, papertype: 'normal' });
+      window.trader = t; // Star-appen kalder tilbage via en global "trader"
+      t.onReceive = function (r) {
+        var ok = String(r.traderSuccess) === 'true';
+        if (ok) setPstat('🖨️ Printet #' + o.id + ' kl. ' + clock(new Date()), 'ok');
+        else setPstat('⚠️ Printer: ' + (t.isPaperEnd && t.isPaperEnd(r) ? 'papiret er tomt' : t.isCoverOpen && t.isCoverOpen(r) ? 'låget er åbent' : 'fejl (kode ' + r.traderCode + ')') + ' – tryk "Print igen"', 'bad');
+        done();
+      };
+      t.onError = function (r) { setPstat('⚠️ Printeren svarer ikke – tjek kablet og tryk "Print igen"', 'bad'); done(); };
+      t.onTimeout = function () { setPstat('⚠️ Printeren svarer ikke – tryk "Print igen"', 'bad'); done(); };
+      try { t.sendMessage({ request: req }); } catch (e) { setPstat('⚠️ Kunne ikke printe: ' + e.message, 'bad'); done(); }
     }
-    $('autoprint').addEventListener('click', function () {
-      autoPrint = !autoPrint;
-      try { localStorage.setItem('cw-autoprint', autoPrint ? 'til' : 'fra'); } catch (e) {}
-      showAuto();
-    });
-    showAuto();
 
     function draw(freshIds) {
       var groups = { 'ny': [], 'i gang': [], 'klar': [], done: [] };
@@ -402,7 +497,7 @@
         draw(fresh);
         if (fresh.length) {
           ding();
-          if (autoPrint) orders.filter(function (o) { return fresh.indexOf(o.id) !== -1; }).sort(function (a, b) { return a.id - b.id; }).forEach(printOrder);
+          orders.filter(function (o) { return fresh.indexOf(o.id) !== -1; }).sort(function (a, b) { return a.id - b.id; }).forEach(printOrder);
         }
         $('err').hidden = true;
         $('livedot').classList.remove('is-off');
