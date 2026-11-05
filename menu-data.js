@@ -67,7 +67,7 @@ window.CW_MENU = [
     ]
   },
   {
-    id: 'bowls', title: 'Bowls', note: 'Samme fyld som pitaen, serveret i en skål',
+    id: 'bowls', title: 'Bowls',
     items: [
       ['', 'Crispy fried chicken bowl', 'Salat, grønt, feta, syltede løg og kål, karrydressing og basilikumpesto', 85],
       ['', 'Grillet kylling bowl', 'Grillet kyllingefilet, salat, grønt og urtedressing', 85],
@@ -142,7 +142,7 @@ window.CW_MENU = [
     ]
   },
   {
-    id: 'dip', title: 'Dip', note: '5 kr. pr. stk.',
+    id: 'dip', title: 'Dip',
     items: [
       ['', 'Mayo', '', 5],
       ['', 'Hvidløgsmayo', '', 5],
