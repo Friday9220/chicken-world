@@ -143,7 +143,7 @@
   }
   function kmFee() { return extraKm() * (DEL.perKm || 0); }
   function fee() { return baseFee() + kmFee(); }
-  // Rabatkode (fx KYLLING20): procent af maden, ikke af levering. Databasen tjekker koden og mailadressen.
+  // Rabatkode: procent af maden, ikke af levering. Databasen tjekker koden og mailadressen.
   var disc = { code: '', pct: 0, email: '' };
   function discount() { return disc.pct ? Math.round(subtotal() * disc.pct / 100) : 0; }
   function total() { return subtotal() - discount() + fee(); }
