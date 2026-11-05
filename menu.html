@@ -115,12 +115,12 @@
         <div id="addrfields" hidden>
           <div class="field addr">
             <label for="o-street">Adresse</label>
-            <input id="o-street" name="street" autocomplete="off" placeholder="Begynd at skrive din adresse" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="addr-sug">
+            <input id="o-street" name="street" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="addr-sug">
             <ul class="addr__sug" id="addr-sug" role="listbox" hidden></ul>
           </div>
           <div class="field">
             <label for="o-zip">Postnummer og by</label>
-            <input id="o-zip" name="zip" autocomplete="postal-code" placeholder="8850 Bjerringbro">
+            <input id="o-zip" name="zip" autocomplete="postal-code">
           </div>
           <p class="field__hint" id="disthint" hidden></p>
           <p class="field__hint">Op til 5 km fra butikken: ingen tillæg. Længere væk: 5 kr pr. km ud over 5 km, talt ud og hjem. Vi leverer op til 8 km.</p>
@@ -143,7 +143,7 @@
         </div>
         <div class="field">
           <label for="o-note">Bemærkning <small>(valgfri)</small></label>
-          <textarea id="o-note" name="note" rows="2" placeholder="Fx hummus i pitaen, ekstra chili eller dørkode"></textarea>
+          <textarea id="o-note" name="note" rows="2"></textarea>
         </div>
         <p class="form-error" id="formerror" hidden></p>
         <button class="btn btn--orange cart__go" type="submit">Gå videre til bestilling</button>
