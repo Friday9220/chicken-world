@@ -214,7 +214,8 @@
     // Lyden er slået til fra start. Browsere tillader først lyd, når man har trykket
     // på siden én gang, så indtil da vises en bjælke, der beder om et tryk.
     var audio = null, soundOn = true;
-    try { soundOn = localStorage.getItem('cw-lyd') !== 'fra'; } catch (e) {}
+    // Lyden starter altid som "til", når siden åbnes (også hvis den blev slået fra sidst)
+    try { localStorage.removeItem('cw-lyd'); } catch (e) {}
     try { audio = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {}
     function audioReady() { return audio && audio.state === 'running'; }
     function showSound() {
@@ -234,7 +235,6 @@
     if (audio) audio.addEventListener('statechange', showSound);
     $('sound').addEventListener('click', function () {
       soundOn = !soundOn;
-      try { localStorage.setItem('cw-lyd', soundOn ? 'til' : 'fra'); } catch (e) {}
       if (soundOn) { unlock(); setTimeout(ding, 60); }
       showSound();
     });
