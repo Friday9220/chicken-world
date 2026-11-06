@@ -162,13 +162,13 @@ window.CW_MENU = [
   }
 ];
 
-// Tilvalg, der kan vælges i en lille pop-up, når man lægger en pizza i kurven (gælder også frokostpizza).
+// Tilvalg, der kan vælges i en lille pop-up, når man lægger en pizza i kurven (gælder også frokostpizza). Billigst øverst.
 window.CW_PIZZA_EXTRAS = [
-  { id: 'dressing', name: 'Dressing', price: 5 },
   { id: 'chili', name: 'Chiliolie', price: 0 },
   { id: 'hvidlog', name: 'Hvidløgsolie', price: 0 },
-  { id: 'kod', name: 'Ekstra kød', price: 15 },
-  { id: 'ost', name: 'Ekstra ost', price: 10 }
+  { id: 'dressing', name: 'Dressing', price: 5 },
+  { id: 'ost', name: 'Ekstra ost', price: 10 },
+  { id: 'kod', name: 'Ekstra kød', price: 15 }
 ];
 
 // Sodavand, man vælger i pop-up'en, når der følger en sodavand med (menu, frokost + sodavand, sodavand fra drikkevarer).
