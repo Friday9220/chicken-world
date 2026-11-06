@@ -7,8 +7,8 @@
   <meta name="description" content="Hele menuen hos Chicken World i Bjerringbro: kylling, burgere, pizza, pita, bowls og frokosttilbud. Bestil til afhentning eller levering.">
   <link rel="canonical" href="https://chickenworld.dk/menu.html">
   <link rel="icon" href="assets/img/favicon.svg?v=2" type="image/svg+xml">
-  <link rel="stylesheet" href="styles.css?v=34">
-  <link rel="stylesheet" href="menu.css?v=34">
+  <link rel="stylesheet" href="styles.css?v=35">
+  <link rel="stylesheet" href="menu.css?v=35">
 </head>
 <body class="menu-page">
   <div class="frame">
@@ -182,8 +182,18 @@
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <script src="site-config.js?v=34"></script>
-  <script src="menu-data.js?v=34"></script>
-  <script src="menu.js?v=34"></script>
+  <script src="site-config.js?v=35"></script>
+  <div class="pzpop" id="pizzapop" hidden role="dialog" aria-modal="true" aria-labelledby="pz-title">
+    <div class="pzpop__box">
+      <p class="pzpop__kicker">Vil du have noget ekstra?</p>
+      <h2 class="pzpop__title" id="pz-title"></h2>
+      <ul class="pzpop__list" id="pz-list"></ul>
+      <button class="btn btn--orange pzpop__add" id="pz-add" type="button">Læg i kurven</button>
+      <button class="pzpop__cancel" id="pz-cancel" type="button">Annuller</button>
+    </div>
+  </div>
+
+  <script src="menu-data.js?v=35"></script>
+  <script src="menu.js?v=35"></script>
 </body>
 </html>

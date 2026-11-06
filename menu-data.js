@@ -16,7 +16,6 @@ window.CW_MENU = [
       ['', 'Sandwich: Æg & rejer', 'Æg, rejer, salat, tomat, agurk og dressing', 39],
       ['', 'Sandwich: Tun', 'Tun, salat, tomat, agurk, løg og dressing', 39],
       ['', 'Sandwich: Skinke & ost', 'Skinke, ost, salat, tomat, agurk og dressing', 39],
-      ['', 'Sandwich med sodavand', 'Vælg en af sandwichene ovenfor, og skriv hvilken i bemærkningen', 50],
       ['', 'Kyllingemix', 'Med pommes frites og cremefraiche-dressing', 39],
       ['', 'Kebabmix', 'Med pommes frites og cremefraiche-dressing', 39],
       ['', 'Frokostpizza: Skinke', 'Alm. størrelse. Med sodavand: skriv hvilken i bemærkningen', [35, 45], '', ['Pizza', '+ sodavand']],
@@ -100,7 +99,6 @@ window.CW_MENU = [
       ['8', 'Byg din egen', 'Skriv dit fyld i bemærkningen', [119, 199]],
       ['9', 'Chicken Fresh', 'Kylling, champignon og friske tomater', [79, 129]],
       ['10', 'Salatpizza', 'Kebab eller kylling, frisk salat, agurk, tomat og dressing', [85, 150]],
-      ['', 'Ekstra kød eller ost', 'Tillæg pr. pizza', [10, 10]]
     ]
   },
   {
@@ -162,4 +160,13 @@ window.CW_MENU = [
       // ['', 'Slush ice 0,5 l', '', 15]
     ]
   }
+];
+
+// Tilvalg, der kan vælges i en lille pop-up, når man lægger en pizza i kurven (gælder også frokostpizza).
+window.CW_PIZZA_EXTRAS = [
+  { id: 'dressing', name: 'Dressing', price: 5 },
+  { id: 'chili', name: 'Chiliolie', price: 0 },
+  { id: 'hvidlog', name: 'Hvidløgsolie', price: 0 },
+  { id: 'kod', name: 'Ekstra kød', price: 15 },
+  { id: 'ost', name: 'Ekstra ost', price: 10 }
 ];
