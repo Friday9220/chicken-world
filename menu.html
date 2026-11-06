@@ -7,8 +7,8 @@
   <meta name="description" content="Hele menuen hos Chicken World i Bjerringbro: kylling, burgere, pizza, pita, bowls og frokosttilbud. Bestil til afhentning eller levering.">
   <link rel="canonical" href="https://chickenworld.dk/menu.html">
   <link rel="icon" href="assets/img/favicon.svg?v=2" type="image/svg+xml">
-  <link rel="stylesheet" href="styles.css?v=35">
-  <link rel="stylesheet" href="menu.css?v=35">
+  <link rel="stylesheet" href="styles.css?v=36">
+  <link rel="stylesheet" href="menu.css?v=36">
 </head>
 <body class="menu-page">
   <div class="frame">
@@ -143,7 +143,6 @@
         <div class="field">
           <label for="o-note">Bemærkning <small>(valgfri)</small></label>
           <textarea id="o-note" name="note" rows="2"></textarea>
-          <p class="field__hint field__hint--menu" id="menuhint" hidden>🥤 Du har bestilt en menu. Skriv hvilken sodavand du vil have, fx "Menu: Coca-Cola".</p>
         </div>
         <p class="form-error" id="formerror" hidden></p>
         <button class="btn btn--orange cart__go" type="submit">Gå videre til bestilling</button>
@@ -182,18 +181,26 @@
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <script src="site-config.js?v=35"></script>
+  <script src="site-config.js?v=36"></script>
   <div class="pzpop" id="pizzapop" hidden role="dialog" aria-modal="true" aria-labelledby="pz-title">
     <div class="pzpop__box">
-      <p class="pzpop__kicker">Vil du have noget ekstra?</p>
+      <p class="pzpop__kicker" id="pz-kicker">Vil du have noget ekstra?</p>
       <h2 class="pzpop__title" id="pz-title"></h2>
-      <ul class="pzpop__list" id="pz-list"></ul>
+      <fieldset class="pzpop__soda" id="pz-soda" hidden>
+        <legend>Vælg sodavand</legend>
+        <div class="pzpop__chips" id="pz-soda-list"></div>
+      </fieldset>
+      <fieldset class="pzpop__x" id="pz-x" hidden>
+        <legend>Tilvalg</legend>
+        <ul class="pzpop__list" id="pz-list"></ul>
+      </fieldset>
+      <p class="pzpop__err" id="pz-err" hidden>Vælg hvilken sodavand du vil have.</p>
       <button class="btn btn--orange pzpop__add" id="pz-add" type="button">Læg i kurven</button>
       <button class="pzpop__cancel" id="pz-cancel" type="button">Annuller</button>
     </div>
   </div>
 
-  <script src="menu-data.js?v=35"></script>
-  <script src="menu.js?v=35"></script>
+  <script src="menu-data.js?v=36"></script>
+  <script src="menu.js?v=36"></script>
 </body>
 </html>

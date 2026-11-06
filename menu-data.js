@@ -18,10 +18,10 @@ window.CW_MENU = [
       ['', 'Sandwich: Skinke & ost', 'Skinke, ost, salat, tomat, agurk og dressing', 39],
       ['', 'Kyllingemix', 'Med pommes frites og cremefraiche-dressing', 39],
       ['', 'Kebabmix', 'Med pommes frites og cremefraiche-dressing', 39],
-      ['', 'Frokostpizza: Skinke', 'Alm. størrelse. Med sodavand: skriv hvilken i bemærkningen', [35, 45], '', ['Pizza', '+ sodavand']],
-      ['', 'Frokostpizza: Pepperoni', 'Alm. størrelse. Med sodavand: skriv hvilken i bemærkningen', [35, 45], '', ['Pizza', '+ sodavand']],
-      ['', 'Frokostpizza: Kebab', 'Alm. størrelse. Med sodavand: skriv hvilken i bemærkningen', [35, 45], '', ['Pizza', '+ sodavand']],
-      ['', 'Frokostpizza: Oksekød', 'Alm. størrelse. Med sodavand: skriv hvilken i bemærkningen', [35, 45], '', ['Pizza', '+ sodavand']]
+      ['', 'Frokostpizza: Skinke', 'Alm. størrelse', [35, 45], '', ['Pizza', '+ sodavand']],
+      ['', 'Frokostpizza: Pepperoni', 'Alm. størrelse', [35, 45], '', ['Pizza', '+ sodavand']],
+      ['', 'Frokostpizza: Kebab', 'Alm. størrelse', [35, 45], '', ['Pizza', '+ sodavand']],
+      ['', 'Frokostpizza: Oksekød', 'Alm. størrelse', [35, 45], '', ['Pizza', '+ sodavand']]
     ]
   },
   {
@@ -170,3 +170,6 @@ window.CW_PIZZA_EXTRAS = [
   { id: 'kod', name: 'Ekstra kød', price: 15 },
   { id: 'ost', name: 'Ekstra ost', price: 10 }
 ];
+
+// Sodavand, man vælger i pop-up'en, når der følger en sodavand med (menu, frokost + sodavand, sodavand fra drikkevarer).
+window.CW_SODAS = ['Coca-Cola', 'Fanta', 'Pepsi Max', 'Vand'];
