@@ -1,7 +1,11 @@
 -- Chicken World – opdatering: rabatkoden giver ikke rabat på frokosttilbud.
 -- Frokosttilbud tæller heller ikke med i minimumsbeløbet (250 kr.).
 -- Kør hele filen én gang i Supabase: SQL Editor -> New query -> indsæt -> Run.
--- Kræver at opdatering-rabatkode.sql og opdatering-rabat-minimum.sql er kørt først. Kan trygt køres flere gange.
+-- Kræver at opdatering-rabatkode.sql er kørt først. Kan trygt køres flere gange.
+
+-- Minimumsbeløbet på rabatkoden (samme som opdatering-rabat-minimum.sql, så den fil ikke også skal køres)
+alter table private.discount_codes add column if not exists min_food integer not null default 0;
+update private.discount_codes set min_food = 250 where code = 'kylling20';
 
 -- Kunden lægger en bestilling (nu med mailadresse og evt. rabatkode)
 create or replace function public.place_order(
