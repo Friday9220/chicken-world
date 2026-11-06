@@ -240,9 +240,12 @@
     $('kmline').hidden = !del || n === 0 || !kmFee();
     $('kmlabel').textContent = 'Kørselstillæg (' + extraKm() + ' km × ' + DEL.perKm + ' kr)';
     $('kmfee').textContent = kr(kmFee());
-    var missing = DEL.freeFrom - subtotal();
+    var missing = DEL.freeFrom - subtotal(), short = (DEL.minOrder || 0) - subtotal();
     $('freehint').hidden = !del || n === 0 || missing <= 0;
-    $('freehint').textContent = 'Køb for ' + kr(missing) + ' mere, så slipper du for leveringsgebyret på ' + kr(DEL.fee) + '.';
+    $('freehint').textContent = short > 0
+      ? 'Levering kræver køb for mindst ' + kr(DEL.minOrder) + '. Køb for ' + kr(short) + ' mere, eller vælg afhentning.'
+      : 'Køb for ' + kr(missing) + ' mere, så slipper du for leveringsgebyret på ' + kr(DEL.fee) + '.';
+    $('freehint').classList.toggle('form-error', short > 0);
     $('discline').hidden = !discount() || n === 0;
     discHint();
     $('disclabel').textContent = 'Rabat ' + disc.code.toUpperCase() + ' (' + disc.pct + ' %)';
@@ -272,7 +275,6 @@
     var line = cart.filter(function (l) { return l.key === key; })[0];
     if (line) line.qty++; else cart.push({ key: key, qty: 1 });
     render();
-    fillTimes();
     if (btn) bump(btn, 'is-added');
     bump($('cartbtn'), 'is-bump');
     toast(byKey[key].name + ' er lagt i kurven');
@@ -545,9 +547,6 @@
     var mins = now.getHours() * 60 + now.getMinutes();
     var del = isDelivery();
     var lunchOnly = hasLunch();
-    // Levering før kl. 16 kun ved køb for mindst 200 kr. (DEL.earlyBefore / DEL.earlyMin)
-    var early = del && DEL.earlyBefore && subtotal() < (DEL.earlyMin || 0) ? DEL.earlyBefore * 60 : 0, cut = false;
-    function okEarly(m) { if (m < early) { cut = true; return false; } return true; }
     function windowFor(h) {
       var from = h[0] * 60, to = h[1] * 60 - LAST;
       if (del && DEL.from != null) from = Math.max(from, DEL.from * 60);
@@ -561,17 +560,17 @@
       var w = windowFor(h), slots = [];
       if (i === 0) {
         var lead = del ? (DEL.minutes || 45) : PREP;
-        if (mins >= w[0] - lead && mins + lead <= w[1] && mins >= h[0] * 60 && (!lunchOnly || isLunch(d, mins + lead)) && okEarly(mins + lead)) {
+        if (mins >= w[0] - lead && mins + lead <= w[1] && mins >= h[0] * 60 && (!lunchOnly || isLunch(d, mins + lead))) {
           slots.push(['asap', 'Hurtigst muligt (ca. ' + lead + ' min)']);
         }
         for (var m = Math.max(Math.ceil((w[0] + lead) / 15) * 15, Math.ceil((mins + lead + 10) / 15) * 15); m <= w[1]; m += 15) {
-          if ((!lunchOnly || isLunch(d, m)) && okEarly(m)) slots.push([fmt(m), 'kl. ' + fmt(m)]);
+          if (!lunchOnly || isLunch(d, m)) slots.push([fmt(m), 'kl. ' + fmt(m)]);
         }
       } else {
         // Første tid: når køkkenet (og chaufføren) kan nå det efter åbning
         var first = Math.ceil((w[0] + (del ? (DEL.minutes || 45) : PREP)) / 15) * 15;
         for (var m2 = first; m2 <= w[1]; m2 += 15) {
-          if ((!lunchOnly || isLunch(d, m2)) && okEarly(m2)) slots.push([fmt(m2), 'kl. ' + fmt(m2)]);
+          if (!lunchOnly || isLunch(d, m2)) slots.push([fmt(m2), 'kl. ' + fmt(m2)]);
         }
       }
       if (!slots.length) continue;
@@ -590,10 +589,6 @@
       hint = slotDays[0].label === 'i dag'
         ? 'Vi leverer i hele åbningstiden.'
         : (hoursOn(now) ? 'Vi kan ikke nå at levere mere i dag' : 'Vi har lukket i dag') + ', men du kan bestille nu til i morgen.';
-    }
-    if (cut) {
-      hint = (hint && hint.indexOf('hele åbningstiden') < 0 ? hint + ' ' : '') + 'Levering før kl. ' + fmt(early) + ' kræver køb for mindst ' + kr(DEL.earlyMin) +
-        '. Køb for ' + kr(DEL.earlyMin - subtotal()) + ' mere for at få tider før kl. ' + fmt(early) + '.';
     }
     $('delclosed').hidden = !hint;
     $('delclosed').textContent = hint;
@@ -633,6 +628,7 @@
     else if (ONLINE && !EMAIL_RE.test(email)) { problem = 'Skriv din mailadresse, fx navn@mail.dk.'; focus = 'o-email'; }
     else if (ONLINE && $('o-code').value.trim() && !disc.pct) { problem = 'Tryk "Brug" for at bruge rabatkoden, eller slet den.'; focus = 'o-code'; }
     else if (disc.pct && email.toLowerCase() !== disc.email) { problem = 'Du har skiftet mailadresse. Tryk "Brug" ved rabatkoden igen.'; focus = 'o-code'; }
+    else if (del && subtotal() < (DEL.minOrder || 0)) { problem = 'Levering kræver køb for mindst ' + kr(DEL.minOrder) + '. Køb for ' + kr(DEL.minOrder - subtotal()) + ' mere, eller vælg afhentning.'; }
     else if (del && street.length < 4) { problem = 'Skriv vejnavn og husnummer, så vi kan finde dig.'; focus = 'o-street'; }
     else if (del && !/^\d{4}/.test(zip)) { problem = 'Skriv postnummer og by, fx 8850 Bjerringbro.'; focus = 'o-zip'; }
     else if (del && dist.state === 'busy') { problem = 'Vent et øjeblik, vi beregner afstanden til din adresse.'; }
@@ -640,8 +636,7 @@
     else if (del && dist.state === 'fail') { problem = 'Vi kunne ikke finde adressen. Tjek vejnavn, husnummer og postnummer, eller ring på ' + CFG.phone + '.'; focus = 'o-street'; }
     else if (del && !(document.querySelector('input[name=pay]:checked') || {}).value) { problem = 'Vælg, om du vil betale med MobilePay eller kontant ved levering.'; focus = null; }
     else if (!$('o-time').value) {
-      problem = del && DEL.earlyBefore && subtotal() < (DEL.earlyMin || 0) ? 'Levering før kl. ' + fmt(DEL.earlyBefore * 60) + ' kræver køb for mindst ' + kr(DEL.earlyMin) + '. Køb lidt mere, eller vælg afhentning.'
-              : hasLunch() ? 'Frokosttilbud kan kun bestilles mandag–fredag kl. 10–16. Fjern dem fra kurven, eller bestil til en hverdag i frokosttiden.'
+      problem = hasLunch() ? 'Frokosttilbud kan kun bestilles mandag–fredag kl. 10–16. Fjern dem fra kurven, eller bestil til en hverdag i frokosttiden.'
               : del ? 'Der er ingen ledige leveringstider lige nu. Ring til os på ' + CFG.phone + '.'
                     : 'Der er ingen ledige tider lige nu. Ring til os på ' + CFG.phone + '.';
     }
