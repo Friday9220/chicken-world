@@ -20,6 +20,7 @@ Siden er ren HTML, CSS og JavaScript uden byggetrin. Åbn `index.html` i en brow
 - `supabase/opdatering-forudbestilling.sql` – kør én gang: ordreskærmen viser aktive ordrer bestilt op til 14 dage frem
 - `supabase/opdatering-rabatkode.sql` – kør én gang: mailadresse på bestillinger og rabatkoden KYLLING20 (20 %, 6.11.–6.12.2026, én gang pr. mail, mad for mindst 250 kr.)
 - `supabase/opdatering-rabat-minimum.sql` – kør én gang, hvis rabatkode-filen allerede er kørt: tilføjer grænsen på 250 kr.
+- `supabase/opdatering-rabat-uden-frokost.sql` – kør én gang efter rabat-minimum: rabatkoden giver ikke rabat på frokosttilbud, og de tæller ikke med i de 250 kr.
 - `tjek.html` – åbn i browseren for at tjekke hele siden: links, billeder, menu, tider og ordresystemet (opretter ingen ordrer)
 - `assets/img/` – billeder fra butikken og logo
 

@@ -152,15 +152,17 @@
   }
   function kmFee() { return extraKm() * (DEL.perKm || 0); }
   function fee() { return baseFee() + kmFee(); }
-  // Rabatkode: procent af maden, ikke af levering. Databasen tjekker koden og mailadressen.
+  // Rabatkode: procent af maden, ikke af levering og ikke af frokosttilbud. Databasen tjekker koden og mailadressen.
   var disc = { code: '', pct: 0, email: '' };
-  var DISC_MIN = 250; // rabatkoden gælder kun ved køb af mad for mindst 250 kr. (samme grænse står i databasen)
-  function discount() { return disc.pct && subtotal() >= DISC_MIN ? Math.round(subtotal() * disc.pct / 100) : 0; }
+  var DISC_MIN = 250; // rabatkoden gælder kun ved køb af mad (uden frokosttilbud) for mindst 250 kr. (samme grænse står i databasen)
+  // Maden, der kan gives rabat på: alt undtagen frokosttilbud
+  function discBase() { return cart.reduce(function (s, l) { return byKey[l.key].lunch ? s : s + byKey[l.key].price * l.qty; }, 0); }
+  function discount() { var b = discBase(); return disc.pct && b >= DISC_MIN ? Math.round(b * disc.pct / 100) : 0; }
   function discHint() {
     if (!disc.pct) return;
-    var miss = DISC_MIN - subtotal();
-    if (miss > 0) codeHint('Rabatkoden gælder ved køb af mad for mindst ' + DISC_MIN + ' kr. Køb for ' + kr(miss) + ' mere for at få ' + disc.pct + ' % rabat.', false);
-    else codeHint('Rabatkoden er godkendt: ' + disc.pct + ' % rabat på maden.', true);
+    var miss = DISC_MIN - discBase(), lunchNote = hasLunch() ? ' Frokosttilbud giver ikke rabat og tæller ikke med.' : '';
+    if (miss > 0) codeHint('Rabatkoden gælder ved køb af mad for mindst ' + DISC_MIN + ' kr. Køb for ' + kr(miss) + ' mere for at få ' + disc.pct + ' % rabat.' + lunchNote, false);
+    else codeHint('Rabatkoden er godkendt: ' + disc.pct + ' % rabat på maden.' + lunchNote, true);
   }
   function total() { return subtotal() - discount() + fee(); }
   function hasLunch() { return cart.some(function (l) { return byKey[l.key].lunch; }); }
