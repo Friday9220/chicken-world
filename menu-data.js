@@ -172,4 +172,5 @@ window.CW_PIZZA_EXTRAS = [
 ];
 
 // Sodavand, man vælger i pop-up'en, når der følger en sodavand med (menu, frokost + sodavand, sodavand fra drikkevarer).
-window.CW_SODAS = ['Coca-Cola', 'Fanta', 'Pepsi Max', 'Vand'];
+// Tilføj nye sodavand sidst i listen (kurve gemmer valget som nummer).
+window.CW_SODAS = ['Coca-Cola', 'Fanta', 'Pepsi Max', 'Vand', 'Faxe Kondi'];
