@@ -7,8 +7,8 @@
   <meta name="description" content="Hele menuen hos Chicken World i Bjerringbro: kylling, burgere, pizza, pita, bowls og frokosttilbud. Bestil til afhentning eller levering.">
   <link rel="canonical" href="https://chickenworld.dk/menu.html">
   <link rel="icon" href="assets/img/favicon.svg?v=2" type="image/svg+xml">
-  <link rel="stylesheet" href="styles.css?v=45">
-  <link rel="stylesheet" href="menu.css?v=45">
+  <link rel="stylesheet" href="styles.css?v=46">
+  <link rel="stylesheet" href="menu.css?v=46">
 </head>
 <body class="menu-page">
   <div class="frame">
@@ -93,7 +93,7 @@
       <form class="cart__form" id="orderform" novalidate>
         <div class="field">
           <label for="o-name">Navn</label>
-          <input id="o-name" name="name" required autocomplete="name">
+          <input id="o-name" name="name" required autocomplete="name" maxlength="80">
         </div>
         <div class="field">
           <label for="o-phone">Telefon</label>
@@ -101,7 +101,7 @@
         </div>
         <div class="field">
           <label for="o-email">Mail</label>
-          <input id="o-email" name="email" type="email" required autocomplete="email" inputmode="email">
+          <input id="o-email" name="email" type="email" required autocomplete="email" inputmode="email" maxlength="120">
         </div>
         <div class="field">
           <label for="o-code">Rabatkode <small>(valgfri)</small></label>
@@ -181,7 +181,7 @@
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <script src="site-config.js?v=45"></script>
+  <script src="site-config.js?v=46"></script>
   <div class="pzpop" id="pizzapop" hidden role="dialog" aria-modal="true" aria-labelledby="pz-title">
     <div class="pzpop__box">
       <p class="pzpop__kicker" id="pz-kicker">Vil du have noget ekstra?</p>
@@ -205,12 +205,14 @@
         <ul class="pzpop__list" id="pz-list"></ul>
       </fieldset>
       <p class="pzpop__err" id="pz-err" hidden>Vælg hvilken sodavand du vil have.</p>
-      <button class="btn btn--orange pzpop__add" id="pz-add" type="button">Læg i kurven</button>
-      <button class="pzpop__cancel" id="pz-cancel" type="button">Annuller</button>
+      <div class="pzpop__foot">
+        <button class="btn btn--orange pzpop__add" id="pz-add" type="button">Læg i kurven</button>
+        <button class="pzpop__cancel" id="pz-cancel" type="button">Annuller</button>
+      </div>
     </div>
   </div>
 
-  <script src="menu-data.js?v=45"></script>
-  <script src="menu.js?v=45"></script>
+  <script src="menu-data.js?v=46"></script>
+  <script src="menu.js?v=46"></script>
 </body>
 </html>

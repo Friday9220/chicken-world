@@ -284,3 +284,6 @@ body.pz-open { overflow: hidden; }
 .pzpop__box { max-height: calc(100vh - 32px); overflow-y: auto; }
 
 .pzpop__info { margin: -8px 0 14px; font-weight: 600; }
+
+/* Knapperne i pop-up'en bliver i bunden, også når listen er lang */
+.pzpop__foot { position: sticky; bottom: -16px; margin: 0 -20px -16px; padding: 10px 20px 8px; background: var(--cream); border-top: 1px solid rgba(43,23,16,.12); }

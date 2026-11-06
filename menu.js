@@ -178,7 +178,7 @@
     it.price = base.price + picked.reduce(function (s, x) { return s + x.price; }, 0);
     var size = base.size || '';
     if (choice) size += (size ? ' · ' : '') + choice.toLowerCase();
-    if (picked.length) size += (size ? ' ' : '') + '+ ' + picked.map(function (x) { return x.name.toLowerCase(); }).join(', ');
+    if (picked.length) size += (size ? ' · ' : '') + '+ ' + picked.map(function (x) { return x.name.toLowerCase(); }).join(', ');
     if (without.length) size += (size ? ' · ' : '') + 'uden ' + without.join(', ');
     if (soda) size += (size ? ' · ' : '') + soda;
     it.size = size;
@@ -632,7 +632,8 @@
     else if (del && dist.state === 'fail') { problem = 'Vi kunne ikke finde adressen. Tjek vejnavn, husnummer og postnummer, eller ring på ' + CFG.phone + '.'; focus = 'o-street'; }
     else if (del && !(document.querySelector('input[name=pay]:checked') || {}).value) { problem = 'Vælg, om du vil betale med MobilePay eller kontant ved levering.'; focus = null; }
     else if (!$('o-time').value) {
-      problem = del ? 'Der er ingen ledige leveringstider lige nu. Ring til os på ' + CFG.phone + '.'
+      problem = hasLunch() ? 'Frokosttilbud kan kun bestilles mandag–fredag kl. 10–16. Fjern dem fra kurven, eller bestil til en hverdag i frokosttiden.'
+              : del ? 'Der er ingen ledige leveringstider lige nu. Ring til os på ' + CFG.phone + '.'
                     : 'Der er ingen ledige tider lige nu. Ring til os på ' + CFG.phone + '.';
     }
     if (problem) {
