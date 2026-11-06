@@ -2,8 +2,10 @@
 // Skrevet af fra chicken-world.dk/menu (priser gældende 15. august – 31. december 2026).
 // Ret priser her. Hver ret: [nr, navn, beskrivelse, priser, mærke]
 // menu: 30 på en sektion giver hver ret en ekstra "Menu"-knap til prisen + 30 kr. (ikke tillæg).
+// En menu er med pommes frites og sodavand (MENU_INFO nederst).
 // priser er enten et tal eller en liste med én pris pr. størrelse (se "sizes").
 // En ret kan have egne prisnavne som 6. felt, fx ['Pizza', '+ sodavand'].
+// 7. felt er valg i pop-up'en for netop den ret, fx { pick: { title: 'Vælg kød', options: [...] } } eller { drinks: [...] }.
 // "lunch: true" betyder, at retterne kun kan bestilles mandag–fredag kl. 10–16.
 window.CW_MENU = [
   {
@@ -16,8 +18,8 @@ window.CW_MENU = [
       ['', 'Sandwich: Æg & rejer', 'Æg, rejer, salat, tomat, agurk og dressing', 39],
       ['', 'Sandwich: Tun', 'Tun, salat, tomat, agurk, løg og dressing', 39],
       ['', 'Sandwich: Skinke & ost', 'Skinke, ost, salat, tomat, agurk og dressing', 39],
-      ['', 'Kyllingemix', 'Med pommes frites og cremefraiche-dressing', 39],
-      ['', 'Kebabmix', 'Med pommes frites og cremefraiche-dressing', 39],
+      ['', 'Kyllingemix', 'Med pommes frites og husets dressing', 39],
+      ['', 'Kebabmix', 'Med pommes frites og husets dressing', 39],
       ['', 'Frokostpizza: Skinke', 'Alm. størrelse', [35, 45], '', ['Pizza', '+ sodavand']],
       ['', 'Frokostpizza: Pepperoni', 'Alm. størrelse', [35, 45], '', ['Pizza', '+ sodavand']],
       ['', 'Frokostpizza: Kebab', 'Alm. størrelse', [35, 45], '', ['Pizza', '+ sodavand']],
@@ -25,13 +27,13 @@ window.CW_MENU = [
     ]
   },
   {
-    id: 'kylling', title: 'Kylling', note: 'Dansk kylling, marineret i mindst 24 timer. Bestil på forhånd eller fra kl. 15',
+    id: 'kylling', title: 'Kylling', note: 'Dansk kylling, marineret i mindst 24 timer',
     items: [
-      ['', '½ kylling fra ovnen', 'Med coleslaw, agurkesalat og pommes frites eller ris', 110],
-      ['', '½ kylling fra frituren', 'Med coleslaw, agurkesalat og pommes frites eller ris', 95],
+      ['', '½ kylling fra ovnen', 'Med coleslaw, agurkesalat og pommes frites eller ris', 110, '', null, { pick: { title: 'Vælg tilbehør', options: ['Pommes frites', 'Ris'] } }],
+      ['', '½ kylling fra frituren', 'Med coleslaw, agurkesalat og pommes frites eller ris', 95, '', null, { pick: { title: 'Vælg tilbehør', options: ['Pommes frites', 'Ris'] } }],
       ['', 'Hel kylling', 'Hel grillet kylling på 1300 g', 129],
-      ['', 'Marineret kyllingebryst', '200 g med bearnaise, salat og pommes frites eller ris', 95],
-      ['', '2 kyllingespyd', 'Med salat og pommes frites eller ris', 95],
+      ['', 'Marineret kyllingebryst', '200 g med bearnaise, salat og pommes frites eller ris', 95, '', null, { pick: { title: 'Vælg tilbehør', options: ['Pommes frites', 'Ris'] } }],
+      ['', '2 kyllingespyd', 'Med salat og pommes frites eller ris', 95, '', null, { pick: { title: 'Vælg tilbehør', options: ['Pommes frites', 'Ris'] } }],
       ['', 'Box med crispy tenders', '5 crispy tenders med pommes frites', 89],
       ['', '2 personers menu', '2 halve kyllinger, 2 tenders, 2 tops, 2 mozzarellasticks, 2 nuggets, halvt ris og halvt pommes frites, coleslaw og pickles', 269, 'Til 2'],
       ['', 'Familiemenu', '4 halve kyllinger, 4 tenders, 4 tops, 4 mozzarellasticks, 4 nuggets, halvt ris og halvt pommes frites, 2 coleslaw og 2 pickles', 449, 'Til 4']
@@ -49,18 +51,16 @@ window.CW_MENU = [
       ['', 'Bøfsandwich', 'Oksebøf, ketchup, remoulade, rødbeder, agurkesalat og rå løg', 79],
       ['', 'Bacon cheese burger', 'Oksebøf, bacon, ost og salat', 89],
       ['', 'Big double bacon cheese', '2 × 150 g oksebøf, dobbelt bacon og ost', 99],
-      ['', 'Ribbensandwich', 'Ribbensteg, salatmayo, rødkål og agurkesalat', 55],
-      ['', 'Dobbelt kylling', 'Tillæg på en kyllingeburger', 20],
-      ['', 'Ekstra 150 g oksebøf', 'Tillæg på en burger', 30]
+      ['', 'Ribbensandwich', 'Ribbensteg, salatmayo, rødkål og agurkesalat', 55]
     ]
   },
   {
     id: 'pita', title: 'Pita', menu: 30,
     pick: { title: 'Vælg sauce', options: ['Haydari', 'Tzatziki', 'Hummus'] },
     items: [
-      ['', 'Crispy fried chicken', 'Salat, grønt, feta, syltede løg og kål, karrydressing og basilikumpesto', 79],
+      ['', 'Crispy fried chicken', 'Crispy kylling, salat, grønt, feta, syltede løg, kål, karrydressing og basilikumpesto', 79],
       ['', 'Grillet kylling', 'Grillet kyllingefilet, salat, grønt og urtedressing', 79],
-      ['', 'Kebab', 'Kebab, salat, grønt, syltede løg og kål og urtedressing', 79],
+      ['', 'Kebab', 'Kebab, salat, grønt, syltede løg, kål og urtedressing', 79],
       ['', 'Grillet oksebøf', 'Grillet hakket oksekød, cheddar, salat, grønt, coleslaw, rødkål og hvidløgsdressing', 79],
       ['', 'Grillet oksesteak', 'Grillet oksesteak, salat, grønt, feta og urtedressing', 95],
       ['', 'Falafel', 'Falafel, salat, grønt, syltede løg og urtedressing', 69, 'Vegetar']
@@ -68,10 +68,11 @@ window.CW_MENU = [
   },
   {
     id: 'bowls', title: 'Bowls',
+    pick: { title: 'Vælg sauce', options: ['Haydari', 'Tzatziki', 'Hummus'] },
     items: [
-      ['', 'Crispy fried chicken bowl', 'Salat, grønt, feta, syltede løg og kål, karrydressing og basilikumpesto', 85],
+      ['', 'Crispy fried chicken bowl', 'Crispy kylling, salat, grønt, feta, syltede løg, kål, karrydressing og basilikumpesto', 85],
       ['', 'Grillet kylling bowl', 'Grillet kyllingefilet, salat, grønt og urtedressing', 85],
-      ['', 'Kebab bowl', 'Kebab, salat, grønt, syltede løg og kål og urtedressing', 85],
+      ['', 'Kebab bowl', 'Kebab, salat, grønt, syltede løg, kål og urtedressing', 85],
       ['', 'Grillet oksebøf bowl', 'Grillet hakket oksekød, cheddar, salat, grønt, coleslaw, rødkål og hvidløgsdressing', 85],
       ['', 'Grillet oksesteak bowl', 'Grillet oksesteak, salat, grønt, feta og urtedressing', 95],
       ['', 'Falafel bowl', 'Falafel, salat, grønt, syltede løg og urtedressing', 79, 'Vegetar']
@@ -100,7 +101,7 @@ window.CW_MENU = [
       ['7', 'BBQ Deluxe', 'Oksekød, bacon, cocktailpølser og BBQ-sauce', [79, 129]],
       ['8', 'Byg din egen', 'Skriv dit fyld i bemærkningen', [119, 199]],
       ['9', 'Chicken Fresh', 'Kylling, champignon og friske tomater', [79, 129]],
-      ['10', 'Salatpizza', 'Kebab eller kylling, frisk salat, agurk, tomat og dressing', [85, 150]],
+      ['10', 'Salatpizza', 'Kebab eller kylling, frisk salat, agurk, tomat og dressing', [85, 150], '', null, { pick: { title: 'Vælg kød', options: ['Kebab', 'Kylling'] } }]
     ]
   },
   {
@@ -156,7 +157,7 @@ window.CW_MENU = [
     id: 'drikke', title: 'Drikkevarer',
     items: [
       ['', 'Sodavand 0,33 l', '', 13],
-      ['', 'Sodavand 1,5 l', '', 33]
+      ['', 'Sodavand 1,5 l', '', 33, '', null, { drinks: ['Coca-Cola', 'Fanta', 'Pepsi Max', 'Faxe Kondi'] }]
       // Slush ice sælges kun om sommeren. Fjern // foran de to linjer (og sæt komma efter linjen ovenfor) for at vise dem igen:
       // ['', 'Slush ice 0,3 l', '', 10],
       // ['', 'Slush ice 0,5 l', '', 15]
@@ -178,3 +179,6 @@ window.CW_PIZZA_EXTRAS = [
 // Sodavand, man vælger i pop-up'en, når der følger en sodavand med (menu, frokost + sodavand, sodavand fra drikkevarer).
 // Tilføj nye sodavand sidst i listen (kurve gemmer valget som nummer).
 window.CW_SODAS = ['Coca-Cola', 'Fanta', 'Pepsi Max', 'Vand', 'Faxe Kondi'];
+
+// Står i pop-up'en, når man bestiller en menu
+window.CW_MENU_INFO = 'Menuen er med pommes frites og sodavand.';

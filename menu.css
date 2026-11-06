@@ -282,3 +282,5 @@ body.pz-open { overflow: hidden; }
 .pzpop__chip input:focus-visible + span { outline: 3px solid var(--yellow, #ffb81c); outline-offset: 2px; }
 .pzpop__err { color: var(--orange); font-weight: 700; margin: 0 0 10px; }
 .pzpop__box { max-height: calc(100vh - 32px); overflow-y: auto; }
+
+.pzpop__info { margin: -8px 0 14px; font-weight: 600; }
