@@ -42,10 +42,14 @@
 
   // Retter i disse sektioner kan bestilles uden en eller flere af ingredienserne i beskrivelsen
   var NO_SECS = ['pizza', 'burgere', 'pita', 'bowls', 'ruller'];
-  function ingredients(desc) {
+  // Kødet/hovedingrediensen (første ord i burgere, pita og bowls) og "x eller y" kan ikke fravælges
+  var NO_MAIN = ['burgere', 'pita', 'bowls'];
+  function ingredients(desc, skipFirst) {
     if (!desc || /bemærkning/i.test(desc)) return [];
     var parts = [];
     desc.split(/,\s*/).forEach(function (p) { p.split(/\s+og\s+/).forEach(function (q) { q = q.trim(); if (q) parts.push(q); }); });
+    if (skipFirst) parts.shift();
+    parts = parts.filter(function (p) { return !/^\d|^dobbelt\b|\beller\b/i.test(p); });
     return parts.map(function (p) { return /^[A-ZÆØÅ][a-zæøå]/.test(p) ? p.charAt(0).toLowerCase() + p.slice(1) : p; });
   }
   var list = $('menu-list'), links = $('catlinks');
@@ -70,10 +74,10 @@
         byKey[key] = {
           key: key, nr: nr, name: name, desc: desc, size: p.label, price: p.price, lunch: !!sec.lunch, menu: !!p.menu,
           pizza: sec.id === 'pizza' || /^Frokostpizza/.test(name),
-          soda: !!sec.drinks || !!p.menu || /sodavand/i.test(p.label) || /^Sodavand/.test(name),
-          drinks: sec.drinks || null,
-          pick: sec.pick && !isAddon(item) ? sec.pick : null,
-          ingr: NO_SECS.indexOf(sec.id) >= 0 && !isAddon(item) ? ingredients(desc) : [],
+          soda: !!(item[6] && item[6].drinks) || !!sec.drinks || !!p.menu || /sodavand/i.test(p.label) || /^Sodavand/.test(name),
+          drinks: (item[6] && item[6].drinks) || sec.drinks || null,
+          pick: (item[6] && item[6].pick) || (sec.pick && !isAddon(item) ? sec.pick : null),
+          ingr: NO_SECS.indexOf(sec.id) >= 0 && !isAddon(item) ? ingredients(desc, NO_MAIN.indexOf(sec.id) >= 0) : [],
           section: sec.lunch ? 'Frokost' : (sec.id === 'pizza' || sec.id === 'kylling' || sec.id === 'burgere' ? '' : sec.title)
         };
         html += '<button class="price' + (p.menu ? ' price--menu' : '') + '" type="button" data-key="' + esc(key) + '" aria-label="Læg ' +
@@ -284,11 +288,13 @@
   function openExtras(key, btn) {
     pzKey = key; pzBtn = btn;
     var it = byKey[key];
-    var hasX = it.pizza && EXTRAS.length, hasS = it.soda && drinksOf(it).length, isJuice = !!it.drinks;
+    var hasX = it.pizza && EXTRAS.length, hasS = it.soda && drinksOf(it).length, isJuice = !!it.drinks && !/sodavand/i.test(it.name);
     var hasN = it.ingr && it.ingr.length;
     $('pz-kicker').textContent = hasS && !hasX && !hasN && !it.pick ? (isJuice ? 'Hvilken juice vil du have?' : 'Hvilken sodavand vil du have?') :
       hasX ? 'Vil du have noget ekstra?' : 'Tilpas din bestilling';
     $('pz-title').textContent = (it.nr ? it.nr + '. ' : '') + it.name + (it.size ? ' (' + it.size + ')' : '');
+    $('pz-info').textContent = it.menu ? (window.CW_MENU_INFO || '') : '';
+    $('pz-info').hidden = !(it.menu && window.CW_MENU_INFO);
     $('pz-soda').hidden = !hasS;
     $('pz-soda-legend').textContent = isJuice ? 'Vælg juice' : 'Vælg sodavand';
     $('pz-err').textContent = isJuice ? 'Vælg hvilken juice du vil have.' : 'Vælg hvilken sodavand du vil have.';
