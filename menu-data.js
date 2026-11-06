@@ -108,8 +108,7 @@ window.CW_MENU = [
     id: 'grill', title: 'Grill & steg',
     items: [
       ['', 'Oksefilet steak', 'Ca. 200 g med salat, pommes frites og bearnaise', 169],
-      ['', 'Spareribs', '500 g med pommes frites og coleslaw', 149],
-      ['', 'Ekstra spareribs', '', 65],
+      ['', 'Spareribs', '500 g med pommes frites og coleslaw', 149, '', null, { extras: [{ id: 'ribs', name: 'Ekstra spareribs', price: 65 }] }],
       ['', '2 fiskefileter', 'Med pommes frites og remoulade', 79],
       ['', 'Skinkeschnitzel', '160 g med pommes frites og bearnaise', 95]
     ]
