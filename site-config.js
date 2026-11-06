@@ -30,5 +30,7 @@ window.CW_CONFIG = {
   // Levering kan bestilles i hele åbningstiden (dog senest lastOrderMinutes før lukketid).
   // Levering: fee kr under freeFrom kr (gratis fra freeFrom). Over baseKm km fra butikken lægges perKm kr
   // på for hver km ud over baseKm – talt både ud og hjem. km = længste afstand vi leverer til.
-  delivery: { fee: 49, freeFrom: 249, baseKm: 5, perKm: 5, roundTrip: true, km: 8, minutes: 45 }
+  delivery: { fee: 49, freeFrom: 249, baseKm: 5, perKm: 5, roundTrip: true, km: 8, minutes: 45,
+    // Levering før kl. earlyBefore kræver køb af mad for mindst earlyMin kr.
+    earlyBefore: 16, earlyMin: 200 }
 };
