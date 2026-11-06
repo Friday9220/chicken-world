@@ -72,6 +72,7 @@
           pizza: sec.id === 'pizza' || /^Frokostpizza/.test(name),
           soda: !!sec.drinks || !!p.menu || /sodavand/i.test(p.label) || /^Sodavand/.test(name),
           drinks: sec.drinks || null,
+          pick: sec.pick && !isAddon(item) ? sec.pick : null,
           ingr: NO_SECS.indexOf(sec.id) >= 0 && !isAddon(item) ? ingredients(desc) : [],
           section: sec.lunch ? 'Frokost' : (sec.id === 'pizza' || sec.id === 'kylling' || sec.id === 'burgere' ? '' : sec.title)
         };
@@ -154,19 +155,22 @@
   // og "@1" (drik nr. 1), fx "pizza|1|Alm.!1#ost@0".
   function withExtras(key) {
     if (byKey[key]) return byKey[key];
-    var m = /^([^!#@]+)(?:!([\d,]*))?(?:#([^@]*))?(?:@(\d+))?$/.exec(key);
+    var m = /^([^!$#@]+)(?:!([\d,]*))?(?:\$(\d+))?(?:#([^@]*))?(?:@(\d+))?$/.exec(key);
     var base = m && byKey[m[1]];
     if (!base) return null;
     var without = (m[2] ? m[2].split(',') : []).map(function (n) { return (base.ingr || [])[Number(n)]; }).filter(Boolean);
-    var ids = m[3] ? m[3].split(',') : [];
+    var choice = m[3] != null && base.pick ? base.pick.options[Number(m[3])] : null;
+    if (m[3] != null && !choice) return null;
+    var ids = m[4] ? m[4].split(',') : [];
     var picked = EXTRAS.filter(function (x) { return ids.indexOf(x.id) >= 0; });
-    var soda = m[4] != null ? drinksOf(base)[Number(m[4])] : null;
-    if (m[4] != null && !soda) return null;
+    var soda = m[5] != null ? drinksOf(base)[Number(m[5])] : null;
+    if (m[5] != null && !soda) return null;
     var it = {};
     for (var k in base) it[k] = base[k];
     it.key = key;
     it.price = base.price + picked.reduce(function (s, x) { return s + x.price; }, 0);
     var size = base.size || '';
+    if (choice) size += (size ? ' · ' : '') + choice.toLowerCase();
     if (picked.length) size += (size ? ' ' : '') + '+ ' + picked.map(function (x) { return x.name.toLowerCase(); }).join(', ');
     if (without.length) size += (size ? ' · ' : '') + 'uden ' + without.join(', ');
     if (soda) size += (size ? ' · ' : '') + soda;
@@ -254,7 +258,7 @@
     if (!btn) return;
     var key = btn.dataset.key;
     var it0 = byKey[key];
-    if ((it0.pizza && EXTRAS.length) || (it0.soda && drinksOf(it0).length) || (it0.ingr && it0.ingr.length)) { openExtras(key, btn); return; }
+    if ((it0.pizza && EXTRAS.length) || (it0.soda && drinksOf(it0).length) || (it0.ingr && it0.ingr.length) || it0.pick) { openExtras(key, btn); return; }
     addToCart(key, btn);
   });
   function addToCart(key, btn) {
@@ -270,18 +274,19 @@
   var pz = $('pizzapop'), pzKey = '', pzBtn = null;
   function pzPicked() { return Array.prototype.map.call(pz.querySelectorAll('input[name=pzx]:checked'), function (c) { return c.value; }); }
   function pzWithout() { return Array.prototype.map.call(pz.querySelectorAll('input[name=pzn]:checked'), function (c) { return c.value; }); }
+  function pzPick() { var r = pz.querySelector('input[name=pzp]:checked'); return r ? r.value : ''; }
   function pzSoda() { var r = pz.querySelector('input[name=pzs]:checked'); return r ? r.value : ''; }
   function pzSum() {
     var ids = pzPicked();
     return byKey[pzKey].price + EXTRAS.reduce(function (s, x) { return ids.indexOf(x.id) >= 0 ? s + x.price : s; }, 0);
   }
-  function pzUpdate() { $('pz-add').textContent = 'Læg i kurven · ' + kr(pzSum()); $('pz-err').hidden = true; }
+  function pzUpdate() { $('pz-add').textContent = 'Læg i kurven · ' + kr(pzSum()); $('pz-err').hidden = true; if (pzPick() !== '') $('pz-p-err').hidden = true; }
   function openExtras(key, btn) {
     pzKey = key; pzBtn = btn;
     var it = byKey[key];
     var hasX = it.pizza && EXTRAS.length, hasS = it.soda && drinksOf(it).length, isJuice = !!it.drinks;
     var hasN = it.ingr && it.ingr.length;
-    $('pz-kicker').textContent = hasS && !hasX && !hasN ? (isJuice ? 'Hvilken juice vil du have?' : 'Hvilken sodavand vil du have?') :
+    $('pz-kicker').textContent = hasS && !hasX && !hasN && !it.pick ? (isJuice ? 'Hvilken juice vil du have?' : 'Hvilken sodavand vil du have?') :
       hasX ? 'Vil du have noget ekstra?' : 'Tilpas din bestilling';
     $('pz-title').textContent = (it.nr ? it.nr + '. ' : '') + it.name + (it.size ? ' (' + it.size + ')' : '');
     $('pz-soda').hidden = !hasS;
@@ -295,6 +300,12 @@
       return '<li><label><input type="checkbox" name="pzx" value="' + esc(x.id) + '"><span>' + esc(x.name) + '</span>' +
         '<b>' + (x.price ? '+ ' + kr(x.price) : 'Gratis') + '</b></label></li>';
     }).join('') : '';
+    $('pz-p').hidden = !it.pick;
+    $('pz-p-legend').textContent = it.pick ? it.pick.title : '';
+    $('pz-p-list').innerHTML = it.pick ? it.pick.options.map(function (s, i) {
+      return '<label class="pzpop__chip"><input type="radio" name="pzp" value="' + i + '"><span>' + esc(s) + '</span></label>';
+    }).join('') : '';
+    $('pz-p-err').hidden = true;
     $('pz-n').hidden = !hasN;
     $('pz-n-list').innerHTML = hasN ? it.ingr.map(function (g, i) {
       return '<li><label><input type="checkbox" name="pzn" value="' + i + '"><span>Uden ' + esc(g) + '</span></label></li>';
@@ -308,9 +319,10 @@
   function closeExtras() { pz.hidden = true; document.body.classList.remove('pz-open'); if (pzBtn) pzBtn.focus(); }
   pz.addEventListener('change', pzUpdate);
   $('pz-add').addEventListener('click', function () {
-    var it = byKey[pzKey], ids = pzPicked(), soda = pzSoda(), no = pzWithout();
+    var it = byKey[pzKey], ids = pzPicked(), soda = pzSoda(), no = pzWithout(), pick = pzPick();
+    if (it.pick && pick === '') { $('pz-p-err').hidden = false; $('pz-p').scrollIntoView({ block: 'nearest' }); return; }
     if (it.soda && drinksOf(it).length && soda === '') { $('pz-err').hidden = false; return; }
-    var key = pzKey + (no.length ? '!' + no.join(',') : '') + (ids.length ? '#' + ids.join(',') : '') + (soda !== '' ? '@' + soda : '');
+    var key = pzKey + (no.length ? '!' + no.join(',') : '') + (pick !== '' ? '$' + pick : '') + (ids.length ? '#' + ids.join(',') : '') + (soda !== '' ? '@' + soda : '');
     withExtras(key);
     closeExtras();
     addToCart(key, pzBtn);

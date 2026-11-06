@@ -55,7 +55,8 @@ window.CW_MENU = [
     ]
   },
   {
-    id: 'pita', title: 'Pita', note: 'Vælg haydari, tzatziki eller hummus i bemærkningen', menu: 30,
+    id: 'pita', title: 'Pita', menu: 30,
+    pick: { title: 'Vælg sauce', options: ['Haydari', 'Tzatziki', 'Hummus'] },
     items: [
       ['', 'Crispy fried chicken', 'Salat, grønt, feta, syltede løg og kål, karrydressing og basilikumpesto', 79],
       ['', 'Grillet kylling', 'Grillet kyllingefilet, salat, grønt og urtedressing', 79],
@@ -78,6 +79,7 @@ window.CW_MENU = [
   },
   {
     id: 'ruller', title: 'Ruller', menu: 30,
+    pick: { title: 'Vælg olie', options: ['Chiliolie', 'Hvidløgsolie'] },
     items: [
       ['', 'Rulle med kebab', '', 69],
       ['', 'Rulle med kylling', '', 69],
@@ -171,6 +173,7 @@ window.CW_PIZZA_EXTRAS = [
   { id: 'kod', name: 'Ekstra kød', price: 15 }
 ];
 
+// "pick" på en sektion: et valg kunden skal tage i pop-up'en, fx sauce i pitaen.
 // En sektion kan have sin egen drikkeliste ("drinks"), fx juice i børnemenuen.
 // Sodavand, man vælger i pop-up'en, når der følger en sodavand med (menu, frokost + sodavand, sodavand fra drikkevarer).
 // Tilføj nye sodavand sidst i listen (kurve gemmer valget som nummer).
