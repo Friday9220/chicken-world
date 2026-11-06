@@ -190,7 +190,16 @@
   function subtotal() { return cart.reduce(function (s, l) { return s + byKey[l.key].price * l.qty; }, 0); }
   function count() { return cart.reduce(function (s, l) { return s + l.qty; }, 0); }
   function isDelivery() { var r = document.querySelector('input[name=mode]:checked'); return r && r.value === 'levering'; }
-  function baseFee() { return isDelivery() && subtotal() < DEL.freeFrom ? DEL.fee : 0; }
+  // Leveringstidspunkt i minutter efter midnat (ud fra valgt tid; "hurtigst muligt" = nu + leveringstid)
+  function deliveryMinute() {
+    var v = ($('o-time') || {}).value || '';
+    if (/^\d\d\.\d\d$/.test(v)) return Number(v.slice(0, 2)) * 60 + Number(v.slice(3));
+    var now = new Date();
+    return now.getHours() * 60 + now.getMinutes() + (DEL.minutes || 45);
+  }
+  // Gebyret gælder kun ved levering fra kl. feeFrom (før er levering gratis) og under freeFrom kr.
+  function feeTime() { return !DEL.feeFrom || deliveryMinute() >= DEL.feeFrom * 60; }
+  function baseFee() { return isDelivery() && subtotal() < DEL.freeFrom && feeTime() ? DEL.fee : 0; }
   // Kørselstillæg: perKm kr pr. km ud over baseKm, talt ud og hjem (afrundet op til hele km)
   var dist = { km: null, state: 'none', key: '' }; // state: none | busy | ok | fail | far
   function extraKm() {
@@ -236,12 +245,12 @@
     }).join('');
     var del = isDelivery();
     $('feeline').hidden = !del || n === 0;
-    $('fee').textContent = baseFee() ? kr(baseFee()) : 'Gratis';
+    $('fee').textContent = baseFee() ? kr(baseFee()) : 'Gratis' + (DEL.feeFrom && !feeTime() && subtotal() < DEL.freeFrom ? ' før kl. ' + fmt(DEL.feeFrom * 60) : '');
     $('kmline').hidden = !del || n === 0 || !kmFee();
     $('kmlabel').textContent = 'Kørselstillæg (' + extraKm() + ' km × ' + DEL.perKm + ' kr)';
     $('kmfee').textContent = kr(kmFee());
     var missing = DEL.freeFrom - subtotal(), short = (DEL.minOrder || 0) - subtotal();
-    $('freehint').hidden = !del || n === 0 || missing <= 0;
+    $('freehint').hidden = !del || n === 0 || (short <= 0 && (missing <= 0 || !feeTime()));
     $('freehint').textContent = short > 0
       ? 'Levering kræver køb for mindst ' + kr(DEL.minOrder) + '. Køb for ' + kr(short) + ' mere, eller vælg afhentning.'
       : 'Køb for ' + kr(missing) + ' mere, så slipper du for leveringsgebyret på ' + kr(DEL.fee) + '.';
@@ -584,6 +593,7 @@
     dsel.disabled = !slotDays.length;
     if (keepDate && slotDays.some(function (x) { return x.key === keepDate; })) dsel.value = keepDate;
     fillSlots(keepTime);
+    render();
     var hint = '';
     if (del && slotDays.length) {
       hint = slotDays[0].label === 'i dag'
@@ -606,7 +616,8 @@
     sel.disabled = !opts.length;
     if (keep && opts.some(function (o) { return o[0] === keep; })) sel.value = keep;
   }
-  $('o-date').addEventListener('change', function () { fillSlots($('o-time').value); });
+  $('o-date').addEventListener('change', function () { fillSlots($('o-time').value); render(); });
+  $('o-time').addEventListener('change', render);
 
 
   // Videre til bestilling
