@@ -40,6 +40,14 @@
     return ps.concat([{ label: base.label ? base.label + ' menu' : 'Menu', price: base.price + sec.menu, menu: true }]);
   }
 
+  // Retter i disse sektioner kan bestilles uden en eller flere af ingredienserne i beskrivelsen
+  var NO_SECS = ['pizza', 'burgere', 'pita', 'bowls', 'ruller'];
+  function ingredients(desc) {
+    if (!desc || /bemærkning/i.test(desc)) return [];
+    var parts = [];
+    desc.split(/,\s*/).forEach(function (p) { p.split(/\s+og\s+/).forEach(function (q) { q = q.trim(); if (q) parts.push(q); }); });
+    return parts.map(function (p) { return /^[A-ZÆØÅ][a-zæøå]/.test(p) ? p.charAt(0).toLowerCase() + p.slice(1) : p; });
+  }
   var list = $('menu-list'), links = $('catlinks');
   var byKey = {};
   MENU.forEach(function (sec) {
@@ -64,6 +72,7 @@
           pizza: sec.id === 'pizza' || /^Frokostpizza/.test(name),
           soda: !!sec.drinks || !!p.menu || /sodavand/i.test(p.label) || /^Sodavand/.test(name),
           drinks: sec.drinks || null,
+          ingr: NO_SECS.indexOf(sec.id) >= 0 && !isAddon(item) ? ingredients(desc) : [],
           section: sec.lunch ? 'Frokost' : (sec.id === 'pizza' || sec.id === 'kylling' || sec.id === 'burgere' ? '' : sec.title)
         };
         html += '<button class="price' + (p.menu ? ' price--menu' : '') + '" type="button" data-key="' + esc(key) + '" aria-label="Læg ' +
@@ -141,22 +150,25 @@
   var cart = [];
   try { cart = JSON.parse(localStorage.getItem(STORE_KEY)) || []; } catch (e) { cart = []; }
   function drinksOf(it) { return it.drinks || SODAS; }
-  // Valg fra pop-up'en ligger i nøglen: "<nøgle>#dressing,ost" (pizzatilvalg) og/eller "<nøgle>@1" (sodavand nr. 1).
+  // Valg fra pop-up'en ligger i nøglen: "<nøgle>!0,2" (uden ingrediens nr. 0 og 2), "#dressing,ost" (pizzatilvalg)
+  // og "@1" (drik nr. 1), fx "pizza|1|Alm.!1#ost@0".
   function withExtras(key) {
     if (byKey[key]) return byKey[key];
-    var m = /^([^#@]+)(?:#([^@]*))?(?:@(\d+))?$/.exec(key);
+    var m = /^([^!#@]+)(?:!([\d,]*))?(?:#([^@]*))?(?:@(\d+))?$/.exec(key);
     var base = m && byKey[m[1]];
     if (!base) return null;
-    var ids = m[2] ? m[2].split(',') : [];
+    var without = (m[2] ? m[2].split(',') : []).map(function (n) { return (base.ingr || [])[Number(n)]; }).filter(Boolean);
+    var ids = m[3] ? m[3].split(',') : [];
     var picked = EXTRAS.filter(function (x) { return ids.indexOf(x.id) >= 0; });
-    var soda = m[3] != null ? drinksOf(base)[Number(m[3])] : null;
-    if (m[3] != null && !soda) return null;
+    var soda = m[4] != null ? drinksOf(base)[Number(m[4])] : null;
+    if (m[4] != null && !soda) return null;
     var it = {};
     for (var k in base) it[k] = base[k];
     it.key = key;
     it.price = base.price + picked.reduce(function (s, x) { return s + x.price; }, 0);
     var size = base.size || '';
     if (picked.length) size += (size ? ' ' : '') + '+ ' + picked.map(function (x) { return x.name.toLowerCase(); }).join(', ');
+    if (without.length) size += (size ? ' · ' : '') + 'uden ' + without.join(', ');
     if (soda) size += (size ? ' · ' : '') + soda;
     it.size = size;
     return (byKey[key] = it);
@@ -242,7 +254,7 @@
     if (!btn) return;
     var key = btn.dataset.key;
     var it0 = byKey[key];
-    if ((it0.pizza && EXTRAS.length) || (it0.soda && drinksOf(it0).length)) { openExtras(key, btn); return; }
+    if ((it0.pizza && EXTRAS.length) || (it0.soda && drinksOf(it0).length) || (it0.ingr && it0.ingr.length)) { openExtras(key, btn); return; }
     addToCart(key, btn);
   });
   function addToCart(key, btn) {
@@ -257,6 +269,7 @@
   // ---------- Pop-up med tilvalg til pizza og valg af sodavand ----------
   var pz = $('pizzapop'), pzKey = '', pzBtn = null;
   function pzPicked() { return Array.prototype.map.call(pz.querySelectorAll('input[name=pzx]:checked'), function (c) { return c.value; }); }
+  function pzWithout() { return Array.prototype.map.call(pz.querySelectorAll('input[name=pzn]:checked'), function (c) { return c.value; }); }
   function pzSoda() { var r = pz.querySelector('input[name=pzs]:checked'); return r ? r.value : ''; }
   function pzSum() {
     var ids = pzPicked();
@@ -267,7 +280,9 @@
     pzKey = key; pzBtn = btn;
     var it = byKey[key];
     var hasX = it.pizza && EXTRAS.length, hasS = it.soda && drinksOf(it).length, isJuice = !!it.drinks;
-    $('pz-kicker').textContent = hasS && !hasX ? (isJuice ? 'Hvilken juice vil du have?' : 'Hvilken sodavand vil du have?') : 'Vil du have noget ekstra?';
+    var hasN = it.ingr && it.ingr.length;
+    $('pz-kicker').textContent = hasS && !hasX && !hasN ? (isJuice ? 'Hvilken juice vil du have?' : 'Hvilken sodavand vil du have?') :
+      hasX ? 'Vil du have noget ekstra?' : 'Tilpas din bestilling';
     $('pz-title').textContent = (it.nr ? it.nr + '. ' : '') + it.name + (it.size ? ' (' + it.size + ')' : '');
     $('pz-soda').hidden = !hasS;
     $('pz-soda-legend').textContent = isJuice ? 'Vælg juice' : 'Vælg sodavand';
@@ -280,6 +295,10 @@
       return '<li><label><input type="checkbox" name="pzx" value="' + esc(x.id) + '"><span>' + esc(x.name) + '</span>' +
         '<b>' + (x.price ? '+ ' + kr(x.price) : 'Gratis') + '</b></label></li>';
     }).join('') : '';
+    $('pz-n').hidden = !hasN;
+    $('pz-n-list').innerHTML = hasN ? it.ingr.map(function (g, i) {
+      return '<li><label><input type="checkbox" name="pzn" value="' + i + '"><span>Uden ' + esc(g) + '</span></label></li>';
+    }).join('') : '';
     pzUpdate();
     pz.hidden = false;
     document.body.classList.add('pz-open');
@@ -289,9 +308,9 @@
   function closeExtras() { pz.hidden = true; document.body.classList.remove('pz-open'); if (pzBtn) pzBtn.focus(); }
   pz.addEventListener('change', pzUpdate);
   $('pz-add').addEventListener('click', function () {
-    var it = byKey[pzKey], ids = pzPicked(), soda = pzSoda();
+    var it = byKey[pzKey], ids = pzPicked(), soda = pzSoda(), no = pzWithout();
     if (it.soda && drinksOf(it).length && soda === '') { $('pz-err').hidden = false; return; }
-    var key = pzKey + (ids.length ? '#' + ids.join(',') : '') + (soda !== '' ? '@' + soda : '');
+    var key = pzKey + (no.length ? '!' + no.join(',') : '') + (ids.length ? '#' + ids.join(',') : '') + (soda !== '' ? '@' + soda : '');
     withExtras(key);
     closeExtras();
     addToCart(key, pzBtn);
