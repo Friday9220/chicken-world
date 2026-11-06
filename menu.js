@@ -2,6 +2,7 @@
 (function () {
   var MENU = window.CW_MENU || [];
   var EXTRAS = window.CW_PIZZA_EXTRAS || [];
+  var SODAS = window.CW_SODAS || [];
   var CFG = window.CW_CONFIG || {};
   var HOURS = CFG.hours || {};
   var DEL = CFG.delivery || { fee: 0, freeFrom: 0, from: 0, to: 0 };
@@ -38,7 +39,6 @@
     var base = ps[0];
     return ps.concat([{ label: base.label ? base.label + ' menu' : 'Menu', price: base.price + sec.menu, menu: true }]);
   }
-  var MENU_TXT = 'Husk at skrive hvilken sodavand du vil have i bemærkningen, når du bestiller.';
 
   var list = $('menu-list'), links = $('catlinks');
   var byKey = {};
@@ -47,7 +47,7 @@
     section.className = 'msec msec--' + sec.id + (sec.lunch ? ' msec--lunch' : '');
     section.id = sec.id;
     var html = '<div class="msec__head"><h2 class="display">' + esc(sec.title) + '</h2>' +
-      (sec.note ? '<p>' + esc(sec.note) + '</p>' : '') + (sec.menu ? '<p class="msec__menu">' + esc(MENU_TXT) + '</p>' : '') + '</div><ul class="dishes">';
+      (sec.note ? '<p>' + esc(sec.note) + '</p>' : '') + '</div><ul class="dishes">';
     sec.items.forEach(function (item, i) {
       var nr = item[0], name = item[1], desc = item[2], tag = item[4];
       var search = (nr + ' ' + name + ' ' + desc + ' ' + sec.title).toLowerCase();
@@ -62,6 +62,7 @@
         byKey[key] = {
           key: key, nr: nr, name: name, desc: desc, size: p.label, price: p.price, lunch: !!sec.lunch, menu: !!p.menu,
           pizza: sec.id === 'pizza' || /^Frokostpizza/.test(name),
+          soda: !!p.menu || /sodavand/i.test(p.label) || /^Sodavand/.test(name),
           section: sec.lunch ? 'Frokost' : (sec.id === 'pizza' || sec.id === 'kylling' || sec.id === 'burgere' ? '' : sec.title)
         };
         html += '<button class="price' + (p.menu ? ' price--menu' : '') + '" type="button" data-key="' + esc(key) + '" aria-label="Læg ' +
@@ -138,18 +139,24 @@
   // ---------- Kurv ----------
   var cart = [];
   try { cart = JSON.parse(localStorage.getItem(STORE_KEY)) || []; } catch (e) { cart = []; }
-  // Pizza med tilvalg: nøglen er "<pizzanøgle>#dressing,ost". Rækken bygges ud fra pizzaen.
+  // Valg fra pop-up'en ligger i nøglen: "<nøgle>#dressing,ost" (pizzatilvalg) og/eller "<nøgle>@1" (sodavand nr. 1).
   function withExtras(key) {
-    if (byKey[key] || key.indexOf('#') < 0) return byKey[key];
-    var base = byKey[key.split('#')[0]];
-    var ids = key.split('#')[1].split(',');
+    if (byKey[key]) return byKey[key];
+    var m = /^([^#@]+)(?:#([^@]*))?(?:@(\d+))?$/.exec(key);
+    var base = m && byKey[m[1]];
+    if (!base) return null;
+    var ids = m[2] ? m[2].split(',') : [];
     var picked = EXTRAS.filter(function (x) { return ids.indexOf(x.id) >= 0; });
-    if (!base || !picked.length) return null;
+    var soda = m[3] != null ? SODAS[Number(m[3])] : null;
+    if (m[3] != null && !soda) return null;
     var it = {};
     for (var k in base) it[k] = base[k];
     it.key = key;
     it.price = base.price + picked.reduce(function (s, x) { return s + x.price; }, 0);
-    it.size = (base.size ? base.size + ' ' : '') + '+ ' + picked.map(function (x) { return x.name.toLowerCase(); }).join(', ');
+    var size = base.size || '';
+    if (picked.length) size += (size ? ' ' : '') + '+ ' + picked.map(function (x) { return x.name.toLowerCase(); }).join(', ');
+    if (soda) size += (size ? ' · ' : '') + soda;
+    it.size = size;
     return (byKey[key] = it);
   }
   cart = cart.filter(function (l) { return withExtras(l.key); });
@@ -186,7 +193,6 @@
     return (it.nr ? it.nr + '. ' : '') + (it.section ? it.section + ': ' : '') + it.name + (it.size ? ' (' + it.size + ')' : '');
   }
 
-  function hasMenu() { return cart.some(function (l) { return byKey[l.key] && byKey[l.key].menu; }); }
   function render() {
     var n = count();
     $('cartbtn').hidden = n === 0;
@@ -214,7 +220,6 @@
     $('freehint').textContent = 'Køb for ' + kr(missing) + ' mere, så slipper du for leveringsgebyret på ' + kr(DEL.fee) + '.';
     $('discline').hidden = !discount() || n === 0;
     discHint();
-    $('menuhint').hidden = !hasMenu();
     $('disclabel').textContent = 'Rabat ' + disc.code.toUpperCase() + ' (' + disc.pct + ' %)';
     $('discamt').textContent = '−' + kr(discount());
     $('carttotal').textContent = kr(total());
@@ -234,7 +239,8 @@
     var btn = e.target.closest('.price');
     if (!btn) return;
     var key = btn.dataset.key;
-    if (byKey[key].pizza && EXTRAS.length) { openExtras(key, btn); return; }
+    var it0 = byKey[key];
+    if ((it0.pizza && EXTRAS.length) || (it0.soda && SODAS.length)) { openExtras(key, btn); return; }
     addToCart(key, btn);
   });
   function addToCart(key, btn) {
@@ -246,31 +252,42 @@
     toast(byKey[key].name + ' er lagt i kurven');
   }
 
-  // ---------- Pop-up med tilvalg til pizza ----------
+  // ---------- Pop-up med tilvalg til pizza og valg af sodavand ----------
   var pz = $('pizzapop'), pzKey = '', pzBtn = null;
-  function pzPicked() { return Array.prototype.map.call(pz.querySelectorAll('input:checked'), function (c) { return c.value; }); }
+  function pzPicked() { return Array.prototype.map.call(pz.querySelectorAll('input[name=pzx]:checked'), function (c) { return c.value; }); }
+  function pzSoda() { var r = pz.querySelector('input[name=pzs]:checked'); return r ? r.value : ''; }
   function pzSum() {
     var ids = pzPicked();
     return byKey[pzKey].price + EXTRAS.reduce(function (s, x) { return ids.indexOf(x.id) >= 0 ? s + x.price : s; }, 0);
   }
+  function pzUpdate() { $('pz-add').textContent = 'Læg i kurven · ' + kr(pzSum()); $('pz-err').hidden = true; }
   function openExtras(key, btn) {
     pzKey = key; pzBtn = btn;
     var it = byKey[key];
+    var hasX = it.pizza && EXTRAS.length, hasS = it.soda && SODAS.length;
+    $('pz-kicker').textContent = hasS && !hasX ? 'Hvilken sodavand vil du have?' : 'Vil du have noget ekstra?';
     $('pz-title').textContent = (it.nr ? it.nr + '. ' : '') + it.name + (it.size ? ' (' + it.size + ')' : '');
-    $('pz-list').innerHTML = EXTRAS.map(function (x) {
-      return '<li><label><input type="checkbox" value="' + esc(x.id) + '"><span>' + esc(x.name) + '</span>' +
+    $('pz-soda').hidden = !hasS;
+    $('pz-soda-list').innerHTML = hasS ? SODAS.map(function (s, i) {
+      return '<label class="pzpop__chip"><input type="radio" name="pzs" value="' + i + '"><span>' + esc(s) + '</span></label>';
+    }).join('') : '';
+    $('pz-x').hidden = !hasX;
+    $('pz-list').innerHTML = hasX ? EXTRAS.map(function (x) {
+      return '<li><label><input type="checkbox" name="pzx" value="' + esc(x.id) + '"><span>' + esc(x.name) + '</span>' +
         '<b>' + (x.price ? '+ ' + kr(x.price) : 'Gratis') + '</b></label></li>';
-    }).join('');
-    $('pz-add').textContent = 'Læg i kurven · ' + kr(pzSum());
+    }).join('') : '';
+    pzUpdate();
     pz.hidden = false;
     document.body.classList.add('pz-open');
-    $('pz-add').focus();
+    var first = pz.querySelector('input');
+    if (first) first.focus();
   }
   function closeExtras() { pz.hidden = true; document.body.classList.remove('pz-open'); if (pzBtn) pzBtn.focus(); }
-  pz.addEventListener('change', function () { $('pz-add').textContent = 'Læg i kurven · ' + kr(pzSum()); });
+  pz.addEventListener('change', pzUpdate);
   $('pz-add').addEventListener('click', function () {
-    var ids = pzPicked();
-    var key = ids.length ? pzKey + '#' + ids.join(',') : pzKey;
+    var it = byKey[pzKey], ids = pzPicked(), soda = pzSoda();
+    if (it.soda && SODAS.length && soda === '') { $('pz-err').hidden = false; return; }
+    var key = pzKey + (ids.length ? '#' + ids.join(',') : '') + (soda !== '' ? '@' + soda : '');
     withExtras(key);
     closeExtras();
     addToCart(key, pzBtn);
@@ -564,7 +581,6 @@
     else if (del && dist.state === 'far') { problem = 'Vi leverer desværre kun op til ' + DEL.km + ' km fra butikken. Ring på ' + CFG.phone + '.'; }
     else if (del && dist.state === 'fail') { problem = 'Vi kunne ikke finde adressen. Tjek vejnavn, husnummer og postnummer, eller ring på ' + CFG.phone + '.'; focus = 'o-street'; }
     else if (del && !(document.querySelector('input[name=pay]:checked') || {}).value) { problem = 'Vælg, om du vil betale med MobilePay eller kontant ved levering.'; focus = null; }
-    else if (hasMenu() && $('o-note').value.trim().length < 3) { problem = 'Skriv i bemærkningen, hvilken sodavand du vil have til din menu.'; focus = 'o-note'; }
     else if (!$('o-time').value) {
       problem = del ? 'Der er ingen ledige leveringstider lige nu. Ring til os på ' + CFG.phone + '.'
                     : 'Der er ingen ledige tider lige nu. Ring til os på ' + CFG.phone + '.';
