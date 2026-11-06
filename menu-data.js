@@ -112,7 +112,7 @@ window.CW_MENU = [
     ]
   },
   {
-    id: 'boern', title: 'Børnemenu', note: 'Med pommes frites og juice',
+    id: 'boern', title: 'Børnemenu', note: 'Med pommes frites og juice', drinks: ['Tropical', 'Multijuice'],
     items: [
       ['', '2 tenders', '', 49],
       ['', '4 nuggets', '', 49],
@@ -171,6 +171,7 @@ window.CW_PIZZA_EXTRAS = [
   { id: 'kod', name: 'Ekstra kød', price: 15 }
 ];
 
+// En sektion kan have sin egen drikkeliste ("drinks"), fx juice i børnemenuen.
 // Sodavand, man vælger i pop-up'en, når der følger en sodavand med (menu, frokost + sodavand, sodavand fra drikkevarer).
 // Tilføj nye sodavand sidst i listen (kurve gemmer valget som nummer).
 window.CW_SODAS = ['Coca-Cola', 'Fanta', 'Pepsi Max', 'Vand', 'Faxe Kondi'];

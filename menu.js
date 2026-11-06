@@ -62,7 +62,8 @@
         byKey[key] = {
           key: key, nr: nr, name: name, desc: desc, size: p.label, price: p.price, lunch: !!sec.lunch, menu: !!p.menu,
           pizza: sec.id === 'pizza' || /^Frokostpizza/.test(name),
-          soda: !!p.menu || /sodavand/i.test(p.label) || /^Sodavand/.test(name),
+          soda: !!sec.drinks || !!p.menu || /sodavand/i.test(p.label) || /^Sodavand/.test(name),
+          drinks: sec.drinks || null,
           section: sec.lunch ? 'Frokost' : (sec.id === 'pizza' || sec.id === 'kylling' || sec.id === 'burgere' ? '' : sec.title)
         };
         html += '<button class="price' + (p.menu ? ' price--menu' : '') + '" type="button" data-key="' + esc(key) + '" aria-label="Læg ' +
@@ -139,6 +140,7 @@
   // ---------- Kurv ----------
   var cart = [];
   try { cart = JSON.parse(localStorage.getItem(STORE_KEY)) || []; } catch (e) { cart = []; }
+  function drinksOf(it) { return it.drinks || SODAS; }
   // Valg fra pop-up'en ligger i nøglen: "<nøgle>#dressing,ost" (pizzatilvalg) og/eller "<nøgle>@1" (sodavand nr. 1).
   function withExtras(key) {
     if (byKey[key]) return byKey[key];
@@ -147,7 +149,7 @@
     if (!base) return null;
     var ids = m[2] ? m[2].split(',') : [];
     var picked = EXTRAS.filter(function (x) { return ids.indexOf(x.id) >= 0; });
-    var soda = m[3] != null ? SODAS[Number(m[3])] : null;
+    var soda = m[3] != null ? drinksOf(base)[Number(m[3])] : null;
     if (m[3] != null && !soda) return null;
     var it = {};
     for (var k in base) it[k] = base[k];
@@ -240,7 +242,7 @@
     if (!btn) return;
     var key = btn.dataset.key;
     var it0 = byKey[key];
-    if ((it0.pizza && EXTRAS.length) || (it0.soda && SODAS.length)) { openExtras(key, btn); return; }
+    if ((it0.pizza && EXTRAS.length) || (it0.soda && drinksOf(it0).length)) { openExtras(key, btn); return; }
     addToCart(key, btn);
   });
   function addToCart(key, btn) {
@@ -264,11 +266,13 @@
   function openExtras(key, btn) {
     pzKey = key; pzBtn = btn;
     var it = byKey[key];
-    var hasX = it.pizza && EXTRAS.length, hasS = it.soda && SODAS.length;
-    $('pz-kicker').textContent = hasS && !hasX ? 'Hvilken sodavand vil du have?' : 'Vil du have noget ekstra?';
+    var hasX = it.pizza && EXTRAS.length, hasS = it.soda && drinksOf(it).length, isJuice = !!it.drinks;
+    $('pz-kicker').textContent = hasS && !hasX ? (isJuice ? 'Hvilken juice vil du have?' : 'Hvilken sodavand vil du have?') : 'Vil du have noget ekstra?';
     $('pz-title').textContent = (it.nr ? it.nr + '. ' : '') + it.name + (it.size ? ' (' + it.size + ')' : '');
     $('pz-soda').hidden = !hasS;
-    $('pz-soda-list').innerHTML = hasS ? SODAS.map(function (s, i) {
+    $('pz-soda-legend').textContent = isJuice ? 'Vælg juice' : 'Vælg sodavand';
+    $('pz-err').textContent = isJuice ? 'Vælg hvilken juice du vil have.' : 'Vælg hvilken sodavand du vil have.';
+    $('pz-soda-list').innerHTML = hasS ? drinksOf(it).map(function (s, i) {
       return '<label class="pzpop__chip"><input type="radio" name="pzs" value="' + i + '"><span>' + esc(s) + '</span></label>';
     }).join('') : '';
     $('pz-x').hidden = !hasX;
@@ -286,7 +290,7 @@
   pz.addEventListener('change', pzUpdate);
   $('pz-add').addEventListener('click', function () {
     var it = byKey[pzKey], ids = pzPicked(), soda = pzSoda();
-    if (it.soda && SODAS.length && soda === '') { $('pz-err').hidden = false; return; }
+    if (it.soda && drinksOf(it).length && soda === '') { $('pz-err').hidden = false; return; }
     var key = pzKey + (ids.length ? '#' + ids.join(',') : '') + (soda !== '' ? '@' + soda : '');
     withExtras(key);
     closeExtras();
