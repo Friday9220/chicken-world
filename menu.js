@@ -1,6 +1,7 @@
 // Chicken World – menu, kurv og bestilling
 (function () {
   var MENU = window.CW_MENU || [];
+  var EXTRAS = window.CW_PIZZA_EXTRAS || [];
   var CFG = window.CW_CONFIG || {};
   var HOURS = CFG.hours || {};
   var DEL = CFG.delivery || { fee: 0, freeFrom: 0, from: 0, to: 0 };
@@ -60,6 +61,7 @@
         var key = sec.id + '|' + i + '|' + p.label;
         byKey[key] = {
           key: key, nr: nr, name: name, desc: desc, size: p.label, price: p.price, lunch: !!sec.lunch, menu: !!p.menu,
+          pizza: sec.id === 'pizza' || /^Frokostpizza/.test(name),
           section: sec.lunch ? 'Frokost' : (sec.id === 'pizza' || sec.id === 'kylling' || sec.id === 'burgere' ? '' : sec.title)
         };
         html += '<button class="price' + (p.menu ? ' price--menu' : '') + '" type="button" data-key="' + esc(key) + '" aria-label="Læg ' +
@@ -136,7 +138,21 @@
   // ---------- Kurv ----------
   var cart = [];
   try { cart = JSON.parse(localStorage.getItem(STORE_KEY)) || []; } catch (e) { cart = []; }
-  cart = cart.filter(function (l) { return byKey[l.key]; });
+  // Pizza med tilvalg: nøglen er "<pizzanøgle>#dressing,ost". Rækken bygges ud fra pizzaen.
+  function withExtras(key) {
+    if (byKey[key] || key.indexOf('#') < 0) return byKey[key];
+    var base = byKey[key.split('#')[0]];
+    var ids = key.split('#')[1].split(',');
+    var picked = EXTRAS.filter(function (x) { return ids.indexOf(x.id) >= 0; });
+    if (!base || !picked.length) return null;
+    var it = {};
+    for (var k in base) it[k] = base[k];
+    it.key = key;
+    it.price = base.price + picked.reduce(function (s, x) { return s + x.price; }, 0);
+    it.size = (base.size ? base.size + ' ' : '') + '+ ' + picked.map(function (x) { return x.name.toLowerCase(); }).join(', ');
+    return (byKey[key] = it);
+  }
+  cart = cart.filter(function (l) { return withExtras(l.key); });
 
   function save() { try { localStorage.setItem(STORE_KEY, JSON.stringify(cart)); } catch (e) {} }
   function subtotal() { return cart.reduce(function (s, l) { return s + byKey[l.key].price * l.qty; }, 0); }
@@ -218,13 +234,50 @@
     var btn = e.target.closest('.price');
     if (!btn) return;
     var key = btn.dataset.key;
+    if (byKey[key].pizza && EXTRAS.length) { openExtras(key, btn); return; }
+    addToCart(key, btn);
+  });
+  function addToCart(key, btn) {
     var line = cart.filter(function (l) { return l.key === key; })[0];
     if (line) line.qty++; else cart.push({ key: key, qty: 1 });
     render();
-    bump(btn, 'is-added');
+    if (btn) bump(btn, 'is-added');
     bump($('cartbtn'), 'is-bump');
     toast(byKey[key].name + ' er lagt i kurven');
+  }
+
+  // ---------- Pop-up med tilvalg til pizza ----------
+  var pz = $('pizzapop'), pzKey = '', pzBtn = null;
+  function pzPicked() { return Array.prototype.map.call(pz.querySelectorAll('input:checked'), function (c) { return c.value; }); }
+  function pzSum() {
+    var ids = pzPicked();
+    return byKey[pzKey].price + EXTRAS.reduce(function (s, x) { return ids.indexOf(x.id) >= 0 ? s + x.price : s; }, 0);
+  }
+  function openExtras(key, btn) {
+    pzKey = key; pzBtn = btn;
+    var it = byKey[key];
+    $('pz-title').textContent = (it.nr ? it.nr + '. ' : '') + it.name + (it.size ? ' (' + it.size + ')' : '');
+    $('pz-list').innerHTML = EXTRAS.map(function (x) {
+      return '<li><label><input type="checkbox" value="' + esc(x.id) + '"><span>' + esc(x.name) + '</span>' +
+        '<b>' + (x.price ? '+ ' + kr(x.price) : 'Gratis') + '</b></label></li>';
+    }).join('');
+    $('pz-add').textContent = 'Læg i kurven · ' + kr(pzSum());
+    pz.hidden = false;
+    document.body.classList.add('pz-open');
+    $('pz-add').focus();
+  }
+  function closeExtras() { pz.hidden = true; document.body.classList.remove('pz-open'); if (pzBtn) pzBtn.focus(); }
+  pz.addEventListener('change', function () { $('pz-add').textContent = 'Læg i kurven · ' + kr(pzSum()); });
+  $('pz-add').addEventListener('click', function () {
+    var ids = pzPicked();
+    var key = ids.length ? pzKey + '#' + ids.join(',') : pzKey;
+    withExtras(key);
+    closeExtras();
+    addToCart(key, pzBtn);
   });
+  $('pz-cancel').addEventListener('click', closeExtras);
+  pz.addEventListener('click', function (e) { if (e.target === pz) closeExtras(); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !pz.hidden) closeExtras(); });
 
   $('cartitems').addEventListener('click', function (e) {
     var b = e.target.closest('button[data-q]');
