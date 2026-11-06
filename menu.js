@@ -306,7 +306,7 @@
     }).join('') : '';
     $('pz-x').hidden = !hasX;
     $('pz-list').innerHTML = hasX ? extrasOf(it).map(function (x) {
-      return '<li><label><input type="checkbox" name="pzx" value="' + esc(x.id) + '"><span>' + esc(x.name) + '</span>' +
+      return '<li><label><input type="checkbox" name="pzx" value="' + esc(x.id) + '"' + (x.group ? ' data-group="' + esc(x.group) + '"' : '') + '><span>' + esc(x.name) + '</span>' +
         '<b>' + (x.price ? '+ ' + kr(x.price) : 'Gratis') + '</b></label></li>';
     }).join('') : '';
     $('pz-p').hidden = !it.pick;
@@ -326,7 +326,13 @@
     if (first) first.focus();
   }
   function closeExtras() { pz.hidden = true; document.body.classList.remove('pz-open'); if (pzBtn) pzBtn.focus(); }
-  pz.addEventListener('change', pzUpdate);
+  pz.addEventListener('change', function (e) {
+    var t = e.target;
+    if (t.name === 'pzx' && t.checked && t.dataset.group) {
+      pz.querySelectorAll('input[name=pzx][data-group="' + t.dataset.group + '"]').forEach(function (o) { if (o !== t) o.checked = false; });
+    }
+    pzUpdate();
+  });
   $('pz-add').addEventListener('click', function () {
     var it = byKey[pzKey], ids = pzPicked(), soda = pzSoda(), no = pzWithout(), pick = pzPick();
     if (it.pick && pick === '') { $('pz-p-err').hidden = false; $('pz-p').scrollIntoView({ block: 'nearest' }); return; }

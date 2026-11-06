@@ -5,6 +5,7 @@
 // En menu er med pommes frites og sodavand (MENU_INFO nederst).
 // priser er enten et tal eller en liste med én pris pr. størrelse (se "sizes").
 // En ret kan have egne prisnavne som 6. felt, fx ['Pizza', '+ sodavand'].
+// Tilkøb med samme "group" kan ikke vælges samtidig.
 // 7. felt er valg i pop-up'en for netop den ret, fx { pick: { title: 'Vælg kød', options: [...] } } eller { drinks: [...] }.
 // "lunch: true" betyder, at retterne kun kan bestilles mandag–fredag kl. 10–16.
 window.CW_MENU = [
@@ -108,7 +109,7 @@ window.CW_MENU = [
     id: 'grill', title: 'Grill & steg',
     items: [
       ['', 'Oksefilet steak', 'Ca. 200 g med salat, pommes frites og bearnaise', 169],
-      ['', 'Spareribs', '500 g med pommes frites og coleslaw', 149, '', null, { extras: [{ id: 'ribs', name: 'Ekstra spareribs', price: 65 }] }],
+      ['', 'Spareribs', '500 g med pommes frites og coleslaw', 149, '', null, { extras: [{ id: 'ribs', name: '1 x ekstra spareribs', price: 65, group: 'ribs' }, { id: 'ribs2', name: '2 x ekstra spareribs', price: 120, group: 'ribs' }] }],
       ['', '2 fiskefileter', 'Med pommes frites og remoulade', 79],
       ['', 'Skinkeschnitzel', '160 g med pommes frites og bearnaise', 95]
     ]
