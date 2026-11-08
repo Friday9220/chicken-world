@@ -71,7 +71,7 @@ window.CW_MENU = [
     id: 'bowls', title: 'Bowls',
     pick: [
       { title: 'Vælg sauce', options: ['Haydari', 'Tzatziki', 'Hummus'] },
-      { title: 'Vælg ris eller pommes frites', options: ['Ris', 'Pommes frites'] }
+      { title: 'Vælg ris, pommes frites eller salat', options: ['Ris', 'Pommes frites', 'Salat'] }
     ],
     items: [
       ['', 'Crispy fried chicken bowl', 'Crispy kylling, salat, grønt, feta, syltede løg, kål, karrydressing og basilikumpesto', 85],
