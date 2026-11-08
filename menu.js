@@ -451,7 +451,7 @@
         (kmFee() ? ' – kørselstillæg ' + kr(kmFee()) + ' (' + extraKm() + ' km ud og hjem ud over de første ' + DEL.baseKm + ' km).' : ' – intet kørselstillæg.') : '',
       far: 'Adressen ligger ca. ' + (dist.km || 0).toFixed(1).replace('.', ',') + ' km fra butikken. Vi leverer desværre kun op til ' + DEL.km + ' km. Ring på ' + CFG.phone + ', så finder vi en løsning.',
       fail: 'Vi kunne ikke finde adressen. Tjek vejnavn, husnummer og postnummer.',
-      unknown: 'Vi kunne ikke beregne afstanden lige nu. Du kan stadig bestille. Ligger adressen over ' + DEL.baseKm + ' km væk, ringer vi om kørselstillægget.' }[dist.state];
+      unknown: 'Vi kunne ikke beregne afstanden lige nu. Du kan stadig bestille' + (DEL.perKm ? '. Ligger adressen over ' + DEL.baseKm + ' km væk, ringer vi om kørselstillægget.' : ', og vi ringer, hvis adressen ligger for langt væk.') }[dist.state];
     el.textContent = t; el.hidden = !t;
     el.classList.toggle('form-error', dist.state === 'far' || dist.state === 'fail');
   }
@@ -727,7 +727,7 @@
     var off = discount();
     if (off) items.push({ qty: 1, nr: '', name: 'Rabat ' + disc.code.toUpperCase() + ' (' + disc.pct + ' %)', desc: '', size: '', section: '', price: -off });
     var sum = total();
-    if (address && dist.state === 'unknown') note = 'OBS: Afstanden kunne ikke beregnes – tjek kørselstillæg' + (note ? '\n' + note : '');
+    if (address && dist.state === 'unknown') note = 'OBS: Afstanden kunne ikke beregnes – tjek adressen' + (note ? '\n' + note : '');
     var fullNote = (address ? 'Adresse: ' + address + '\nBetaling: ' + pay + (note ? '\n' : '') : '') + note;
     var payload = { p_name: name, p_phone: phone, p_pickup: when.slice(0, 60), p_note: fullNote.slice(0, 500), p_items: items, p_total: sum };
     if (EMAIL_RE.test(email)) payload.p_email = email;
