@@ -30,7 +30,7 @@ window.CW_CONFIG = {
   // Levering kan bestilles i hele åbningstiden (dog senest lastOrderMinutes før lukketid).
   // Levering: fee kr under freeFrom kr (gratis fra freeFrom). Over baseKm km fra butikken lægges perKm kr
   // på for hver km ud over baseKm – talt både ud og hjem. km = længste afstand vi leverer til.
-  // Levering er gratis (fee 0, perKm 0). minOrder: levering kræver køb af mad for mindst så mange kr.
-  // Vil I have gebyr igen: sæt fee (og evt. freeFrom = gratis fra kr.) og perKm = kr pr. km ud over baseKm.
-  delivery: { fee: 0, freeFrom: 0, minOrder: 250, baseKm: 5, perKm: 0, roundTrip: true, km: 8, minutes: 45 }
+  // Levering er gratis (fee 0) – kun kørselstillæg: perKm kr pr. km ud over baseKm, talt ud og hjem.
+  // minOrder: levering kræver køb af mad for mindst så mange kr. Vil I have gebyr igen: sæt fee (og evt. freeFrom).
+  delivery: { fee: 0, freeFrom: 0, minOrder: 250, baseKm: 5, perKm: 5, roundTrip: true, km: 8, minutes: 45 }
 };
