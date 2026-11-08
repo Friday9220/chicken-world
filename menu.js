@@ -727,7 +727,7 @@
     var off = discount();
     if (off) items.push({ qty: 1, nr: '', name: 'Rabat ' + disc.code.toUpperCase() + ' (' + disc.pct + ' %)', desc: '', size: '', section: '', price: -off });
     var sum = total();
-    if (address && dist.state === 'unknown') note = 'OBS: Afstanden kunne ikke beregnes – tjek adressen' + (note ? '\n' + note : '');
+    if (address && dist.state === 'unknown') note = 'OBS: Afstanden kunne ikke beregnes – tjek adresse og kørselstillæg' + (note ? '\n' + note : '');
     var fullNote = (address ? 'Adresse: ' + address + '\nBetaling: ' + pay + (note ? '\n' : '') : '') + note;
     var payload = { p_name: name, p_phone: phone, p_pickup: when.slice(0, 60), p_note: fullNote.slice(0, 500), p_items: items, p_total: sum };
     if (EMAIL_RE.test(email)) payload.p_email = email;
