@@ -19,6 +19,10 @@ window.CW_CONFIG = {
     5: [10, 20],
     6: [12, 20]
   },
+  // Særlige åbningstider på enkelte datoer ("ÅÅÅÅ-MM-DD": [fra, til] eller null = lukket). Går forud for "hours".
+  specialHours: {
+    '2026-11-08': [16, 20] // søndag 8. november: åbent for bestilling kl. 16–20
+  },
   // Onlinebestilling lukker så mange minutter før lukketid
   lastOrderMinutes: 15,
   // Hvor lang tid køkkenet ca. skal bruge

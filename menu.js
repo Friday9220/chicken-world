@@ -130,7 +130,9 @@
   }
 
   // ---------- Åbningstider ----------
-  function hoursOn(d) { return HOURS[d.getDay()] || null; }
+  var SPECIAL = CFG.specialHours || {};
+  function dayKey(d) { return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
+  function hoursOn(d) { var k = dayKey(d); return k in SPECIAL ? SPECIAL[k] : (HOURS[d.getDay()] || null); }
   function isLunch(d, mins) {
     return LUNCH.days.indexOf(d.getDay()) !== -1 && mins >= LUNCH.from * 60 && mins < LUNCH.to * 60;
   }

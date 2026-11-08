@@ -5,17 +5,19 @@
   document.getElementById('year').textContent = new Date().getFullYear();
 
   // "Åbent nu til kl. 20.00" / "Lukket nu · åbner i morgen kl. 10.00"
-  var CFG = window.CW_CONFIG || {}, HOURS = CFG.hours || {};
+  var CFG = window.CW_CONFIG || {}, HOURS = CFG.hours || {}, SPECIAL = CFG.specialHours || {};
+  var p2 = function (n) { return (n < 10 ? '0' : '') + n; };
+  var hoursOn = function (d) { var k = d.getFullYear() + '-' + p2(d.getMonth() + 1) + '-' + p2(d.getDate()); return k in SPECIAL ? SPECIAL[k] : (HOURS[d.getDay()] || null); };
   var st = document.getElementById('openstatus');
   if (st) {
     var DAYS = ['søndag', 'mandag', 'tirsdag', 'onsdag', 'torsdag', 'fredag', 'lørdag'];
-    var now = new Date(), mins = now.getHours() * 60 + now.getMinutes(), h = HOURS[now.getDay()];
+    var now = new Date(), mins = now.getHours() * 60 + now.getMinutes(), h = hoursOn(now);
     var t = function (hr) { return (hr < 10 ? '0' : '') + hr + '.00'; };
     if (h && mins >= h[0] * 60 && mins < h[1] * 60) {
       st.innerHTML = '<span class="dot"></span> Åbent nu til kl. ' + t(h[1]);
     } else {
       for (var i = (h && mins < h[0] * 60) ? 0 : 1; i < 8; i++) {
-        var d = new Date(now.getFullYear(), now.getMonth(), now.getDate() + i), n = HOURS[d.getDay()];
+        var d = new Date(now.getFullYear(), now.getMonth(), now.getDate() + i), n = hoursOn(d);
         if (n) {
           st.innerHTML = '<span class="dot is-closed"></span> Lukket nu · åbner ' + (i === 0 ? 'i dag' : i === 1 ? 'i morgen' : DAYS[d.getDay()]) + ' kl. ' + t(n[0]);
           break;
