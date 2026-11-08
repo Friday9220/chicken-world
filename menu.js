@@ -574,12 +574,14 @@
         if (mins >= w[0] - lead && mins + lead <= w[1] && mins >= h[0] * 60 && (!lunchOnly || isLunch(d, mins + lead))) {
           slots.push(['asap', 'Hurtigst muligt (ca. ' + lead + ' min)']);
         }
-        for (var m = Math.max(Math.ceil((w[0] + lead) / 15) * 15, Math.ceil((mins + lead + 10) / 15) * 15); m <= w[1]; m += 15) {
+        // På særlige dage (specialHours) kan man bestille til selve åbningstiden, når man bestiller i god tid
+        var openLead = dayKey(d) in SPECIAL ? 0 : lead;
+        for (var m = Math.max(Math.ceil((w[0] + openLead) / 15) * 15, Math.ceil((mins + lead + 10) / 15) * 15); m <= w[1]; m += 15) {
           if (!lunchOnly || isLunch(d, m)) slots.push([fmt(m), 'kl. ' + fmt(m)]);
         }
       } else {
         // Første tid: når køkkenet (og chaufføren) kan nå det efter åbning
-        var first = Math.ceil((w[0] + (del ? (DEL.minutes || 45) : PREP)) / 15) * 15;
+        var first = Math.ceil((w[0] + (dayKey(d) in SPECIAL ? 0 : (del ? (DEL.minutes || 45) : PREP))) / 15) * 15;
         for (var m2 = first; m2 <= w[1]; m2 += 15) {
           if (!lunchOnly || isLunch(d, m2)) slots.push([fmt(m2), 'kl. ' + fmt(m2)]);
         }
