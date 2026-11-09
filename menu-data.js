@@ -8,6 +8,9 @@
 // Tilkøb med samme "group" kan ikke vælges samtidig.
 // 7. felt er valg i pop-up'en for netop den ret, fx { pick: { title: 'Vælg kød', options: [...] } } eller { drinks: [...] }.
 // "lunch: true" betyder, at retterne kun kan bestilles mandag–fredag kl. 10–16.
+// Tilvalg "Ekstra kød" på burgere, pita, bowls og ruller (ret prisen her)
+var EXTRA_MEAT = { id: 'kod', name: 'Ekstra kød', price: 15 };
+
 window.CW_MENU = [
   {
     id: 'frokost', title: 'Frokosttilbud', note: 'Mandag–fredag kl. 10–16', lunch: true,
@@ -42,6 +45,7 @@ window.CW_MENU = [
   },
   {
     id: 'burgere', title: 'Burgere', note: '150 g oksekød fra Himmerland', menu: 30,
+    extras: [EXTRA_MEAT],
     items: [
       ['', 'Kylling bacon & cheese', 'Grillet kyllingebryst, bacon, ost, salat og husets dressing', 79],
       ['', 'Hamburger', 'Oksebøf, salat, tomat, agurk, syltede løg og ketchup', 79],
@@ -57,6 +61,7 @@ window.CW_MENU = [
   },
   {
     id: 'pita', title: 'Pita', menu: 30,
+    extras: [EXTRA_MEAT],
     pick: { title: 'Vælg sauce', options: ['Haydari', 'Tzatziki', 'Hummus'] },
     items: [
       ['', 'Crispy fried chicken', 'Crispy kylling, salat, grønt, feta, syltede løg, kål, karrydressing og basilikumpesto', 79],
@@ -69,6 +74,7 @@ window.CW_MENU = [
   },
   {
     id: 'bowls', title: 'Bowls',
+    extras: [EXTRA_MEAT],
     pick: [
       { title: 'Vælg sauce', options: ['Haydari', 'Tzatziki', 'Hummus'] },
       { title: 'Vælg ris, pommes frites eller salat', options: ['Ris', 'Pommes frites', 'Salat'] }
@@ -84,6 +90,7 @@ window.CW_MENU = [
   },
   {
     id: 'ruller', title: 'Ruller', menu: 30,
+    extras: [EXTRA_MEAT],
     pick: { title: 'Vælg olie', options: ['Chiliolie', 'Hvidløgsolie'] },
     items: [
       ['', 'Rulle med kebab', '', 69],
