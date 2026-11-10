@@ -68,12 +68,12 @@ window.CW_MENU = [
     id: 'pita', title: 'Pita', note: 'Hjemmelavet frisk pitabrød', menu: 30,
     extras: [EXTRA_MEAT],
     items: [
-      ['', 'Crispy Fried Chicken', 'Crispy fried chicken, blandet grønt, feta, syltede rødløg & kålmix, karrydressing, basilikumpesto', 79, '', null, SM_H],
-      ['', 'Grillet Kylling', 'Grillet kyllingefilet, blandet grønt, syltede rødløg & kålmix, urtedressing', 79, '', null, SM_TH],
-      ['', 'Kebab', 'Kebab, blandet grønt, syltede rødløg & kålmix, urtedressing', 79, '', null, SM_TH],
-      ['', 'Grillet Oksebøf', 'Grillet hakkebøf, cheddarost, blandet grønt, syltede rødløg, coleslaw, rødkål, hvidløgsdressing', 79, '', null, SM_HT],
-      ['', 'Grillet Oksesteak', 'Grillet oksesteak, blandet grønt, syltede rødløg, kålmix, urtedressing', 95, '', null, SM_TH],
-      ['', 'Falafel (V)', 'Falafel, blandet grønt, syltede rødløg & kålmix, urtedressing', 69, 'Vegetar']
+      ['', 'Crispy Fried Chicken', 'Crispy fried chicken, blandet grønt, karrydressing, basilikumpesto', 79, '', null, SM_H],
+      ['', 'Grillet Kylling', 'Grillet kyllingefilet, blandet grønt, urtedressing', 79, '', null, SM_TH],
+      ['', 'Kebab', 'Kebab, blandet grønt, urtedressing', 79, '', null, SM_TH],
+      ['', 'Grillet Oksebøf', 'Grillet hakkebøf, cheddarost, blandet grønt, hvidløgsdressing', 79, '', null, SM_HT],
+      ['', 'Grillet Oksesteak', 'Grillet oksesteak, blandet grønt, urtedressing', 95, '', null, SM_TH],
+      ['', 'Falafel (V)', 'Falafel, blandet grønt, urtedressing', 69, 'Vegetar']
     ]
   },
   {
@@ -81,12 +81,12 @@ window.CW_MENU = [
     extras: [EXTRA_MEAT],
     pick: { title: 'Vælg ris, pommes frites eller salat', options: ['Ris', 'Pommes frites', 'Salat'] },
     items: [
-      ['', 'Crispy Fried Chicken', 'Crispy fried chicken, blandet grønt, feta, syltede rødløg & kålmix, karrydressing, basilikumpesto', 85, '', null, SM_H],
-      ['', 'Grillet Kylling', 'Grillet kyllingefilet, blandet grønt, syltede rødløg & kålmix, urtedressing', 85, '', null, SM_TH],
-      ['', 'Kebab', 'Kebab, blandet grønt, syltede rødløg & kålmix, urtedressing', 85, '', null, SM_TH],
-      ['', 'Grillet Oksebøf', 'Grillet hakkebøf, cheddarost, blandet grønt, syltede rødløg, coleslaw, rødkål, hvidløgsdressing', 85, '', null, SM_HT],
-      ['', 'Grillet Oksesteak', 'Grillet oksesteak, blandet grønt, syltede rødløg, kålmix, urtedressing', 95, '', null, SM_TH],
-      ['', 'Falafel (V)', 'Falafel, blandet grønt, syltede rødløg & kålmix, urtedressing', 79, 'Vegetar']
+      ['', 'Crispy Fried Chicken', 'Crispy fried chicken, blandet grønt, karrydressing, basilikumpesto', 85, '', null, SM_H],
+      ['', 'Grillet Kylling', 'Grillet kyllingefilet, blandet grønt, urtedressing', 85, '', null, SM_TH],
+      ['', 'Kebab', 'Kebab, blandet grønt, urtedressing', 85, '', null, SM_TH],
+      ['', 'Grillet Oksebøf', 'Grillet hakkebøf, cheddarost, blandet grønt, hvidløgsdressing', 85, '', null, SM_HT],
+      ['', 'Grillet Oksesteak', 'Grillet oksesteak, blandet grønt, urtedressing', 95, '', null, SM_TH],
+      ['', 'Falafel (V)', 'Falafel, blandet grønt, urtedressing', 79, 'Vegetar']
     ]
   },
   {
