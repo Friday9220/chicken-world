@@ -267,6 +267,11 @@
 .pzpop__list input { width: 22px; height: 22px; accent-color: var(--orange); margin: 0; }
 .pzpop__list span { flex: 1; }
 .pzpop__list b { font-variant-numeric: tabular-nums; }
+.pzpop__q { display: flex; align-items: center; gap: 12px; padding: 8px 2px; font-size: 16px; }
+.pzpop__q b { font-weight: 600; opacity: .8; }
+.pzpop__step { display: flex; align-items: center; gap: 6px; }
+.pzpop__step button { width: 34px; height: 34px; border-radius: 50%; border: 2px solid var(--ink); background: none; font: inherit; font-size: 20px; font-weight: 700; line-height: 1; color: var(--ink); cursor: pointer; }
+.pzpop__step output { min-width: 18px; text-align: center; font-weight: 700; font-variant-numeric: tabular-nums; }
 .pzpop__add { width: 100%; justify-content: center; }
 .pzpop__cancel { display: block; width: 100%; margin-top: 8px; padding: 10px; background: none; border: 0; font: inherit; font-weight: 600; color: var(--ink); opacity: .7; cursor: pointer; }
 body.pz-open { overflow: hidden; }

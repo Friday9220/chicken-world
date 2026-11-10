@@ -164,7 +164,7 @@
   var MENU_EXTRAS = window.CW_MENU_EXTRAS || [];
   // Dip kan tilkøbes til alt undtagen drikkevarer og dip (5 kr. pr. stk., fra sektionen "dip")
   var DIPS = [];
-  MENU.forEach(function (sec) { if (sec.id === 'dip') sec.items.forEach(function (d, i) { DIPS.push({ id: 'dip' + i, name: 'Dip: ' + d[1], price: d[3] }); }); });
+  MENU.forEach(function (sec) { if (sec.id === 'dip') sec.items.forEach(function (d, i) { DIPS.push({ id: 'dip' + i, name: 'Dip: ' + d[1], price: d[3], multi: true }); }); });
   function extrasOf(it) {
     var x = it.extras || (it.pizza ? EXTRAS : []);
     if (it.menu) x = x.concat(MENU_EXTRAS);
@@ -185,7 +185,13 @@
     if (choices.some(function (c) { return !c; })) return null;
     var choice = choices.map(function (c) { return c.toLowerCase(); }).join(' · ');
     var ids = m[4] ? m[4].split(',') : [];
-    var picked = extrasOf(base).filter(function (x) { return ids.indexOf(x.id) >= 0; });
+    // Samme id flere gange = flere stk. (kun dip, "multi")
+    var all = extrasOf(base), picked = [];
+    for (var j = 0; j < ids.length; j++) {
+      var x = all.filter(function (e) { return e.id === ids[j]; })[0];
+      if (!x || (!x.multi && picked.indexOf(x) >= 0)) return null;
+      picked.push(x);
+    }
     var soda = m[5] != null ? drinksOf(base)[Number(m[5])] : null;
     if (m[5] != null && !soda) return null;
     var it = {};
@@ -194,7 +200,11 @@
     it.price = base.price + picked.reduce(function (s, x) { return s + x.price; }, 0);
     var size = base.size || '';
     if (choice) size += (size ? ' · ' : '') + choice;
-    if (picked.length) size += (size ? ' · ' : '') + '+ ' + picked.map(function (x) { return x.name.toLowerCase(); }).join(', ');
+    if (picked.length) {
+      var names = [], counts = {};
+      picked.forEach(function (x) { if (!counts[x.id]) names.push(x); counts[x.id] = (counts[x.id] || 0) + 1; });
+      size += (size ? ' · ' : '') + '+ ' + names.map(function (x) { return (counts[x.id] > 1 ? counts[x.id] + ' × ' : '') + x.name.toLowerCase(); }).join(', ');
+    }
     if (without.length) size += (size ? ' · ' : '') + 'uden ' + without.join(', ');
     if (soda) size += (size ? ' · ' : '') + soda;
     it.size = size;
@@ -307,7 +317,12 @@
 
   // ---------- Pop-up med tilvalg til pizza og valg af sodavand ----------
   var pz = $('pizzapop'), pzKey = '', pzBtn = null;
-  function pzPicked() { return Array.prototype.map.call(pz.querySelectorAll('input[name=pzx]:checked'), function (c) { return c.value; }); }
+  // Valgte tilkøb som liste af id'er; dip med antal står der én gang pr. stk. Sorteret, så ens valg giver samme nøgle.
+  function pzPicked() {
+    var ids = Array.prototype.map.call(pz.querySelectorAll('input[name=pzx]:checked'), function (c) { return c.value; });
+    Array.prototype.forEach.call(pz.querySelectorAll('output[data-id]'), function (o) { for (var n = Number(o.value); n > 0; n--) ids.push(o.dataset.id); });
+    return ids.sort();
+  }
   function pzWithout() { return Array.prototype.map.call(pz.querySelectorAll('input[name=pzn]:checked'), function (c) { return c.value; }); }
   // Valgene som "0.1" (ét tal pr. valg), eller '' hvis et valg mangler
   function pzPick() {
@@ -318,7 +333,8 @@
   function pzSoda() { var r = pz.querySelector('input[name=pzs]:checked'); return r ? r.value : ''; }
   function pzSum() {
     var ids = pzPicked();
-    return byKey[pzKey].price + extrasOf(byKey[pzKey]).reduce(function (s, x) { return ids.indexOf(x.id) >= 0 ? s + x.price : s; }, 0);
+    var all = extrasOf(byKey[pzKey]);
+    return byKey[pzKey].price + ids.reduce(function (s, id) { var x = all.filter(function (e) { return e.id === id; })[0]; return s + (x ? x.price : 0); }, 0);
   }
   function pzUpdate() { $('pz-add').textContent = 'Læg i kurven · ' + kr(pzSum()); $('pz-err').hidden = true; if (pzPick() !== '') $('pz-p-err').hidden = true; }
   function openExtras(key, btn) {
@@ -339,6 +355,10 @@
     }).join('') : '';
     $('pz-x').hidden = !hasX;
     $('pz-list').innerHTML = hasX ? extrasOf(it).map(function (x) {
+      if (x.multi) return '<li class="pzpop__q"><span>' + esc(x.name) + '</span><b>+ ' + kr(x.price) + '</b>' +
+        '<div class="pzpop__step"><button type="button" data-dq="-1" aria-label="Færre ' + esc(x.name) + '">−</button>' +
+        '<output data-id="' + esc(x.id) + '" value="0" aria-live="polite">0</output>' +
+        '<button type="button" data-dq="1" aria-label="Flere ' + esc(x.name) + '">+</button></div></li>';
       return '<li><label><input type="checkbox" name="pzx" value="' + esc(x.id) + '"' + (x.group ? ' data-group="' + esc(x.group) + '"' : '') + '><span>' + esc(x.name) + '</span>' +
         '<b>' + (x.price ? '+ ' + kr(x.price) : 'Gratis') + '</b></label></li>';
     }).join('') : '';
@@ -376,6 +396,15 @@
     withExtras(key);
     closeExtras();
     addToCart(key, pzBtn);
+  });
+  // Antal dip: − og +
+  pz.addEventListener('click', function (e) {
+    var b = e.target.closest('button[data-dq]');
+    if (!b) return;
+    var o = b.parentNode.querySelector('output');
+    var n = Math.max(0, Math.min(9, Number(o.value) + Number(b.dataset.dq)));
+    o.value = String(n); o.textContent = String(n);
+    pzUpdate();
   });
   $('pz-cancel').addEventListener('click', closeExtras);
   pz.addEventListener('click', function (e) { if (e.target === pz) closeExtras(); });
