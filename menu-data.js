@@ -12,9 +12,9 @@
 // Tilvalg "Ekstra kød" på burgere, pita, bowls og ruller (ret prisen her)
 var EXTRA_MEAT = { id: 'kod', name: 'Ekstra kød', price: 10 };
 // Smørelse i pita og bowls (som på menukortet). "Uden smørelse" står sidst.
-var SM_H = { pick: { title: 'Vælg smørelse', options: ['Haydari', 'Uden smørelse'] } };
-var SM_HT = { pick: { title: 'Vælg smørelse', options: ['Haydari', 'Tzatziki', 'Uden smørelse'] } };
-var SM_TH = { pick: { title: 'Vælg smørelse', options: ['Tzatziki', 'Haydari', 'Uden smørelse'] } };
+var SM_H = { pick: { title: 'Vælg smørelse', options: ['Haydari', 'Hummus', 'Uden smørelse'] } };
+var SM_HT = { pick: { title: 'Vælg smørelse', options: ['Haydari', 'Tzatziki', 'Hummus', 'Uden smørelse'] } };
+var SM_TH = { pick: { title: 'Vælg smørelse', options: ['Tzatziki', 'Haydari', 'Hummus', 'Uden smørelse'] } };
 
 window.CW_MENU = [
   {
@@ -168,8 +168,7 @@ window.CW_MENU = [
     id: 'drikke', title: 'Drikkevarer',
     items: [
       ['', 'Sodavand 0,33 l', '', 13],
-      ['', 'Sodavand 1,5 l', '', 33, '', null, { drinks: ['Coca-Cola', 'Fanta', 'Pepsi Max', 'Faxe Kondi'] }],
-      ['', 'Cocio', '', 20]
+      ['', 'Sodavand 1,5 l', '', 33, '', null, { drinks: ['Coca-Cola', 'Fanta', 'Pepsi Max', 'Faxe Kondi'] }]
       // Slush ice sælges kun om sommeren. Fjern // foran de to linjer (og sæt komma efter linjen ovenfor) for at vise dem igen:
       // ['', 'Slush ice 0,3 l', '', 10],
       // ['', 'Slush ice 0,5 l', '', 15]
