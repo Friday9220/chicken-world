@@ -9,7 +9,7 @@
   var LUNCH = CFG.lunch || { days: [], from: 0, to: 0 };
   var LAST = CFG.lastOrderMinutes || 15;
   var PREP = CFG.prepMinutes || 20;
-  var STORE_KEY = 'cw-kurv';
+  var STORE_KEY = 'cw-kurv2'; // nyt navn, når retternes valg ændres (gamle kurve passer ikke længere)
   var ONLINE = !!(CFG.supabaseUrl && CFG.supabaseKey); // ellers: kunden ringer bestillingen ind
   var DAYS = ['søndag', 'mandag', 'tirsdag', 'onsdag', 'torsdag', 'fredag', 'lørdag'];
 
@@ -42,12 +42,12 @@
 
   // Retter i disse sektioner kan bestilles uden en eller flere af ingredienserne i beskrivelsen
   var NO_SECS = ['pizza', 'burgere', 'pita', 'bowls', 'ruller'];
-  // Kødet/hovedingrediensen (første ord i burgere, pita og bowls) og "x eller y" kan ikke fravælges
-  var NO_MAIN = ['burgere', 'pita', 'bowls'];
+  // Kødet/hovedingrediensen (første ord i burgere, pita, bowls og ruller) og "x eller y" kan ikke fravælges
+  var NO_MAIN = ['burgere', 'pita', 'bowls', 'ruller'];
   function ingredients(desc, skipFirst) {
     if (!desc || /bemærkning/i.test(desc)) return [];
     var parts = [];
-    desc.split(/,\s*/).forEach(function (p) { p.split(/\s+og\s+/).forEach(function (q) { q = q.trim(); if (q) parts.push(q); }); });
+    desc.split(/,\s*/).forEach(function (p) { p.split(/\s+(?:og|&)\s+/).forEach(function (q) { q = q.trim(); if (q) parts.push(q); }); });
     if (skipFirst) parts.shift();
     parts = parts.filter(function (p) { return !/^\d|^dobbelt\b|\beller\b/i.test(p); });
     return parts.map(function (p) { return /^[A-ZÆØÅ][a-zæøå]/.test(p) ? p.charAt(0).toLowerCase() + p.slice(1) : p; });
@@ -77,8 +77,8 @@
           soda: !!(item[6] && item[6].drinks) || !!sec.drinks || !!p.menu || /sodavand/i.test(p.label) || /^Sodavand/.test(name),
           drinks: (item[6] && item[6].drinks) || sec.drinks || null,
           extras: (item[6] && item[6].extras) || (sec.extras && !isAddon(item) ? sec.extras : null),
-          picks: [].concat((item[6] && item[6].pick) || (sec.pick && !isAddon(item) ? sec.pick : [])),
-          ingr: NO_SECS.indexOf(sec.id) >= 0 && !isAddon(item) ? ingredients(desc, NO_MAIN.indexOf(sec.id) >= 0) : [],
+          picks: [].concat((item[6] && item[6].pick) || [], sec.pick && !isAddon(item) ? sec.pick : []),
+          ingr: (item[6] && item[6].ingr) || (NO_SECS.indexOf(sec.id) >= 0 && !isAddon(item) ? ingredients(desc, NO_MAIN.indexOf(sec.id) >= 0) : []),
           section: sec.lunch ? 'Frokost' : (sec.id === 'pizza' || sec.id === 'kylling' || sec.id === 'burgere' ? '' : sec.title)
         };
         html += '<button class="price' + (p.menu ? ' price--menu' : '') + '" type="button" data-key="' + esc(key) + '" aria-label="Læg ' +
