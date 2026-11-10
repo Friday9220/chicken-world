@@ -77,6 +77,7 @@
           soda: !!(item[6] && item[6].drinks) || !!sec.drinks || !!p.menu || /sodavand/i.test(p.label) || /^Sodavand/.test(name),
           drinks: (item[6] && item[6].drinks) || sec.drinks || null,
           extras: (item[6] && item[6].extras) || (sec.extras && !isAddon(item) ? sec.extras : null),
+          dips: ['drikke', 'dip'].indexOf(sec.id) < 0,
           picks: [].concat((item[6] && item[6].pick) || [], sec.pick && !isAddon(item) ? sec.pick : []),
           ingr: (item[6] && item[6].ingr) || (NO_SECS.indexOf(sec.id) >= 0 && !isAddon(item) ? ingredients(desc, NO_MAIN.indexOf(sec.id) >= 0) : []),
           section: sec.lunch ? 'Frokost' : (sec.id === 'pizza' || sec.id === 'kylling' || sec.id === 'burgere' ? '' : sec.title)
@@ -159,7 +160,16 @@
   try { cart = JSON.parse(localStorage.getItem(STORE_KEY)) || []; } catch (e) { cart = []; }
   function drinksOf(it) { return it.drinks || SODAS; }
   // Tilkøb i pop-up'en: rettens egne (7. felt "extras") eller pizzatilvalgene
-  function extrasOf(it) { return it.extras || (it.pizza ? EXTRAS : []); }
+  // Bestilles retten som menu, kan man også tilkøbe det i CW_MENU_EXTRAS (fx stor pommes frites)
+  var MENU_EXTRAS = window.CW_MENU_EXTRAS || [];
+  // Dip kan tilkøbes til alt undtagen drikkevarer og dip (5 kr. pr. stk., fra sektionen "dip")
+  var DIPS = [];
+  MENU.forEach(function (sec) { if (sec.id === 'dip') sec.items.forEach(function (d, i) { DIPS.push({ id: 'dip' + i, name: 'Dip: ' + d[1], price: d[3] }); }); });
+  function extrasOf(it) {
+    var x = it.extras || (it.pizza ? EXTRAS : []);
+    if (it.menu) x = x.concat(MENU_EXTRAS);
+    return it.dips ? x.concat(DIPS) : x;
+  }
   // Valg fra pop-up'en ligger i nøglen: "<nøgle>!0,2" (uden ingrediens nr. 0 og 2), "#dressing,ost" (pizzatilvalg)
   // og "@1" (drik nr. 1), fx "pizza|1|Alm.!1#ost@0".
   function withExtras(key) {
