@@ -192,5 +192,10 @@ window.CW_PIZZA_EXTRAS = [
 // Tilføj nye sodavand sidst i listen (kurve gemmer valget som nummer).
 window.CW_SODAS = ['Coca-Cola', 'Fanta', 'Pepsi Max', 'Vand', 'Faxe Kondi'];
 
+// Tilkøb i pop-up'en, når man bestiller en menu
+window.CW_MENU_EXTRAS = [
+  { id: 'storpom', name: 'Stor pommes frites', price: 15 }
+];
+
 // Står i pop-up'en, når man bestiller en menu
 window.CW_MENU_INFO = 'Menuen er med pommes frites og sodavand.';
