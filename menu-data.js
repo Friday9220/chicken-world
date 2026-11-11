@@ -68,7 +68,7 @@ window.CW_MENU = [
     id: 'pita', title: 'Pita', note: 'Hjemmelavet frisk pitabrød', menu: 30,
     extras: [EXTRA_MEAT],
     items: [
-      ['', 'Crispy Fried Chicken', 'Crispy fried chicken, blandet grønt, karrydressing, basilikumpesto', 79, '', null, SM_H],
+      ['', 'Crispy Fried Chicken', 'Crispy fried chicken, blandet grønt, karrydressing', 79, '', null, SM_H],
       ['', 'Grillet Kylling', 'Grillet kyllingefilet, blandet grønt, urtedressing', 79, '', null, SM_TH],
       ['', 'Kebab', 'Kebab, blandet grønt, urtedressing', 79, '', null, SM_TH],
       ['', 'Grillet Oksebøf', 'Grillet hakkebøf, cheddarost, blandet grønt, hvidløgsdressing', 79, '', null, SM_HT],
@@ -81,7 +81,7 @@ window.CW_MENU = [
     extras: [EXTRA_MEAT],
     pick: { title: 'Vælg ris, pommes frites eller salat', options: ['Ris', 'Pommes frites', 'Salat'] },
     items: [
-      ['', 'Crispy Fried Chicken', 'Crispy fried chicken, blandet grønt, karrydressing, basilikumpesto', 85, '', null, SM_H],
+      ['', 'Crispy Fried Chicken', 'Crispy fried chicken, blandet grønt, karrydressing', 85, '', null, SM_H],
       ['', 'Grillet Kylling', 'Grillet kyllingefilet, blandet grønt, urtedressing', 85, '', null, SM_TH],
       ['', 'Kebab', 'Kebab, blandet grønt, urtedressing', 85, '', null, SM_TH],
       ['', 'Grillet Oksebøf', 'Grillet hakkebøf, cheddarost, blandet grønt, hvidløgsdressing', 85, '', null, SM_HT],
