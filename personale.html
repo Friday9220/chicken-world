@@ -262,8 +262,12 @@
       return Math.floor(m / 60) + ' t ' + (m % 60) + ' min siden';
     }
     function clock(ts) { var d = new Date(ts); return ('0' + d.getHours()).slice(-2) + '.' + ('0' + d.getMinutes()).slice(-2); }
+    // Menu står som "<ret> menu" (fx "Crispy Chicken Burger menu"). Ældre ordrer havde "Menu" i størrelsen; de vises på samme måde.
     function itemLabel(it) {
-      return (it.nr ? it.nr + '. ' : '') + (it.section ? it.section + ': ' : '') + (it.name || '') + (it.size ? ' (' + it.size + ')' : '');
+      var name = it.name || '', size = String(it.size || '');
+      var m = /^(?:(.*?)\s+)?menu(?:\s+·\s+|$)/i.exec(size);
+      if (m && !/menu$/i.test(name)) { name += ' menu'; size = (m[1] || '') + (m[1] && size.length > m[0].length ? ' · ' : '') + size.slice(m[0].length); }
+      return (it.nr ? it.nr + '. ' : '') + (it.section ? it.section + ': ' : '') + name + (size ? ' (' + size + ')' : '');
     }
     var NEXT = {
       'i gang': [['klar', 'Klar', 'act--go'], ['ny', 'Tilbage', 'act--ghost']],

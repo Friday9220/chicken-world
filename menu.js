@@ -37,7 +37,7 @@
     var ps = pricesOf(sec, item);
     if (!sec.menu || isAddon(item) || !ps.length) return ps;
     var base = ps[0];
-    return ps.concat([{ label: base.label ? base.label + ' menu' : 'Menu', price: base.price + sec.menu, menu: true }]);
+    return ps.concat([{ label: base.label ? base.label + ' menu' : 'Menu', price: base.price + sec.menu, menu: true, baseLabel: base.label }]);
   }
 
   // Retter i disse sektioner kan bestilles uden en eller flere af ingredienserne i beskrivelsen
@@ -72,7 +72,8 @@
       pricesWithMenu(sec, item).forEach(function (p) {
         var key = sec.id + '|' + i + '|' + p.label;
         byKey[key] = {
-          key: key, nr: nr, name: name, desc: desc, size: p.label, price: p.price, lunch: !!sec.lunch, menu: !!p.menu,
+          // En menu hedder "<ret> menu" på ordren (fx "Crispy Chicken Burger menu") og har én samlet pris
+          key: key, nr: nr, name: p.menu ? name + ' menu' : name, desc: desc, size: p.menu ? p.baseLabel || '' : p.label, price: p.price, lunch: !!sec.lunch, menu: !!p.menu,
           pizza: sec.id === 'pizza' || /^Frokostpizza/.test(name),
           soda: !!(item[6] && item[6].drinks) || !!sec.drinks || !!p.menu || /sodavand/i.test(p.label) || /^Sodavand/.test(name),
           drinks: (item[6] && item[6].drinks) || sec.drinks || null,
