@@ -35,6 +35,8 @@
   function isAddon(item) { return /^(Tillæg|Gør din)/.test(item[2]) || /^(Ekstra|Dobbelt|Menu-tillæg)/.test(item[1]); }
   function pricesWithMenu(sec, item) {
     var ps = pricesOf(sec, item);
+    // { menuOnly: true } i 7. felt: retten sælges kun som menu, og prisen i menukortet er menuprisen
+    if (item[6] && item[6].menuOnly) return ps.slice(0, 1).map(function (p) { return { label: 'Menu', price: p.price, menu: true }; });
     if (!sec.menu || isAddon(item) || !ps.length) return ps;
     var base = ps[0];
     return ps.concat([{ label: base.label ? base.label + ' menu' : 'Menu', price: base.price + sec.menu, menu: true }]);
@@ -701,7 +703,7 @@
     else if (del && dist.state === 'fail') { problem = 'Vi kunne ikke finde adressen. Tjek vejnavn, husnummer og postnummer, eller ring på ' + CFG.phone + '.'; focus = 'o-street'; }
     else if (del && !(document.querySelector('input[name=pay]:checked') || {}).value) { problem = 'Vælg, om du vil betale med MobilePay eller kontant ved levering.'; focus = null; }
     else if (!$('o-time').value) {
-      problem = hasLunch() ? 'Frokosttilbud kan kun bestilles mandag–fredag kl. 10–16. Fjern dem fra kurven, eller bestil til en hverdag i frokosttiden.'
+      problem = hasLunch() ? 'Frokosttilbud kan kun bestilles mandag, tirsdag, torsdag og fredag kl. 10–16. Fjern dem fra kurven, eller bestil til en hverdag i frokosttiden.'
               : del ? 'Der er ingen ledige leveringstider lige nu. Ring til os på ' + CFG.phone + '.'
                     : 'Der er ingen ledige tider lige nu. Ring til os på ' + CFG.phone + '.';
     }

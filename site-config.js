@@ -14,27 +14,28 @@ window.CW_CONFIG = {
 
   // Åbningstider pr. ugedag (0 = søndag). null = lukket. Tider i hele timer.
   hours: {
-    0: null,
-    1: [10, 20], 2: [10, 20], 3: [10, 20], 4: [10, 20],
+    0: [15, 20],
+    1: [10, 20], 2: [10, 20], 3: null, 4: [10, 20],
     5: [10, 20],
     6: [12, 20]
   },
   // Særlige åbningstider på enkelte datoer ("ÅÅÅÅ-MM-DD": [fra, til] eller null = lukket). Går forud for "hours".
   specialHours: {
-    '2026-11-08': [16, 20] // søndag 8. november: åbent for bestilling kl. 16–20
+    '2026-11-08': [16, 20], // søndag 8. november: åbent for bestilling kl. 16–20
+    '2026-11-15': [16, 20] // søndag 15. november: åbent kl. 16–20
   },
   // Onlinebestilling lukker så mange minutter før lukketid
   lastOrderMinutes: 15,
   // Hvor lang tid køkkenet ca. skal bruge
   prepMinutes: 20,
 
-  // Frokosttilbud kan kun bestilles i dette tidsrum (mandag–fredag)
-  lunch: { days: [1, 2, 3, 4, 5], from: 10, to: 16 },
+  // Frokosttilbud kan kun bestilles i dette tidsrum (hverdage – onsdag er lukket)
+  lunch: { days: [1, 2, 4, 5], from: 10, to: 16 },
 
   // Levering kan bestilles i hele åbningstiden (dog senest lastOrderMinutes før lukketid).
   // Levering: fee kr under freeFrom kr (gratis fra freeFrom). Over baseKm km fra butikken lægges perKm kr
   // på for hver km ud over baseKm – talt både ud og hjem. km = længste afstand vi leverer til.
   // Levering er gratis (fee 0) – kun kørselstillæg: perKm kr pr. km ud over baseKm, talt ud og hjem.
   // minOrder: levering kræver køb af mad for mindst så mange kr. Vil I have gebyr igen: sæt fee (og evt. freeFrom).
-  delivery: { fee: 0, freeFrom: 0, minOrder: 250, baseKm: 5, perKm: 5, roundTrip: true, km: 8, minutes: 45 }
+  delivery: { fee: 0, freeFrom: 0, minOrder: 250, baseKm: 5, perKm: 5, roundTrip: true, km: 15, minutes: 45 }
 };

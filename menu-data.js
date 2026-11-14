@@ -7,10 +7,11 @@
 // En ret kan have egne prisnavne som 6. felt, fx ['Pizza', '+ sodavand'].
 // Tilkøb med samme "group" kan ikke vælges samtidig.
 // 7. felt er valg i pop-up'en for netop den ret, fx { pick: { title: 'Vælg kød', options: [...] } } eller { drinks: [...] }.
+// { menuOnly: true } i 7. felt: retten kan kun købes som menu (prisen er menuprisen).
 // { ingr: [...] } i 7. felt bestemmer selv, hvad der kan fravælges (ellers bruges beskrivelsen).
-// "lunch: true" betyder, at retterne kun kan bestilles mandag–fredag kl. 10–16.
+// "lunch: true" betyder, at retterne kun kan bestilles man–tirs og tors–fre kl. 10–16.
 // Tilvalg "Ekstra kød" på burgere, pita, bowls og ruller (ret prisen her)
-var EXTRA_MEAT = { id: 'kod', name: 'Ekstra kød', price: 10 };
+var EXTRA_MEAT = { id: 'kod', name: 'Ekstra kød', price: 15 };
 // Smørelse i pita og bowls (som på menukortet). "Uden smørelse" står sidst.
 var SM_H = { pick: { title: 'Vælg smørelse', options: ['Haydari', 'Hummus', 'Uden smørelse'] } };
 var SM_HT = { pick: { title: 'Vælg smørelse', options: ['Haydari', 'Tzatziki', 'Hummus', 'Uden smørelse'] } };
@@ -18,7 +19,7 @@ var SM_TH = { pick: { title: 'Vælg smørelse', options: ['Tzatziki', 'Haydari',
 
 window.CW_MENU = [
   {
-    id: 'frokost', title: 'Frokosttilbud', note: 'Mandag–fredag kl. 10–16', lunch: true,
+    id: 'frokost', title: 'Frokosttilbud', note: 'Man–tirs og tors–fre kl. 10–16', lunch: true,
     items: [
       ['', 'Sandwich: Kylling bacon', 'Kylling, bacon, salat, tomat, agurk og dressing', 39],
       ['', 'Sandwich: Spicy kylling', 'Spicy kylling, chilimayo, jalapeños, salat, tomat og agurk', 39],
@@ -61,7 +62,10 @@ window.CW_MENU = [
       ['', 'Bøfsandwich', 'Flamberet bøf, ketchup, remoulade, rødbeder, agurkesalat, rå løg, burgerdressing', 79],
       ['', 'Bacon Cheese Burger', 'Flamberet bøf, bacon, ost, salat, agurk, tomat, syltede løg, dressing, ketchup', 89],
       ['', 'Big Double Bacon Cheese', '2x flamberet bøf, ost, iceberg salat, agurk, tomat, rødløg, 2x bacon, ketchup, burgerdressing', 99],
-      ['', 'RibbenSandwich', 'Smurt med salatmayo, fyldt med rødkål og frisk agurksalat', 55, '', null, { ingr: ['salatmayo', 'rødkål', 'frisk agurksalat'] }]
+      ['', 'RibbenSandwich', 'Smurt med salatmayo, fyldt med rødkål og frisk agurksalat', 55, '', null, { ingr: ['salatmayo', 'rødkål', 'frisk agurksalat'] }],
+      ['', 'Classic Smash', '2 x 60 g bøf, cheddar, salat, tomat og løg, burgerdressing', 109, 'Kun som menu', null, { menuOnly: true, ingr: ['cheddar', 'salat', 'tomat', 'løg', 'burgerdressing'] }],
+      ['', 'Bacon Smash', '2 x 60 g bøf, cheddar, sprød bacon, BBQ-sauce', 109, 'Kun som menu', null, { menuOnly: true, ingr: ['cheddar', 'sprød bacon', 'BBQ-sauce'] }],
+      ['', 'Spicy Smash', '2 x 60 g bøf, cheddar, jalapeños, chilimayo', 109, 'Kun som menu', null, { menuOnly: true, ingr: ['cheddar', 'jalapeños', 'chilimayo'] }]
     ]
   },
   {
@@ -101,7 +105,7 @@ window.CW_MENU = [
     ]
   },
   {
-    id: 'pizza', title: 'Pizza', note: 'Almindelig eller familie · ekstra kød eller ost 10,-', menu: 30,
+    id: 'pizza', title: 'Pizza', note: 'Almindelig eller familie · ekstra kød 15,- · ekstra ost 10,-', menu: 30,
     sizes: ['Alm.', 'Fam.'],
     items: [
       ['1', 'Margherita', 'Tomatsauce, ost', [50, 95]],
@@ -182,7 +186,7 @@ window.CW_PIZZA_EXTRAS = [
   { id: 'hvidlog', name: 'Hvidløgsolie', price: 0 },
   { id: 'dressing', name: 'Dressing', price: 5 },
   { id: 'ost', name: 'Ekstra ost', price: 10 },
-  { id: 'kod', name: 'Ekstra kød', price: 10 }
+  { id: 'kod', name: 'Ekstra kød', price: 15 }
 ];
 
 // "pick" på en sektion: et valg kunden skal tage i pop-up'en, fx sauce i pitaen. Flere valg: en liste, fx [sauce, tilbehør].
