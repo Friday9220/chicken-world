@@ -701,7 +701,7 @@
     else if (del && dist.state === 'fail') { problem = 'Vi kunne ikke finde adressen. Tjek vejnavn, husnummer og postnummer, eller ring på ' + CFG.phone + '.'; focus = 'o-street'; }
     else if (del && !(document.querySelector('input[name=pay]:checked') || {}).value) { problem = 'Vælg, om du vil betale med MobilePay eller kontant ved levering.'; focus = null; }
     else if (!$('o-time').value) {
-      problem = hasLunch() ? 'Frokosttilbud kan kun bestilles mandag–fredag kl. 10–16. Fjern dem fra kurven, eller bestil til en hverdag i frokosttiden.'
+      problem = hasLunch() ? 'Frokosttilbud kan kun bestilles mandag, tirsdag, torsdag og fredag kl. 10–16. Fjern dem fra kurven, eller bestil til en hverdag i frokosttiden.'
               : del ? 'Der er ingen ledige leveringstider lige nu. Ring til os på ' + CFG.phone + '.'
                     : 'Der er ingen ledige tider lige nu. Ring til os på ' + CFG.phone + '.';
     }
