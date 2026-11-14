@@ -367,3 +367,18 @@ a { color: inherit; }
 @media (max-width: 480px) {
   .cards { grid-template-columns: 1fr; }
 }
+
+/* Smash burgers */
+.smashb { background: var(--cream); padding: clamp(56px, 8vw, 110px) clamp(18px, 4vw, 48px); }
+.smashb__inner { display: grid; grid-template-columns: 1fr 1.1fr; gap: 48px; align-items: center; max-width: 1200px; margin: 0 auto; }
+.smashb h2 { font-size: clamp(50px, 7.4vw, 112px); margin: 16px 0 18px; }
+.smashb p { max-width: 540px; font-size: 18px; }
+.smashb__img { border-radius: var(--radius); overflow: hidden; border: 3px solid var(--ink); transform: rotate(2deg); }
+.smashb__img img { width: 100%; aspect-ratio: 1 / 1; object-fit: cover; display: block; }
+.smashb__list { list-style: none; display: grid; margin: 22px 0 10px; max-width: 540px; }
+.smashb__list li { padding: 12px 0; border-bottom: 2px dashed rgba(43, 23, 16, .2); }
+.smashb__list span { font-weight: 700; font-size: 19px; }
+.smashb__list small { display: block; font-weight: 400; font-size: 14px; color: var(--muted); }
+.smashb__price { margin: 14px 0 22px; font-weight: 700; }
+.smashb__price b { font-family: var(--display); font-weight: 400; font-size: 34px; color: var(--red); margin-left: 6px; }
+@media (max-width: 860px) { .smashb__inner { grid-template-columns: 1fr; } .smashb__img { max-width: 520px; } }
