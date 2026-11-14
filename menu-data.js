@@ -63,7 +63,9 @@ window.CW_MENU = [
       ['', 'Bacon Cheese Burger', 'Flamberet bøf, bacon, ost, salat, agurk, tomat, syltede løg, dressing, ketchup', 89],
       ['', 'Big Double Bacon Cheese', '2x flamberet bøf, ost, iceberg salat, agurk, tomat, rødløg, 2x bacon, ketchup, burgerdressing', 99],
       ['', 'RibbenSandwich', 'Smurt med salatmayo, fyldt med rødkål og frisk agurksalat', 55, '', null, { ingr: ['salatmayo', 'rødkål', 'frisk agurksalat'] }],
-      ['', 'Smashburger', '3 x bacon, 120 g saftigt smashkød, bløde løg, sprøde pickles, hjemmelavet burgerdressing', 109, 'Kun som menu', null, { menuOnly: true, ingr: ['bacon', 'bløde løg', 'sprøde pickles', 'hjemmelavet burgerdressing'] }]
+      ['', 'Classic Smash', '2 x 75 g bøf, cheddar, salat, tomat og løg, burgerdressing', 109, 'Kun som menu', null, { menuOnly: true, ingr: ['cheddar', 'salat', 'tomat', 'løg', 'burgerdressing'] }],
+      ['', 'Bacon Smash', '2 x 75 g bøf, cheddar, sprød bacon, BBQ-sauce', 109, 'Kun som menu', null, { menuOnly: true, ingr: ['cheddar', 'sprød bacon', 'BBQ-sauce'] }],
+      ['', 'Spicy Smash', '2 x 75 g bøf, cheddar, jalapeños, chilimayo', 109, 'Kun som menu', null, { menuOnly: true, ingr: ['cheddar', 'jalapeños', 'chilimayo'] }]
     ]
   },
   {
