@@ -21,7 +21,8 @@ window.CW_CONFIG = {
   },
   // Særlige åbningstider på enkelte datoer ("ÅÅÅÅ-MM-DD": [fra, til] eller null = lukket). Går forud for "hours".
   specialHours: {
-    '2026-11-08': [16, 20] // søndag 8. november: åbent for bestilling kl. 16–20
+    '2026-11-08': [16, 20], // søndag 8. november: åbent for bestilling kl. 16–20
+    '2026-11-15': [16, 20] // søndag 15. november: åbent kl. 16–20
   },
   // Onlinebestilling lukker så mange minutter før lukketid
   lastOrderMinutes: 15,
