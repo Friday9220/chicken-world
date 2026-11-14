@@ -35,6 +35,8 @@
   function isAddon(item) { return /^(Tillæg|Gør din)/.test(item[2]) || /^(Ekstra|Dobbelt|Menu-tillæg)/.test(item[1]); }
   function pricesWithMenu(sec, item) {
     var ps = pricesOf(sec, item);
+    // { menuOnly: true } i 7. felt: retten sælges kun som menu, og prisen i menukortet er menuprisen
+    if (item[6] && item[6].menuOnly) return ps.slice(0, 1).map(function (p) { return { label: 'Menu', price: p.price, menu: true }; });
     if (!sec.menu || isAddon(item) || !ps.length) return ps;
     var base = ps[0];
     return ps.concat([{ label: base.label ? base.label + ' menu' : 'Menu', price: base.price + sec.menu, menu: true }]);

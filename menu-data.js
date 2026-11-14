@@ -7,6 +7,7 @@
 // En ret kan have egne prisnavne som 6. felt, fx ['Pizza', '+ sodavand'].
 // Tilkøb med samme "group" kan ikke vælges samtidig.
 // 7. felt er valg i pop-up'en for netop den ret, fx { pick: { title: 'Vælg kød', options: [...] } } eller { drinks: [...] }.
+// { menuOnly: true } i 7. felt: retten kan kun købes som menu (prisen er menuprisen).
 // { ingr: [...] } i 7. felt bestemmer selv, hvad der kan fravælges (ellers bruges beskrivelsen).
 // "lunch: true" betyder, at retterne kun kan bestilles man–tirs og tors–fre kl. 10–16.
 // Tilvalg "Ekstra kød" på burgere, pita, bowls og ruller (ret prisen her)
@@ -61,7 +62,8 @@ window.CW_MENU = [
       ['', 'Bøfsandwich', 'Flamberet bøf, ketchup, remoulade, rødbeder, agurkesalat, rå løg, burgerdressing', 79],
       ['', 'Bacon Cheese Burger', 'Flamberet bøf, bacon, ost, salat, agurk, tomat, syltede løg, dressing, ketchup', 89],
       ['', 'Big Double Bacon Cheese', '2x flamberet bøf, ost, iceberg salat, agurk, tomat, rødløg, 2x bacon, ketchup, burgerdressing', 99],
-      ['', 'RibbenSandwich', 'Smurt med salatmayo, fyldt med rødkål og frisk agurksalat', 55, '', null, { ingr: ['salatmayo', 'rødkål', 'frisk agurksalat'] }]
+      ['', 'RibbenSandwich', 'Smurt med salatmayo, fyldt med rødkål og frisk agurksalat', 55, '', null, { ingr: ['salatmayo', 'rødkål', 'frisk agurksalat'] }],
+      ['', 'Smashburger', '3 x bacon, 120 g saftigt smashkød, bløde løg, sprøde pickles, hjemmelavet burgerdressing', 109, 'Kun som menu', null, { menuOnly: true, ingr: ['bacon', 'bløde løg', 'sprøde pickles', 'hjemmelavet burgerdressing'] }]
     ]
   },
   {
