@@ -11,7 +11,7 @@
 // { ingr: [...] } i 7. felt bestemmer selv, hvad der kan fravælges (ellers bruges beskrivelsen).
 // "lunch: true" betyder, at retterne kun kan bestilles man–tirs og tors–fre kl. 10–16.
 // Tilvalg "Ekstra kød" på burgere, pita, bowls og ruller (ret prisen her)
-var EXTRA_MEAT = { id: 'kod', name: 'Ekstra kød', price: 10 };
+var EXTRA_MEAT = { id: 'kod', name: 'Ekstra kød', price: 15 };
 // Smørelse i pita og bowls (som på menukortet). "Uden smørelse" står sidst.
 var SM_H = { pick: { title: 'Vælg smørelse', options: ['Haydari', 'Hummus', 'Uden smørelse'] } };
 var SM_HT = { pick: { title: 'Vælg smørelse', options: ['Haydari', 'Tzatziki', 'Hummus', 'Uden smørelse'] } };
@@ -103,7 +103,7 @@ window.CW_MENU = [
     ]
   },
   {
-    id: 'pizza', title: 'Pizza', note: 'Almindelig eller familie · ekstra kød eller ost 10,-', menu: 30,
+    id: 'pizza', title: 'Pizza', note: 'Almindelig eller familie · ekstra kød 15,- · ekstra ost 10,-', menu: 30,
     sizes: ['Alm.', 'Fam.'],
     items: [
       ['1', 'Margherita', 'Tomatsauce, ost', [50, 95]],
@@ -184,7 +184,7 @@ window.CW_PIZZA_EXTRAS = [
   { id: 'hvidlog', name: 'Hvidløgsolie', price: 0 },
   { id: 'dressing', name: 'Dressing', price: 5 },
   { id: 'ost', name: 'Ekstra ost', price: 10 },
-  { id: 'kod', name: 'Ekstra kød', price: 10 }
+  { id: 'kod', name: 'Ekstra kød', price: 15 }
 ];
 
 // "pick" på en sektion: et valg kunden skal tage i pop-up'en, fx sauce i pitaen. Flere valg: en liste, fx [sauce, tilbehør].
