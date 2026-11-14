@@ -8,7 +8,7 @@
 // Tilkøb med samme "group" kan ikke vælges samtidig.
 // 7. felt er valg i pop-up'en for netop den ret, fx { pick: { title: 'Vælg kød', options: [...] } } eller { drinks: [...] }.
 // { ingr: [...] } i 7. felt bestemmer selv, hvad der kan fravælges (ellers bruges beskrivelsen).
-// "lunch: true" betyder, at retterne kun kan bestilles mandag–fredag kl. 10–16.
+// "lunch: true" betyder, at retterne kun kan bestilles man–tirs og tors–fre kl. 10–16.
 // Tilvalg "Ekstra kød" på burgere, pita, bowls og ruller (ret prisen her)
 var EXTRA_MEAT = { id: 'kod', name: 'Ekstra kød', price: 10 };
 // Smørelse i pita og bowls (som på menukortet). "Uden smørelse" står sidst.
@@ -18,7 +18,7 @@ var SM_TH = { pick: { title: 'Vælg smørelse', options: ['Tzatziki', 'Haydari',
 
 window.CW_MENU = [
   {
-    id: 'frokost', title: 'Frokosttilbud', note: 'Mandag–fredag kl. 10–16', lunch: true,
+    id: 'frokost', title: 'Frokosttilbud', note: 'Man–tirs og tors–fre kl. 10–16', lunch: true,
     items: [
       ['', 'Sandwich: Kylling bacon', 'Kylling, bacon, salat, tomat, agurk og dressing', 39],
       ['', 'Sandwich: Spicy kylling', 'Spicy kylling, chilimayo, jalapeños, salat, tomat og agurk', 39],
