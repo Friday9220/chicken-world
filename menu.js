@@ -80,7 +80,7 @@
           soda: !!(item[6] && item[6].drinks) || !!sec.drinks || !!p.menu || /sodavand/i.test(p.label) || /^Sodavand/.test(name),
           drinks: (item[6] && item[6].drinks) || sec.drinks || null,
           extras: (item[6] && item[6].extras) || (sec.extras && !isAddon(item) ? sec.extras : null),
-          dips: ['drikke', 'dip'].indexOf(sec.id) < 0,
+          dips: ['drikke', 'dip', 'dessert'].indexOf(sec.id) < 0,
           picks: [].concat((item[6] && item[6].pick) || [], sec.pick && !isAddon(item) ? sec.pick : []),
           ingr: (item[6] && item[6].ingr) || (NO_SECS.indexOf(sec.id) >= 0 && !isAddon(item) ? ingredients(desc, NO_MAIN.indexOf(sec.id) >= 0) : []),
           section: sec.lunch ? 'Frokost' : (sec.id === 'pizza' || sec.id === 'kylling' || sec.id === 'burgere' ? '' : sec.title)

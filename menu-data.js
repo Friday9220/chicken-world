@@ -170,6 +170,12 @@ window.CW_MENU = [
     ]
   },
   {
+    id: 'dessert', title: 'Dessert',
+    items: [
+      ['', 'Crème brûlée', 'Lækker cremet dessert med sprød karameltopping. 100 g', 25, 'Nyhed']
+    ]
+  },
+  {
     id: 'drikke', title: 'Drikkevarer',
     items: [
       ['', 'Sodavand 0,33 l', '', 13],
