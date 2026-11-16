@@ -439,32 +439,59 @@
     }
     setPstat(STAR ? '🖨️ Star-printer · printer automatisk' : '🖨️ Printer automatisk');
 
-    var printQueue = [], printing = false;
-    function printOrder(o) { printQueue.push(o); if (!printing) nextPrint(); }
+    // Fejler et print (printeren slukket, sover eller har mistet forbindelsen),
+    // bliver bonen i køen, og der prøves automatisk igen hvert 10. sekund i op til 10 minutter.
+    var RETRY_MS = 10000, RETRY_FOR_MS = 10 * 60 * 1000;
+    var printQueue = [], printing = false, retryTimer = null;
+    function printOrder(o) {
+      if (!printQueue.some(function (q) { return q.o.id === o.id; })) printQueue.push({ o: o, since: Date.now() });
+      if (retryTimer) { clearTimeout(retryTimer); retryTimer = null; printing = false; } // "Print igen" prøver med det samme
+      if (!printing) nextPrint();
+    }
     function nextPrint() {
-      var o = printQueue.shift();
-      if (!o) { printing = false; return; }
+      var job = printQueue[0];
+      if (!job) { printing = false; return; }
       printing = true;
-      if (STAR) return starPrint(o, function () { setTimeout(nextPrint, 300); });
-      $('bon').innerHTML = bonHtml(o);
+      if (STAR) return starPrint(job.o, function (ok, why) {
+        if (ok) { printQueue.shift(); return setTimeout(nextPrint, 300); }
+        if (Date.now() - job.since < RETRY_FOR_MS) {
+          setPstat('⚠️ ' + why + ' – prøver igen automatisk', 'bad');
+          retryTimer = setTimeout(function () { retryTimer = null; nextPrint(); }, RETRY_MS);
+        } else {
+          printQueue.shift();
+          setPstat('⚠️ #' + job.o.id + ' blev ikke printet: ' + why + ' – tryk "Print igen"', 'bad');
+          setTimeout(nextPrint, 300);
+        }
+      });
+      printQueue.shift();
+      $('bon').innerHTML = bonHtml(job.o);
       setTimeout(function () { window.print(); setTimeout(nextPrint, 400); }, 50);
+    }
+    function starWhy(t, r) {
+      try {
+        if (t.isCoverOpen(r)) return 'Printerens låg er åbent';
+        if (t.isPaperEnd(r)) return 'Printeren mangler papir';
+      } catch (e) {}
+      var code = String(r.traderCode || '');
+      if (code === '1100' || code === '2001') return 'Printeren er ikke klar (slukket, sover eller ikke forbundet til iPad\'en)';
+      return 'Printerfejl (kode ' + code + ')';
     }
     function starPrint(o, done) {
       var c = bonCanvas(o), b = new StarWebPrintBuilder();
       var req = b.createInitializationElement() +
         b.createBitImageElement({ context: c.getContext('2d'), x: 0, y: 0, width: c.width, height: c.height }) +
         b.createCutPaperElement({ feed: true, type: 'partial' });
-      var t = new StarWebPrintTrader({ url: STAR_URL, papertype: 'normal' });
+      var t = new StarWebPrintTrader({ url: STAR_URL, papertype: 'normal', timeout: 20000 });
       window.trader = t; // Star-appen kalder tilbage via en global "trader"
+      var finished = false;
+      function finish(ok, why) { if (finished) return; finished = true; done(ok, why); }
       t.onReceive = function (r) {
-        var ok = String(r.traderSuccess) === 'true';
-        if (ok) setPstat('🖨️ Printet #' + o.id + ' kl. ' + clock(new Date()), 'ok');
-        else setPstat('⚠️ Printer: ' + (t.isPaperEnd && t.isPaperEnd(r) ? 'papiret er tomt' : t.isCoverOpen && t.isCoverOpen(r) ? 'låget er åbent' : 'fejl (kode ' + r.traderCode + ')') + ' – tryk "Print igen"', 'bad');
-        done();
+        if (String(r.traderSuccess) === 'true') { setPstat('🖨️ Printet #' + o.id + ' kl. ' + clock(new Date()), 'ok'); finish(true); }
+        else finish(false, starWhy(t, r));
       };
-      t.onError = function (r) { setPstat('⚠️ Printeren svarer ikke – tjek kablet og tryk "Print igen"', 'bad'); done(); };
-      t.onTimeout = function () { setPstat('⚠️ Printeren svarer ikke – tryk "Print igen"', 'bad'); done(); };
-      try { t.sendMessage({ request: req }); } catch (e) { setPstat('⚠️ Kunne ikke printe: ' + e.message, 'bad'); done(); }
+      t.onError = function () { finish(false, 'Printeren svarer ikke'); };
+      t.onTimeout = function () { finish(false, 'Printeren svarer ikke'); };
+      try { t.sendMessage({ request: req }); } catch (e) { finish(false, 'Kunne ikke printe (' + e.message + ')'); }
     }
 
     function draw(freshIds) {
