@@ -8,6 +8,8 @@
   var DEL = CFG.delivery || { fee: 0, freeFrom: 0, from: 0, to: 0 };
   var LUNCH = CFG.lunch || { days: [], from: 0, to: 0 };
   var LAST = CFG.lastOrderMinutes || 15;
+  // Leveringstidsrum som tekst, fx "kl. 17–20"
+  var DEL_TIME = DEL.from != null && DEL.to != null ? 'kl. ' + DEL.from + '–' + DEL.to : 'i hele åbningstiden';
   var PREP = CFG.prepMinutes || 20;
   var STORE_KEY = 'cw-kurv2'; // nyt navn, når retternes valg ændres (gamle kurve passer ikke længere)
   var ONLINE = !!(CFG.supabaseUrl && CFG.supabaseKey); // ellers: kunden ringer bestillingen ind
@@ -611,8 +613,12 @@
     var mins = now.getHours() * 60 + now.getMinutes();
     var del = isDelivery();
     var lunchOnly = hasLunch();
-    function windowFor(h) {
-      var from = h[0] * 60, to = h[1] * 60 - LAST;
+    // Vindue [første, sidste] tidspunkt for den valgte dag. Første tid = når køkkenet (og chaufføren)
+    // kan nå det efter åbning; levering kan desuden kun ske inden for delivery.from–delivery.to.
+    function windowFor(d, h) {
+      var lead = del ? (DEL.minutes || 45) : PREP;
+      var openLead = dayKey(d) in SPECIAL ? 0 : lead; // særlige dage: bestil i god tid til selve åbningstiden
+      var from = Math.ceil((h[0] * 60 + openLead) / 15) * 15, to = h[1] * 60 - LAST;
       if (del && DEL.from != null) from = Math.max(from, DEL.from * 60);
       if (del && DEL.to != null) to = Math.min(to, DEL.to * 60);
       return [from, to];
@@ -621,23 +627,17 @@
     for (var i = 0; i < DAYS_AHEAD; i++) {
       var d = new Date(now.getFullYear(), now.getMonth(), now.getDate() + i);
       var h = hoursOn(d); if (!h) continue;
-      var w = windowFor(h), slots = [];
+      var w = windowFor(d, h), slots = [], lead = del ? (DEL.minutes || 45) : PREP, m;
       if (i === 0) {
-        var lead = del ? (DEL.minutes || 45) : PREP;
-        if (mins >= w[0] - lead && mins + lead <= w[1] && mins >= h[0] * 60 && (!lunchOnly || isLunch(d, mins + lead))) {
+        if (mins >= h[0] * 60 && mins + lead >= w[0] && mins + lead <= w[1] && (!lunchOnly || isLunch(d, mins + lead))) {
           slots.push(['asap', 'Hurtigst muligt (ca. ' + lead + ' min)']);
         }
-        // På særlige dage (specialHours) kan man bestille til selve åbningstiden, når man bestiller i god tid
-        var openLead = dayKey(d) in SPECIAL ? 0 : lead;
-        for (var m = Math.max(Math.ceil((w[0] + openLead) / 15) * 15, Math.ceil((mins + lead + 10) / 15) * 15); m <= w[1]; m += 15) {
-          if (!lunchOnly || isLunch(d, m)) slots.push([fmt(m), 'kl. ' + fmt(m)]);
-        }
+        m = Math.max(w[0], Math.ceil((mins + lead + 10) / 15) * 15);
       } else {
-        // Første tid: når køkkenet (og chaufføren) kan nå det efter åbning
-        var first = Math.ceil((w[0] + (dayKey(d) in SPECIAL ? 0 : (del ? (DEL.minutes || 45) : PREP))) / 15) * 15;
-        for (var m2 = first; m2 <= w[1]; m2 += 15) {
-          if (!lunchOnly || isLunch(d, m2)) slots.push([fmt(m2), 'kl. ' + fmt(m2)]);
-        }
+        m = w[0];
+      }
+      for (; m <= w[1]; m += 15) {
+        if (!lunchOnly || isLunch(d, m)) slots.push([fmt(m), 'kl. ' + fmt(m)]);
       }
       if (!slots.length) continue;
       var lbl = i === 0 ? 'i dag' : i === 1 ? 'i morgen' : DAYS[d.getDay()] + ' ' + d.getDate() + '. ' + MONTHS[d.getMonth()];
@@ -654,8 +654,8 @@
     var hint = '';
     if (del && slotDays.length) {
       hint = slotDays[0].label === 'i dag'
-        ? 'Vi leverer i hele åbningstiden.'
-        : (hoursOn(now) ? 'Vi kan ikke nå at levere mere i dag' : 'Vi har lukket i dag') + ', men du kan bestille nu til i morgen.';
+        ? 'Vi leverer ' + DEL_TIME + ' alle åbne dage.'
+        : (hoursOn(now) ? 'Vi kan ikke nå at levere mere i dag' : 'Vi har lukket i dag') + ', men du kan bestille levering nu til i morgen ' + DEL_TIME + '.';
     }
     $('delclosed').hidden = !hint;
     $('delclosed').textContent = hint;
@@ -704,7 +704,8 @@
     else if (del && dist.state === 'fail') { problem = 'Vi kunne ikke finde adressen. Tjek vejnavn, husnummer og postnummer, eller ring på ' + CFG.phone + '.'; focus = 'o-street'; }
     else if (del && !(document.querySelector('input[name=pay]:checked') || {}).value) { problem = 'Vælg, om du vil betale med MobilePay eller kontant ved levering.'; focus = null; }
     else if (!$('o-time').value) {
-      problem = hasLunch() ? 'Frokosttilbud kan kun bestilles mandag, tirsdag, torsdag og fredag kl. 10–16. Fjern dem fra kurven, eller bestil til en hverdag i frokosttiden.'
+      problem = hasLunch() && del && DEL.from != null && DEL.from >= LUNCH.to ? 'Frokosttilbud kan ikke leveres, fordi vi kun leverer ' + DEL_TIME + '. Vælg afhentning, eller fjern frokosttilbuddene fra kurven.'
+              : hasLunch() ? 'Frokosttilbud kan kun bestilles mandag, tirsdag, torsdag og fredag kl. 10–16. Fjern dem fra kurven, eller bestil til en hverdag i frokosttiden.'
               : del ? 'Der er ingen ledige leveringstider lige nu. Ring til os på ' + CFG.phone + '.'
                     : 'Der er ingen ledige tider lige nu. Ring til os på ' + CFG.phone + '.';
     }

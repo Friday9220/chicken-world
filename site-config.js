@@ -32,10 +32,12 @@ window.CW_CONFIG = {
   // Frokosttilbud kan kun bestilles i dette tidsrum (hverdage – onsdag er lukket)
   lunch: { days: [1, 2, 4, 5], from: 10, to: 16 },
 
-  // Levering kan bestilles i hele åbningstiden (dog senest lastOrderMinutes før lukketid).
+  // Levering kan kun ske mellem kl. from og to (hele timer) på alle åbne dage – dog senest lastOrderMinutes
+  // før lukketid. Afhentning følger de normale åbningstider. Databasen tjekker også tidsrummet
+  // (supabase/opdatering-levering-17-20.sql), så ret begge steder, hvis tiderne ændres.
   // Levering: fee kr under freeFrom kr (gratis fra freeFrom). Over baseKm km fra butikken lægges perKm kr
   // på for hver km ud over baseKm – talt både ud og hjem. km = længste afstand vi leverer til.
   // Levering er gratis (fee 0) – kun kørselstillæg: perKm kr pr. km ud over baseKm, talt ud og hjem.
   // minOrder: levering kræver køb af mad for mindst så mange kr. Vil I have gebyr igen: sæt fee (og evt. freeFrom).
-  delivery: { fee: 0, freeFrom: 0, minOrder: 250, baseKm: 5, perKm: 5, roundTrip: true, km: 15, minutes: 45 }
+  delivery: { from: 17, to: 20, fee: 0, freeFrom: 0, minOrder: 250, baseKm: 5, perKm: 5, roundTrip: true, km: 15, minutes: 45 }
 };
