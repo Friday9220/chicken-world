@@ -13,6 +13,9 @@
 // Tilvalg "Ekstra kød" på burgere, pita, bowls og ruller (ret prisen her)
 var EXTRA_MEAT = { id: 'kod', name: 'Ekstra kød', price: 15 };
 // Smørelse i pita og bowls (som på menukortet). "Uden smørelse" står sidst.
+// Frokost: pita eller bowl
+var PB = { title: 'Vælg pita eller bowl', options: ['Pita', 'Bowl'] };
+var PBL = ['Pita/bowl', '+ sodavand'];
 var SM_H = { pick: { title: 'Vælg smørelse', options: ['Haydari', 'Hummus', 'Uden smørelse'] } };
 var SM_HT = { pick: { title: 'Vælg smørelse', options: ['Haydari', 'Tzatziki', 'Hummus', 'Uden smørelse'] } };
 var SM_TH = { pick: { title: 'Vælg smørelse', options: ['Tzatziki', 'Haydari', 'Hummus', 'Uden smørelse'] } };
@@ -21,15 +24,27 @@ window.CW_MENU = [
   {
     id: 'frokost', title: 'Frokosttilbud', note: 'Man–tirs og tors–fre kl. 10–16', lunch: true,
     items: [
-      ['', 'Sandwich: Kylling bacon', 'Kylling, bacon, salat, tomat, agurk og dressing', 39],
-      ['', 'Sandwich: Spicy kylling', 'Spicy kylling, chilimayo, jalapeños, salat, tomat og agurk', 39],
-      ['', 'Sandwich: Kylling & karry', 'Kylling, karry, bacon, salat, tomat og agurk', 39],
-      ['', 'Sandwich: BBQ kylling', 'BBQ-kylling, bacon, ost, coleslaw og rå løg', 39],
-      ['', 'Sandwich: Æg & rejer', 'Æg, rejer, salat, tomat, agurk og dressing', 39],
-      ['', 'Sandwich: Tun', 'Tun, salat, tomat, agurk, løg og dressing', 39],
-      ['', 'Sandwich: Skinke & ost', 'Skinke, ost, salat, tomat, agurk og dressing', 39],
-      ['', 'Kyllingemix', 'Med pommes frites og husets dressing', 39],
-      ['', 'Kebabmix', 'Med pommes frites og husets dressing', 39],
+      // Sandwich 39,- (med sodavand +11,-)
+      ['', 'Sandwich: Kylling bacon', 'Kylling, bacon, salat, tomat, agurk og dressing', [39, 50], '', ['Sandwich', '+ sodavand']],
+      ['', 'Sandwich: Spicy kylling', 'Spicy kylling, chilimayo, jalapeños, salat, tomat og agurk', [39, 50], '', ['Sandwich', '+ sodavand']],
+      ['', 'Sandwich: Kylling & karry', 'Kylling, karry, bacon, salat, tomat og agurk', [39, 50], '', ['Sandwich', '+ sodavand']],
+      ['', 'Sandwich: BBQ kylling', 'BBQ-kylling, bacon, ost, coleslaw og rå løg', [39, 50], '', ['Sandwich', '+ sodavand']],
+      ['', 'Sandwich: Tun', 'Tun, salat, tomat, agurk, løg og dressing', [39, 50], '', ['Sandwich', '+ sodavand']],
+      ['', 'Sandwich: Skinke & ost', 'Skinke, ost, salat, tomat, agurk og dressing', [39, 50], '', ['Sandwich', '+ sodavand']],
+      // Mix / burger 49,- (med sodavand +6,-)
+      ['', 'Burger: Hamburger', 'Med salat, agurk, tomat, syltede løg, dressing og ketchup', [49, 55], '', ['Burger', '+ sodavand']],
+      ['', 'Burger: Cheeseburger', 'Med ost, salat, agurk, tomat, syltede løg, dressing og ketchup', [49, 55], '', ['Burger', '+ sodavand']],
+      ['', 'Burger: Kyllingeburger', 'Med salat, tomat, agurk og hjemmelavet dressing', [49, 55], '', ['Burger', '+ sodavand']],
+      ['', 'Kylling mix', 'Med pommes frites og creme fraiche-dressing', [49, 55], '', ['Mix', '+ sodavand']],
+      ['', 'Kebab mix', 'Med pommes frites og creme fraiche-dressing', [49, 55], '', ['Mix', '+ sodavand']],
+      // Pita eller bowl 49,- (med sodavand +6,-)
+      ['', 'Pita/bowl: Crispy fried chicken', 'Crispy fried chicken, salat, tomat, agurk, peberfrugt, gulerødder, feta, syltede rødløg, kålmix, karrydressing og basilikumpesto', [49, 55], '', PBL, { pick: [PB, { title: 'Vælg smørelse', options: ['Haydari', 'Uden smørelse'] }] }],
+      ['', 'Pita/bowl: Grillet oksebøf', 'Grillet hakkebøf, cheddarost, salat, tomat, agurk, syltede rødløg, peberfrugt, coleslaw, rødkål og hvidløgsdressing', [49, 55], '', PBL, { pick: [PB, { title: 'Vælg smørelse', options: ['Haydari', 'Tzatziki', 'Uden smørelse'] }] }],
+      ['', 'Pita/bowl: Kebab', 'Kebab, salat, tomat, agurk, peberfrugt, syltede rødløg, kålmix og urtedressing', [49, 55], '', PBL, { pick: [PB, { title: 'Vælg smørelse', options: ['Tzatziki', 'Haydari', 'Uden smørelse'] }] }],
+      ['', 'Pita/bowl: Tun', 'Tun, salat, tomat, agurk, peberfrugt, syltede rødløg, feta, kålmix og urtedressing', [49, 55], '', PBL, { pick: [PB, { title: 'Vælg smørelse', options: ['Tzatziki', 'Haydari', 'Uden smørelse'] }] }],
+      ['', 'Pita/bowl: Grillet kylling', 'Grillet kyllingefilet, salat, tomat, agurk, peberfrugt, feta, syltede rødløg, kålmix og urtedressing', [49, 55], '', PBL, { pick: [PB, { title: 'Vælg smørelse', options: ['Tzatziki', 'Haydari', 'Uden smørelse'] }] }],
+      ['', 'Pita/bowl: Falafel', 'Falafel, salat, tomat, agurk, feta, syltede rødløg, kålmix og urtedressing', [49, 55], 'Vegetar', PBL, { pick: [PB] }],
+      // Frokostpizza
       ['', 'Frokostpizza: Skinke', 'Alm. størrelse', [35, 45], '', ['Pizza', '+ sodavand']],
       ['', 'Frokostpizza: Pepperoni', 'Alm. størrelse', [35, 45], '', ['Pizza', '+ sodavand']],
       ['', 'Frokostpizza: Kebab', 'Alm. størrelse', [35, 45], '', ['Pizza', '+ sodavand']],
